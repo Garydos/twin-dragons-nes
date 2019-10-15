@@ -1,0 +1,3 @@
+[submodule "famitone5"]
+	path = famitone5
+	url = git@github.com:Garydos/famitone5.0.git
