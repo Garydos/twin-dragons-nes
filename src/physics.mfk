@@ -1,0 +1,275 @@
+//collision flags
+bool collis_flag
+bool down_collis_flag
+bool up_collis_flag
+bool right_collis_flag
+bool left_collis_flag
+
+//player physics flags
+bool on_ground
+bool jumping
+bool can_jump
+
+byte playerx
+byte playery
+byte playerx_frac //fractional part of playerx, can range from 0-3 (first 2 bits)
+byte playery_frac //fractional part of playery, can range from 0-3 (first 2 bits)
+//velocities are added to playerx_frac and playery_frac, so they should be treated as
+//fractional parts (i.e. playerxvel = 4 means playerx will increase by 1, playerxvel = 8
+//means playerx will increase by 2, etc...)
+volatile sbyte playerxvel
+volatile sbyte playeryvel
+//speed added to player when moving
+byte playerx_speed
+byte playerx_accel
+byte playery_accel
+byte scroll_speed
+const byte player_width = 12 //width in pixels
+const byte player_height = 14 //height in pixels
+const byte player_max_xvel = 10
+const byte player_max_xvel_neg = -10
+const byte player_x_friction = 8
+const byte player_x_air_friction = 8
+const byte player_max_yvel = 32
+const byte player_max_yvel_neg = -24
+const byte player_gravity_accel = 4
+
+//variables for debugging, find these
+//in fceux's hex editor and watch them
+byte _current_tile //the current tile player position is touching
+
+inline void reset_collis_flags() {
+    collis_flag = false
+    up_collis_flag = false
+    down_collis_flag = false
+    left_collis_flag = false
+    right_collis_flag = false
+}
+
+macro void check_background_collis_horiz(byte screenx, byte screeny, byte spritewidth, byte spriteheight) {
+    check_background_collis(screenx, screeny, spritewidth, spriteheight, false)
+}
+
+macro void check_background_collis_vert(byte screenx, byte screeny, byte spritewidth, byte spriteheight) {
+    check_background_collis(screenx, screeny, spritewidth, spriteheight, true)
+}
+
+void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte spriteheight, bool vert) {
+    //check if the bounding box is colliding with collidable background tiles
+    //on its left and right edges
+    byte new_column1
+    byte new_column2
+    byte new_row1
+    byte new_row2
+    byte i
+    byte limit
+    
+    //do the collision stuff, set the left and right
+    //flags depending on left/right or up/down collisions
+    //assume that any tile that is not $24 (sky tile) is collidable
+
+    if vert {
+        //DOWN SIDE
+        new_row1 = get_row_from_screeny(screeny+spriteheight)
+        new_column1 = get_column_from_screenx(screenx)
+        new_column2 = get_column_from_screenx(screenx+spritewidth)
+        
+        limit = new_column2-new_column1
+        i = 0
+        
+        while i <= limit{
+            _current_tile = get_tile(new_column1+i, new_row1)
+            if _current_tile != $24 {
+                collis_flag = true
+                down_collis_flag = true
+                return
+            }
+            i += 1
+        }
+        
+        //UP SIDE
+
+        new_row1 = get_row_from_screeny(screeny)
+        new_column1 = get_column_from_screenx(screenx)
+        new_column2 = get_column_from_screenx(screenx+spritewidth)
+        
+        limit = new_column2-new_column1
+        i = 0
+        
+        while i <= limit{
+            _current_tile = get_tile(new_column1+i, new_row1)
+            if _current_tile != $24 {
+                collis_flag = true
+                up_collis_flag = true
+                return
+            }
+            i += 1
+        }
+    }
+    else {
+        //it is expected that the vertical
+        //collision checks are done first
+        
+        //RIGHT SIDE
+        new_column1 = get_column_from_screenx(screenx+spritewidth)
+        new_row1 = get_row_from_screeny(screeny)
+        new_row2 = get_row_from_screeny(screeny+spriteheight)
+        
+        limit = new_row2-new_row1
+        i = 0
+
+        while i <= limit{
+            _current_tile = get_tile(new_column1, new_row1+i)
+            if _current_tile != $24 {
+                collis_flag = true
+                right_collis_flag = true
+                return
+            }
+            i += 1
+        }
+        
+        //LEFT SIDE
+        new_column1 = get_column_from_screenx(screenx)
+        new_row1 = get_row_from_screeny(screeny)
+        new_row2 = get_row_from_screeny(screeny+spriteheight)
+        
+        limit = new_row2-new_row1
+        i = 0
+
+        while i <= limit{
+            _current_tile = get_tile(new_column1, new_row1+i)
+            if _current_tile != $24 {
+                collis_flag = true
+                left_collis_flag = true
+                return
+            }
+            i += 1
+        }
+    }
+}
+
+void check_player_collis_and_update_player_loc() {
+    sbyte temp_vel
+    byte old_playerx
+    byte old_playerx_frac
+    byte old_playery
+    byte old_playery_frac
+    
+    old_playerx = playerx
+    old_playery = playery    
+    old_playerx_frac = playerx_frac
+    old_playery_frac = playery_frac
+    
+    //do vertical collision checking
+    
+    //if we're going too fast, do the collision checking in two steps
+    //to ensure we stick to the ground
+    
+    update_player_y_speed()
+    
+    check_background_collis_vert(playerx, playery, player_width, player_height)
+    on_ground = down_collis_flag
+    if collis_flag{   
+        // playery = old_playery
+        // playery_frac = old_playery_frac
+        playeryvel = 0
+    }
+    
+    //if the speed was great enough to possibly have skipped over a
+    //landing point, then stick them to the ground
+    if down_collis_flag {
+        playery_frac = 0
+        do {
+            collis_flag = false
+            playery -= 1
+            check_background_collis_vert(playerx, playery, player_width, player_height)
+        } while collis_flag
+    }
+    //do the same for a negative velocities
+    else if up_collis_flag {
+        playery_frac = 0
+        do {
+            collis_flag = false
+            playery += 1
+            check_background_collis_vert(playerx, playery, player_width, player_height)
+        }while collis_flag
+    }
+    
+    collis_flag = false
+    
+    //do horizontal collision checking
+    update_player_x_speed()
+
+    check_background_collis_horiz(playerx, playery, player_width, player_height)
+    if collis_flag {
+        // playerx = old_playerx
+        // playerx_frac = old_playerx_frac
+        playerxvel = 0
+    }
+    
+    //if the speed was great enough to possibly have skipped over a
+    //landing point, then stick them to the wall
+    if right_collis_flag {
+        playerx_frac = 0
+        do {
+            collis_flag = false
+            playerx -= 1
+            check_background_collis_vert(playerx, playery, player_width, player_height)
+        } while collis_flag
+    }
+    //do the same for a negative velocities
+    else if left_collis_flag {
+        playerx_frac = 0
+        do {
+            collis_flag = false
+            playerx += 1
+            check_background_collis_vert(playerx, playery, player_width, player_height)
+        }while collis_flag
+    }
+    
+    reset_collis_flags()
+}
+
+
+void update_player_x_speed() {
+    if playerxvel < 0{
+        playerxvel = flip_sign(playerxvel) //playerxvel *= -1
+        playerx -= playerxvel >> 2
+        playerx_frac -= playerxvel & %00000011
+        if playerx_frac > 3 {
+            playerx_frac += 4 // 4 because 4 + -1 = 3, 4 + -2 = 2, 4 + -3 = 1, 4 + -4 = 0
+                              // so basically, (max fractional part value) + 1
+            playerx -= 1
+        }
+        playerxvel = flip_sign(playerxvel) //playerxvel *= -1
+    }
+    else {
+        playerx += playerxvel >> 2
+        playerx_frac += playerxvel & %00000011
+        if playerx_frac > 3 {
+            playerx_frac -= 3
+            playerx += 1
+        }
+    }
+}
+
+void update_player_y_speed() {
+    if playeryvel < 0{
+        playeryvel = flip_sign(playeryvel)
+        playery -= playeryvel >> 2
+        playery_frac -= playeryvel & %00000011
+        if playery_frac > 3 {
+            playery_frac += 4 // 4 because 4 + -1 = 3, 4 + -2 = 2, 4 + -3 = 1, 4 + -4 = 0
+            playery -= 1
+        }
+        playeryvel = flip_sign(playeryvel) // yvel *= -1
+    }
+    else {
+        playery += playeryvel >> 2
+        playery_frac += playeryvel & %00000011
+        if playery_frac > 3 {
+            playery_frac -= 3
+            playery += 1
+        }
+    }
+}

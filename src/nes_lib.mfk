@@ -1,0 +1,39 @@
+//ppu address definitions
+const word ppu_nametable0 = $2000
+const word ppu_nametable1 = $2400
+const word ppu_nametable2 = $2800
+const word ppu_nametable3 = $2C00
+const word ppu_attrtable0 = $23C0
+const word ppu_attrtable1 = $27C0
+const word ppu_attrtable2 = $2BC0
+const word ppu_attrtable3 = $2FC0
+const word ppu_pallete_ram = $3F00
+
+inline asm void ppu_wait_vblank() {
+    //wait for vblank to start
+    vblankwait:
+        BIT $2002
+        ! BPL vblankwait
+    ? RTS
+}
+
+inline asm void wait_cycles(byte x) {
+    //burn some cycles
+    WaitScanline:
+        DEX
+        ! BNE WaitScanline
+    ? RTS
+}
+
+inline byte flip_sign(byte a) {
+    //flip the sign of a signed byte
+    if a & %10000000 != 0{
+        a -= 1
+        a ^= $FF
+    }
+    else {
+        a ^= $FF
+        a += 1
+    }
+    return a
+}
