@@ -1,0 +1,1566 @@
+// compile with -t nes_small_v and -O4
+
+//use the dpad to move the player around
+//use a to jump
+//use b to dash
+
+//TODO: rework scrolling so that it works even
+//if you skip over the specific xscroll values it needs
+//to detect a new column
+
+import nes_joy
+
+const word ppu_nametable0 = $2000
+const word ppu_nametable1 = $2400
+const word ppu_nametable2 = $2800
+const word ppu_nametable3 = $2C00
+const word ppu_attrtable0 = $23C0
+const word ppu_attrtable1 = $27C0
+const word ppu_attrtable2 = $2BC0
+const word ppu_attrtable3 = $2FC0
+const word ppu_pallete_ram = $3F00
+
+array oam_buffer [256] @$200 // sprite buffer
+
+//constant offsets for oam_buffer
+//so we can draw the player metasprite easily,
+//in a real game you should use a oam manager
+const byte playersprite0_x = 4
+const byte playersprite0_tile = 5
+const byte playersprite0_attrs = 6
+const byte playersprite0_y = 7
+
+const byte playersprite1_x = 8
+const byte playersprite1_tile = 9
+const byte playersprite1_attrs = 10
+const byte playersprite1_y = 11
+
+const byte playersprite2_x = 12
+const byte playersprite2_tile = 13
+const byte playersprite2_attrs = 14
+const byte playersprite2_y = 15
+
+const byte playersprite3_x = 16
+const byte playersprite3_tile = 17
+const byte playersprite3_attrs = 18
+const byte playersprite3_y = 19
+
+//player sprite constants
+const byte sprite0_attrs = 0
+const byte sprite1_attrs = 0
+const byte sprite2_attrs = 0
+const byte sprite3_attrs = 0
+const byte sprite0_tile = 0
+const byte sprite1_tile = 1
+const byte sprite2_tile = 2
+const byte sprite3_tile = 3
+
+//collision flags
+bool collis_flag
+bool down_collis_flag
+bool up_collis_flag
+bool right_collis_flag
+bool left_collis_flag
+
+//player physics flags
+bool on_ground
+bool jumping
+bool can_jump
+
+byte playerx
+byte playery
+byte playerx_frac //fractional part of playerx, can range from 0-3 (first 2 bits)
+byte playery_frac //fractional part of playery, can range from 0-3 (first 2 bits)
+//velocities are added to playerx_frac and playery_frac, so they should be treated as
+//fractional parts (i.e. playerxvel = 4 means playerx will increase by 1, playerxvel = 8
+//means playerx will increase by 2, etc...)
+volatile sbyte playerxvel
+volatile sbyte playeryvel
+//speed added to player when moving
+byte playerx_speed
+byte playerx_accel
+byte playery_accel
+byte scroll_speed
+const byte player_width = 12 //width in pixels
+const byte player_height = 14 //height in pixels
+const byte player_max_xvel = 10
+const byte player_max_xvel_neg = -10
+const byte player_x_friction = 8
+const byte player_x_air_friction = 8
+const byte player_max_yvel = 32
+const byte player_max_yvel_neg = -24
+const byte player_gravity_accel = 4
+
+byte nametable //current nametable
+byte draw_nametable //the nametable we want to draw on
+byte draw_seam_column //column at the draw/scroll seam
+byte next_column      //column to be drawn to next
+byte current_screen      //screen to load next
+byte xscroll          //screen x scroll value
+byte prev_xscroll     //previous xcroll value
+bool scrolling_right
+bool scrolling_left
+byte previous_scroll //0 = scrolling right, 1 = scrolling left
+byte draw_counter
+
+//flags for drawing
+bool changed_column
+bool changed_meta_column
+bool changed_attr_column
+bool changed_screen
+
+//How many pixels before a new attribute table column
+//is needed should we load them?  This is necessary because loading
+//an attribute column and a tile column at the same time takes too
+//much time for the nmi.
+//Note: this should be changed to be greater than or equal to the max
+//x velocity of the player
+const byte attr_draw_offset = 8
+
+//variables for debugging, find these
+//in fceux's hex editor and watch them
+byte _current_tile //the current tile player position is touching
+
+void main() {
+    init_sprites()
+    load_palletes()
+    clear_status_bar()
+    draw_status_bar()
+    prepare_sprite0()
+    
+    xscroll = 0
+    nametable = 0
+    draw_seam_column = 0
+    draw_counter = 0
+    previous_scroll = 0
+    current_screen = 0
+    playerx = 10
+    playery = $60
+    playerx_speed = 8
+    scroll_speed = 2
+    playerx_accel = 0
+    playery_accel = 0
+    scrolling_right = false
+    scrolling_left = false
+    collis_flag = false
+    down_collis_flag = false
+    up_collis_flag = false
+    right_collis_flag = false
+    left_collis_flag = false
+    changed_column = false
+    changed_meta_column = false
+    changed_attr_column = false
+    changed_screen = false
+    on_ground = false
+    jumping = false
+    can_jump = true
+    
+    //screen 1 + screen 2 leftmost column
+    draw_full_screen(0,0)
+    draw_column(0,1,16)
+    load_attr_column(0,0,0)
+    load_attr_column(1,0,1)
+    load_attr_column(2,0,2)
+    load_attr_column(3,0,3)
+    load_attr_column(4,0,4)
+    load_attr_column(5,0,5)
+    load_attr_column(6,0,6)
+    load_attr_column(7,0,7)
+    load_attr_column(0,1,8)
+    
+    ppu_set_scroll(0,0)
+    ppu_wait_vblank()
+    ppu_ctrl = %10010000   // enable NMI, sprites from Pattern Table 0, background from Pattern Table 1
+    ppu_mask = %00011110   // enable sprites, enable background, no clipping on left side
+
+    while(true) {}
+}
+
+void nmi() {
+    ppu_oam_dma_write(oam_buffer.addr.hi)
+    
+    //either scrolling right or have a column to finish drawing
+    if scrolling_right || (previous_scroll == 0 && draw_counter > 0) {
+        
+        //update the scroll variable
+        if scrolling_right{
+            update_scroll_right()
+        }
+        
+        right_metatile_scroll()
+        
+        previous_scroll = 0
+    }
+    //either scrolling left or have a column to finish drawing
+    else if scrolling_left || (previous_scroll == 1 && draw_counter > 0) {
+        //left scroll logic
+        
+        if scrolling_left {
+            update_scroll_left()
+        }
+        
+        left_metatile_scroll()
+    
+        previous_scroll = 1
+    }
+    
+    //set scroll to 0 for now so that the status bar
+    //stays still
+    ppu_set_scroll(0,0)
+    ppu_ctrl = %10010000 // no need to or the nametable for this one,
+                         // as the status bar should always be at the first nametable
+    ppu_mask = %00011100
+    
+    //now we start checking for a sprite0 hit
+    //so that we know the status bar is done drawing
+    
+    //first wait for the previous frame's sprite0 hit
+    //to clear
+    while (ppu_status & %01000000) != 0 {
+    }
+    
+    //then wait for this frame's sprite0 hit
+    while (ppu_status & %01000000) == 0 {
+    }
+    
+    //now wait for the end of the scanline
+    wait_cycles($10)
+    
+    //we have now reached the end of the scanline, and the
+    //status bar is done drawing, so draw the rest of
+    //the screen with the correct scroll values
+    ppu_set_scroll(xscroll,0)
+    ppu_ctrl = %10010000 | nametable
+    ppu_mask = %00011100
+    
+    game_logic()
+}
+
+inline void game_logic() {
+    //game logic goes here
+    read_joy1()
+    
+    if input_b != 0 {
+        playerx_speed = 7
+    }
+    else {
+        playerx_speed = 5
+    }
+    
+    if input_dx > 0 {
+        // scrolling_right = true
+        // scrolling_left = false
+        if playerx < $F0 {
+            if (playerx_accel >> 2) < playerx_speed {
+                playerx_accel += 1
+            }
+            else {
+                playerx_accel = playerx_speed << 2
+            }
+            // playerxvel += playerx_speed
+            playerxvel += (playerx_accel >> 2)
+        }
+    }
+    else if input_dx < 0 {
+        // scrolling_right = false
+        // scrolling_left = true
+        if playerx > $08 {
+            if (playerx_accel >> 2) < playerx_speed {
+                playerx_accel += 1
+            }
+            else {
+                playerx_accel = playerx_speed << 2
+            }
+            // playerxvel -= playerx_speed
+            playerxvel -= (playerx_accel >> 2)
+        }
+    }
+    else {
+        scrolling_left = false
+        scrolling_right = false
+        playerx_accel = 0
+    }
+    
+    if input_a != 0 {
+        if can_jump {
+            playeryvel = 0
+            playery_accel = 8
+            jumping = true
+            can_jump = false
+        }
+        if playery_accel < 24 && jumping {
+            playery_accel += 2
+            playeryvel -= (playery_accel >> 2)
+        }
+        else {
+            playery_accel = player_gravity_accel
+            playeryvel += playery_accel
+            jumping = false
+        }
+    }
+    else {
+        // scrolling_right = false
+        // scrolling_left = true
+        playery_accel = player_gravity_accel
+        playeryvel += playery_accel
+        jumping = false
+        if on_ground {
+            can_jump = true
+        }
+    }
+    
+    
+    //cap velocity
+    if playerxvel >= player_max_xvel {
+        playerxvel = player_max_xvel
+        playerx_frac = 0
+    }
+    if playerxvel <= player_max_xvel_neg {
+        playerxvel = player_max_xvel_neg
+        playerx_frac = 0
+    }    
+    
+    if playeryvel >= player_max_yvel {
+        playeryvel = player_max_yvel
+        playery_frac = 0
+    }
+    if playeryvel <= player_max_yvel_neg {
+        playeryvel = player_max_yvel_neg
+        playery_frac = 0
+    }
+    
+    check_player_collis_and_update_player_loc()
+    
+    //apply friction
+    if playerxvel < 0 {
+        playerxvel += player_x_friction
+        if playerxvel > 0 {
+            playerxvel = 0
+        }
+    }
+    else if playerxvel > 0 {
+        playerxvel -= player_x_friction
+        if playerxvel < 0 {
+            playerxvel = 0
+        }
+    }
+    
+    if playerx > $78 && not(current_screen == 3 && xscroll == 0) {
+        // playerx = $78
+        //update the position of the screen sprites
+        scroll_speed = playerx - $78
+        //fix scroll_speed so that we never overshoot the right scroll limit
+        if current_screen == 2 && scroll_speed + xscroll < xscroll {
+            scroll_speed = ($FF - xscroll) + 1
+        }
+        playerx -= scroll_speed
+        //scroll the screen as well
+        scrolling_right = true
+        scrolling_left = false
+    }
+    else if playerx < $78 && not(current_screen == 0 && xscroll == 0) {
+        // playerx = $78
+        //update the position of the screen sprites
+        scroll_speed = $78 - playerx
+        if current_screen == 0 && xscroll - scroll_speed > xscroll {
+            scroll_speed = xscroll
+        }
+        //set screen scroll left limit
+        playerx += scroll_speed
+        //scroll the screen as well
+        scrolling_right = false
+        scrolling_left = true
+    }
+    else {
+        scrolling_left = false
+        scrolling_right = false
+    }
+
+    snap_player_pos_limits()
+    update_player_sprites()
+}
+
+void irq() {
+}
+
+void check_player_collis_and_update_player_loc() {
+    sbyte temp_vel
+    byte old_playerx
+    byte old_playerx_frac
+    byte old_playery
+    byte old_playery_frac
+    
+    old_playerx = playerx
+    old_playery = playery    
+    old_playerx_frac = playerx_frac
+    old_playery_frac = playery_frac
+    
+    //do vertical collision checking
+    
+    //if we're going too fast, do the collision checking in two steps
+    //to ensure we stick to the ground
+    
+    update_player_y_speed()
+    
+    check_background_collis_vert(playerx, playery, player_width, player_height)
+    on_ground = down_collis_flag
+    if collis_flag{   
+        // playery = old_playery
+        // playery_frac = old_playery_frac
+        playeryvel = 0
+    }
+    
+    //if the speed was great enough to possibly have skipped over a
+    //landing point, then stick them to the ground
+    if down_collis_flag {
+        playery_frac = 0
+        do {
+            collis_flag = false
+            playery -= 1
+            check_background_collis_vert(playerx, playery, player_width, player_height)
+        } while collis_flag
+    }
+    //do the same for a negative velocities
+    else if up_collis_flag {
+        playery_frac = 0
+        do {
+            collis_flag = false
+            playery += 1
+            check_background_collis_vert(playerx, playery, player_width, player_height)
+        }while collis_flag
+    }
+    
+    collis_flag = false
+    
+    //do horizontal collision checking
+    update_player_x_speed()
+
+    check_background_collis_horiz(playerx, playery, player_width, player_height)
+    if collis_flag {
+        // playerx = old_playerx
+        // playerx_frac = old_playerx_frac
+        playerxvel = 0
+    }
+    
+    //if the speed was great enough to possibly have skipped over a
+    //landing point, then stick them to the wall
+    if right_collis_flag {
+        playerx_frac = 0
+        do {
+            collis_flag = false
+            playerx -= 1
+            check_background_collis_vert(playerx, playery, player_width, player_height)
+        } while collis_flag
+    }
+    //do the same for a negative velocities
+    else if left_collis_flag {
+        playerx_frac = 0
+        do {
+            collis_flag = false
+            playerx += 1
+            check_background_collis_vert(playerx, playery, player_width, player_height)
+        }while collis_flag
+    }
+    
+    reset_collis_flags()
+}
+
+inline void snap_player_pos_limits() {
+    //snap the player back to the playable area of the screen
+    if playerx > $F0 {
+        playerx = $F0
+    }
+    if playerx < $08 {
+        playerx = $08
+    }
+    if playery > $D0 {
+        playery = $D0
+        on_ground = true
+    }
+    if playery < $20 {
+        playery = $20
+    }
+}
+
+inline void reset_collis_flags() {
+    collis_flag = false
+    up_collis_flag = false
+    down_collis_flag = false
+    left_collis_flag = false
+    right_collis_flag = false
+}
+
+byte get_column_from_screenx(byte screenx) {
+    byte new_column
+    word new_column_offset //must be a word because (xscroll+newplayerx) can overflow
+    
+    new_column = current_screen << 5 //leftmost column of current screen
+    new_column_offset = xscroll
+    new_column_offset += screenx
+    new_column_offset >>= 3
+    new_column += new_column_offset.lo
+    if new_column >= $80 {
+       new_column -= $80
+    }
+    
+    return new_column
+}
+
+inline byte get_row_from_screeny(byte screeny) {
+    return screeny >> 3
+}
+
+macro void check_background_collis_horiz(byte screenx, byte screeny, byte spritewidth, byte spriteheight) {
+    check_background_collis(screenx, screeny, spritewidth, spriteheight, false)
+}
+
+macro void check_background_collis_vert(byte screenx, byte screeny, byte spritewidth, byte spriteheight) {
+    check_background_collis(screenx, screeny, spritewidth, spriteheight, true)
+}
+
+void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte spriteheight, bool vert) {
+    //check if the bounding box is colliding with collidable background tiles
+    //on its left and right edges
+    byte new_column1
+    byte new_column2
+    byte new_row1
+    byte new_row2
+    byte i
+    byte limit
+    
+    //do the collision stuff, set the left and right
+    //flags depending on left/right or up/down collisions
+    //assume that any tile that is not $24 (sky tile) is collidable
+
+    if vert {
+        //DOWN SIDE
+        new_row1 = get_row_from_screeny(screeny+spriteheight)
+        new_column1 = get_column_from_screenx(screenx)
+        new_column2 = get_column_from_screenx(screenx+spritewidth)
+        
+        limit = new_column2-new_column1
+        i = 0
+        
+        while i <= limit{
+            _current_tile = get_tile(new_column1+i, new_row1)
+            if _current_tile != $24 {
+                collis_flag = true
+                down_collis_flag = true
+                return
+            }
+            i += 1
+        }
+        
+        //UP SIDE
+
+        new_row1 = get_row_from_screeny(screeny)
+        new_column1 = get_column_from_screenx(screenx)
+        new_column2 = get_column_from_screenx(screenx+spritewidth)
+        
+        limit = new_column2-new_column1
+        i = 0
+        
+        while i <= limit{
+            _current_tile = get_tile(new_column1+i, new_row1)
+            if _current_tile != $24 {
+                collis_flag = true
+                up_collis_flag = true
+                return
+            }
+            i += 1
+        }
+    }
+    else {
+        //it is expected that the vertical
+        //collision checks are done first
+        
+        //RIGHT SIDE
+        new_column1 = get_column_from_screenx(screenx+spritewidth)
+        new_row1 = get_row_from_screeny(screeny)
+        new_row2 = get_row_from_screeny(screeny+spriteheight)
+        
+        limit = new_row2-new_row1
+        i = 0
+
+        while i <= limit{
+            _current_tile = get_tile(new_column1, new_row1+i)
+            if _current_tile != $24 {
+                collis_flag = true
+                right_collis_flag = true
+                return
+            }
+            i += 1
+        }
+        
+        //LEFT SIDE
+        new_column1 = get_column_from_screenx(screenx)
+        new_row1 = get_row_from_screeny(screeny)
+        new_row2 = get_row_from_screeny(screeny+spriteheight)
+        
+        limit = new_row2-new_row1
+        i = 0
+
+        while i <= limit{
+            _current_tile = get_tile(new_column1, new_row1+i)
+            if _current_tile != $24 {
+                collis_flag = true
+                left_collis_flag = true
+                return
+            }
+            i += 1
+        }
+    }
+}
+
+inline void update_player_x_speed() {
+    if playerxvel < 0{
+        playerxvel = flip_sign(playerxvel) //playerxvel *= -1
+        playerx -= playerxvel >> 2
+        playerx_frac -= playerxvel & %00000011
+        if playerx_frac > 3 {
+            playerx_frac += 4 // 4 because 4 + -1 = 3, 4 + -2 = 2, 4 + -3 = 1, 4 + -4 = 0
+                              // so basically, (max fractional part value) + 1
+            playerx -= 1
+        }
+        playerxvel = flip_sign(playerxvel) //playerxvel *= -1
+    }
+    else {
+        playerx += playerxvel >> 2
+        playerx_frac += playerxvel & %00000011
+        if playerx_frac > 3 {
+            playerx_frac -= 3
+            playerx += 1
+        }
+    }
+}
+
+void update_player_y_speed() {
+    //BUG: compiler bugs out when -O4 is set and 
+    //     you check yvel's sign by using this:
+    //     if yvel < 0 {
+    //     instead of what is here
+    if playeryvel < 0{
+        playeryvel = flip_sign(playeryvel)
+        playery -= playeryvel >> 2
+        playery_frac -= playeryvel & %00000011
+        if playery_frac > 3 {
+            playery_frac += 4 // 4 because 4 + -1 = 3, 4 + -2 = 2, 4 + -3 = 1, 4 + -4 = 0
+            playery -= 1
+        }
+        playeryvel = flip_sign(playeryvel) // yvel *= -1
+    }
+    else {
+        playery += playeryvel >> 2
+        playery_frac += playeryvel & %00000011
+        if playery_frac > 3 {
+            playery_frac -= 3
+            playery += 1
+        }
+    }
+}
+
+inline void update_scroll_left() {
+    prev_xscroll = xscroll
+    xscroll -= scroll_speed
+    
+    passed_column_boundary(xscroll, prev_xscroll)
+    passed_meta_column_boundary(xscroll, prev_xscroll)
+    
+    if xscroll > prev_xscroll {
+        //we overflowed to a new screen
+        current_screen -= 1
+        if current_screen >= 4 {
+            current_screen = 3
+        }
+        nametable ^= %00000001
+    }
+    if changed_column {
+        draw_seam_column = current_screen << 5
+        draw_seam_column += xscroll >> 3
+    }
+    
+    //deal with the attribute column offset
+    xscroll -= attr_draw_offset
+    prev_xscroll -= attr_draw_offset
+    
+    if xscroll > prev_xscroll {
+        changed_screen = true
+        draw_nametable = nametable ^ %00000001
+    }
+    else {
+        changed_screen = false
+        draw_nametable = nametable
+    }
+
+    passed_attr_column_boundary(xscroll, prev_xscroll)
+    
+    xscroll += attr_draw_offset
+    prev_xscroll += attr_draw_offset
+}
+
+inline void left_metatile_scroll() {
+    if draw_counter == 0 && changed_attr_column{
+        // about to enter a 32 pixel boundary, so
+        // draw the attributes
+        next_column = draw_seam_column
+        
+        if changed_screen {
+            //we've overflowed onto a new screen, so draw on the right nametable
+            load_attr_column($07,draw_nametable,(next_column>>2) - 1)
+        }
+        else {
+            load_attr_column((xscroll>>5) - 1,draw_nametable,(next_column>>2) - 1)
+            //we subtract 1 from the 1st and 3rd arguments because we're loading
+            //in attribute tables 1 step ahead in order to keep up with scrolling
+        }
+    }
+    else if changed_column || draw_counter > 0 {
+        // on a 16 pixel boundary, so
+        // load the appropriate tiles
+        next_column = draw_seam_column
+
+        draw_column_with_counter((xscroll>>4),draw_nametable,(next_column>>1))
+    }
+}
+
+inline void update_scroll_right() {
+    prev_xscroll = xscroll
+    xscroll += scroll_speed
+    
+    passed_column_boundary(xscroll, prev_xscroll)
+    passed_meta_column_boundary(xscroll, prev_xscroll)
+    
+    if xscroll < prev_xscroll {
+        //we overflowed to a new screen
+        current_screen += 1
+        if current_screen >= 4 {
+            current_screen = 0
+        }
+        nametable ^= %00000001
+        changed_screen = true
+    }
+    else {
+        changed_screen = false
+    }
+    if changed_column {
+        //we've passed a column boundary, update our current column
+        draw_seam_column = current_screen << 5
+        draw_seam_column += xscroll >> 3
+    }
+    
+    //deal with the attribute column offset
+    xscroll += attr_draw_offset
+    prev_xscroll += attr_draw_offset
+    
+    if xscroll < prev_xscroll {
+        changed_screen = true
+        draw_nametable = nametable
+    }
+    else {
+        changed_screen = false
+        draw_nametable = nametable ^ %00000001
+    }
+
+    passed_attr_column_boundary(xscroll, prev_xscroll)
+    
+    xscroll -= attr_draw_offset
+    prev_xscroll -= attr_draw_offset
+}
+
+void passed_column_boundary(byte xscroll_new, byte xscroll_old) {
+    //compares the two, and then sets changed_column appropriately
+    if (xscroll_new & %11111000) != (xscroll_old & %11111000) {
+        changed_column = true
+    }
+    else {
+        changed_column = false
+    }
+}
+
+void passed_meta_column_boundary(byte xscroll_new, byte xscroll_old) {
+    //compares the two, and then sets changed_meta_column appropriately
+    if (xscroll_new & %11110000) != (xscroll_old & %11110000) {
+        changed_meta_column = true
+    }
+    else {
+        changed_meta_column = false
+    }
+}
+
+void passed_attr_column_boundary(byte xscroll_new, byte xscroll_old) {
+    //compares the two, and then sets changed_meta_column appropriately
+    if (xscroll_new & %11100000) != (xscroll_old & %11100000) {
+        changed_attr_column = true
+    }
+    else {
+        changed_attr_column = false
+    }
+}
+
+inline void right_metatile_scroll() {
+    // use an else-if here
+    // so that we don't load attrs and tiles
+    // on the same frame, as that would take
+    // too much time and bleed into screen rendering
+    if draw_counter == 0 && changed_attr_column {
+        // about to enter a 32 pixel boundary, so
+        // draw the attributes
+        next_column = draw_seam_column + $20
+        if next_column >= $80 {
+            // if we're on the final screen, then wrap around to the beginning
+            next_column -= $80
+        }
+        
+        if (xscroll+attr_draw_offset) < (prev_xscroll+attr_draw_offset) {
+            //we've overflowed onto a new screen, so draw on the right nametable
+            load_attr_column((xscroll+attr_draw_offset)>>5,draw_nametable,(next_column>>2) + 1)
+        }
+        else {
+            load_attr_column((xscroll+attr_draw_offset)>>5,draw_nametable,(next_column>>2) + 1)
+            //add 1 to 3rd argument because we are loading the column that is one ahead
+            //of our loading seam
+        }
+    }
+    else if changed_meta_column || draw_counter > 0 {
+        // on a 16 pixel boundary, so
+        // load the appropriate tiles
+        next_column = draw_seam_column + $20
+        
+        if next_column >= $80 {
+            // if we're on the final screen, then wrap around to the beginning
+            next_column -= $80
+        }
+        draw_column_with_counter(xscroll>>4,draw_nametable,next_column>>1)
+    }
+}
+
+void draw_status_bar() {
+    //draw the status bar accross both nametables
+    byte i
+    
+    //set ppu address increment to 1 so we can draw the left and right borders
+    //(allows us to draw to the nametable in vertical strips rather than horizontal)
+    ppu_ctrl = %00000000
+    read_ppu_status()
+    
+    //write to first nametable
+    ppu_set_addr(ppu_nametable0+$40)
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($11) //$11 = 'H'
+    ppu_write_data($0E) //$0E = 'E'
+    ppu_write_data($0A) //$0A = 'A'
+    ppu_write_data($15) //$15 = 'L'
+    ppu_write_data($1D) //$1D = 'T'
+    ppu_write_data($11) //$11 = 'H'
+    ppu_write_data($25) //$25 = colon
+    ppu_write_data($34) //$34 = full box
+    ppu_write_data($34) //$34 = full box
+    ppu_write_data($35) //$35 = empty box
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($26) //$26 = lives icon
+    ppu_write_data($27) //$26 = multiply icon
+    ppu_write_data($03) //$03 = 3
+    
+    //write to second nametable
+    ppu_set_addr(ppu_nametable1+$40)
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($11) //$11 = 'H'
+    ppu_write_data($0E) //$0E = 'E'
+    ppu_write_data($0A) //$0A = 'A'
+    ppu_write_data($15) //$15 = 'L'
+    ppu_write_data($1D) //$1D = 'T'
+    ppu_write_data($11) //$11 = 'H'
+    ppu_write_data($25) //$25 = colon
+    ppu_write_data($34) //$34 = full box
+    ppu_write_data($34) //$34 = full box
+    ppu_write_data($35) //$35 = empty box
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($26) //$26 = lives icon
+    ppu_write_data($27) //$26 = multiply icon
+    ppu_write_data($03) //$03 = 3
+    
+    
+}
+
+void clear_status_bar() {
+    //clear the status bar to all sky tiles
+    byte i
+    
+    //set ppu address increment to 1 so we can draw the left and right borders
+    //(allows us to draw to the nametable in vertical strips rather than horizontal)
+    ppu_ctrl = %00000000
+    read_ppu_status()
+    
+    ppu_set_addr(ppu_nametable0)
+    for i,0,until,$80 {
+        ppu_write_data($24) //$24 = sky tile
+    }
+    
+    ppu_set_addr(ppu_nametable1)
+    for i,0,until,$80 {
+        ppu_write_data($24) //$24 = sky tile
+    }
+}
+
+void load_attr_column(byte screen_column, byte nametable, byte attrs_column) {
+    byte i
+    pointer attrs_ptr
+    attrs_ptr = get_attrs_column(attrs_column)
+
+    //set ppu address increment to 1 so we can draw the left and right borders
+    //(allows us to draw to the nametable in vertical strips rather than horizontal)
+    ppu_ctrl = %00000000
+
+    read_ppu_status()
+    for i,1,until,$08 {
+        if nametable == 0 {
+            ppu_set_addr(ppu_attrtable0 + (i<<3) + screen_column)
+        }
+        else if nametable == 1 {
+            ppu_set_addr(ppu_attrtable1 + (i<<3) + screen_column)
+        }
+        else if nametable == 2 {
+            ppu_set_addr(ppu_attrtable2 + (i<<3) + screen_column)
+        }
+        else if nametable == 3 {
+            ppu_set_addr(ppu_attrtable3 + (i<<3) + screen_column)
+        }
+
+        ppu_write_data(attrs_ptr[i])
+    }
+}
+
+void load_attr_column_with_counter(byte screen_column, byte nametable, byte attrs_column) {
+    pointer attrs_ptr
+    attrs_ptr = get_attrs_column(attrs_column)
+
+    //set ppu address increment to 1 so we can draw the left and right borders
+    //(allows us to draw to the nametable in vertical strips rather than horizontal)
+    ppu_ctrl = %00000000
+    read_ppu_status()
+
+    if draw_counter == 0 || draw_counter == 3 {
+        load_attr_first_draw(nametable, screen_column, attrs_ptr)
+    }
+    else if draw_counter == 4 {
+        load_attr_second_draw(nametable, screen_column, attrs_ptr)
+    }
+}
+
+inline void load_attr_first_draw(byte nametable, byte screen_column, pointer attrs_ptr) {
+    byte i
+    for i,1,until,$05 {
+        if nametable == 0 {
+            ppu_set_addr(ppu_attrtable0 + (i<<3) + screen_column)
+        }
+        else if nametable == 1 {
+            ppu_set_addr(ppu_attrtable1 + (i<<3) + screen_column)
+        }
+        else if nametable == 2 {
+            ppu_set_addr(ppu_attrtable2 + (i<<3) + screen_column)
+        }
+        else if nametable == 3 {
+            ppu_set_addr(ppu_attrtable3 + (i<<3) + screen_column)
+        }
+
+        ppu_write_data(attrs_ptr[i])
+    }
+    draw_counter = 4
+}
+
+inline void load_attr_second_draw(byte nametable, byte screen_column, pointer attrs_ptr) {
+    byte i
+    for i,5,until,$08 {
+        if nametable == 0 {
+            ppu_set_addr(ppu_attrtable0 + (i<<3) + screen_column)
+        }
+        else if nametable == 1 {
+            ppu_set_addr(ppu_attrtable1 + (i<<3) + screen_column)
+        }
+        else if nametable == 2 {
+            ppu_set_addr(ppu_attrtable2 + (i<<3) + screen_column)
+        }
+        else if nametable == 3 {
+            ppu_set_addr(ppu_attrtable3 + (i<<3) + screen_column)
+        }
+
+        ppu_write_data(attrs_ptr[i])
+    }
+    draw_counter = 0
+}
+
+
+inline pointer get_attrs_column(byte metatiles_column) {
+    pointer attrs_ptr
+    attrs_ptr = metatiles_column
+    attrs_ptr <<= 3 // *= $08
+    attrs_ptr += attrs
+    return attrs_ptr
+}
+
+void draw_full_screen(byte nametable, byte metatile_column) {
+    draw_column(0,nametable,metatile_column)
+    metatile_column += 1
+    draw_column(1,nametable,metatile_column)
+    metatile_column += 1
+    draw_column(2,nametable,metatile_column)
+    metatile_column += 1
+    draw_column(3,nametable,metatile_column)
+    metatile_column += 1
+    draw_column(4,nametable,metatile_column)
+    metatile_column += 1
+    draw_column(5,nametable,metatile_column)
+    metatile_column += 1
+    draw_column(6,nametable,metatile_column)
+    metatile_column += 1
+    draw_column(7,nametable,metatile_column)
+    metatile_column += 1
+    draw_column(8,nametable,metatile_column)
+    metatile_column += 1
+    draw_column(9,nametable,metatile_column)
+    metatile_column += 1
+    draw_column(10,nametable,metatile_column)
+    metatile_column += 1
+    draw_column(11,nametable,metatile_column)
+    metatile_column += 1
+    draw_column(12,nametable,metatile_column)
+    metatile_column += 1
+    draw_column(13,nametable,metatile_column)
+    metatile_column += 1
+    draw_column(14,nametable,metatile_column)
+    metatile_column += 1
+    draw_column(15,nametable,metatile_column)
+}
+
+void draw_column_with_counter(byte screen_column, byte nametable, byte metatiles_column) {
+    pointer metatiles_ptr
+    
+    screen_column <<= 1 // *= 2, convert to metatile column #
+    metatiles_ptr = get_metatile_column(metatiles_column)
+    
+    //set ppu address increment to 32 so we can draw the left and right borders
+    //(allows us to draw to the nametable in vertical strips rather than horizontal)
+    ppu_ctrl = %00000100
+    read_ppu_status()
+    
+    if draw_counter == 0 || draw_counter == 1 {
+        //draw the first column on the first frame
+        draw_column_first_draw(nametable, screen_column, metatiles_ptr)
+        draw_counter = 2
+    }
+    else if draw_counter == 2 {
+        //draw the second column on the second frame
+        draw_column_second_draw(nametable, screen_column, metatiles_ptr)
+        draw_counter = 0
+    }
+}
+
+inline void draw_column_first_draw(byte nametable, byte screen_column, pointer metatiles_ptr) {
+    //first frame of the column draw
+    //draws the leftmost column of the metatile column
+    byte i
+    
+    if nametable == 0 {
+        ppu_set_addr(ppu_nametable0 + $80 + screen_column)
+    }
+    else if nametable == 1 {
+        ppu_set_addr(ppu_nametable1 + $80 + screen_column)
+    }
+    else if nametable == 2 {
+        ppu_set_addr(ppu_nametable2 + $80 + screen_column)
+    }
+    else if nametable == 3 {
+        ppu_set_addr(ppu_nametable3 + $80 + screen_column)
+    }
+
+    //skip to $02 because the metatile data is structured to ignore the
+    //first two metatiles, and end before $0F because that byte is a junk
+    //byte as well
+    for i,$02,until,$0F {
+        draw_metatile_first_column(metatiles_ptr[i])
+    }
+}
+
+inline void draw_column_second_draw(byte nametable, byte screen_column, pointer metatiles_ptr) {
+    //second frame of the column draw
+    //draws the rightmost column of the metatile column
+    byte i
+    
+    if nametable == 0 {
+        ppu_set_addr(ppu_nametable0 + $80 + screen_column + 1)
+    }
+    else if nametable == 1 {
+        ppu_set_addr(ppu_nametable1 + $80 + screen_column + 1)
+    }
+    else if nametable == 2 {
+        ppu_set_addr(ppu_nametable2 + $80 + screen_column + 1)
+    }
+    else if nametable == 3 {
+        ppu_set_addr(ppu_nametable3 + $80 + screen_column + 1)
+    }
+    
+    //skip to $02 because the metatile data is structured to ignore the
+    //first two metatiles, and end before $0F because that byte is a junk
+    //byte as well
+    for i,$02,until,$0F {
+        draw_metatile_second_column(metatiles_ptr[i])
+    }
+}
+
+void draw_column(byte screen_column, byte nametable, byte metatiles_column) {
+    byte i
+    pointer metatiles_ptr
+    
+    screen_column <<= 1 // *= 2
+    metatiles_ptr = get_metatile_column(metatiles_column)
+    
+    //set ppu address increment to 32 so we can draw the left and right borders
+    //(allows us to draw to the nametable in vertical strips rather than horizontal)
+    ppu_ctrl = %00000100
+    read_ppu_status()
+    
+    if nametable == 0 {
+        ppu_set_addr(ppu_nametable0 + $80 + screen_column)
+    }
+    else if nametable == 1 {
+        ppu_set_addr(ppu_nametable1 + $80 + screen_column)
+    }
+    else if nametable == 2 {
+        ppu_set_addr(ppu_nametable2 + $80 + screen_column)
+    }
+    else if nametable == 3 {
+        ppu_set_addr(ppu_nametable3 + $80 + screen_column)
+    }
+
+    //skip to $02 because the metatile data is structured to ignore the
+    //first two metatiles, and end before $0F because that byte is a junk
+    //byte as well
+    for i,$02,until,$0F {
+        draw_metatile_first_column(metatiles_ptr[i])
+    }
+    
+    
+    if nametable == 0 {
+        ppu_set_addr(ppu_nametable0 + $80 + screen_column + 1)
+    }
+    else if nametable == 1 {
+        ppu_set_addr(ppu_nametable1 + $80 + screen_column + 1)
+    }
+    else if nametable == 2 {
+        ppu_set_addr(ppu_nametable2 + $80 + screen_column + 1)
+    }
+    else if nametable == 3 {
+        ppu_set_addr(ppu_nametable3 + $80 + screen_column + 1)
+    }
+    
+    //skip to $02 because the metatile data is structured to ignore the
+    //first two metatiles
+    for i,$02,until,$0F {
+        draw_metatile_second_column(metatiles_ptr[i])
+    }
+}
+
+inline pointer get_metatile_column(byte metatiles_column) {
+    pointer metatiles_ptr
+    metatiles_ptr = metatiles_column
+    metatiles_ptr <<= 4 // *= $10
+    metatiles_ptr += screen_metatiles
+    return metatiles_ptr
+}
+
+inline void draw_metatile_first_column(byte metatile) {
+    pointer metatile_ptr
+    metatile_ptr = metatiles
+    metatile_ptr += metatile << 2
+    
+    ppu_write_data(metatile_ptr[0])
+    ppu_write_data(metatile_ptr[1])
+}
+
+inline void draw_metatile_second_column(byte metatile) {
+    pointer metatile_ptr
+    metatile_ptr = metatiles
+    metatile_ptr += metatile << 2
+    
+    ppu_write_data(metatile_ptr[2])
+    ppu_write_data(metatile_ptr[3])
+}
+
+byte get_tile(byte column, byte row) {
+    //return the tile number of the tile
+    //located at column by row
+    //here, column refers to the 8 pixel wide
+    //screen columns, not the 16 pixel wide
+    //metatile columns
+    byte metatile_column_num
+    byte metatile_row_num
+    byte tile
+    pointer metatiles_column
+    pointer metatile_ptr
+    
+    //get the metatile row and column numbers
+    metatile_column_num = column >> 1
+    metatile_row_num = row >> 1
+    
+    //get the metatile column data pointer
+    metatiles_column = get_metatile_column(metatile_column_num)
+    //store the metatile tile in the tile variable in preparation
+    //for finding the proper screen tile number
+    tile = metatiles_column[metatile_row_num]
+    
+    //now we can use the original column and row numbers to
+    //get the proper tile
+    metatile_ptr = metatiles
+    metatile_ptr += tile << 2
+    
+    //convert column and row to metatile definition offsets
+    column &= %00000001 //column now either 0 or 1 depending on odd or even
+    column <<= 1        //column now either 0 or 2
+    row &= %00000001    //row now either 0 or 1
+    
+    //get the proper tile from the new indices
+    tile = metatile_ptr[column + row]
+    
+    return tile
+}
+
+void prepare_sprite0() {
+    //move sprite0 to overlap with bottom edge
+    //of the status bar in preperation for splitting
+    //the screen
+    oam_buffer[0] = $16
+    oam_buffer[1] = $FF
+    oam_buffer[2] = $00
+    oam_buffer[3] = $08
+}
+
+void init_sprites() {
+    byte i
+    for i,0,to,255 {
+        if (i & %00000011) == 0 {
+            //each sprite takes up 4 bytes, and we want to edit
+            //the y position of each sprite (0th byte)
+            //so we use the %00000011 mask to write every 4th byte (every 0th sprite byte)
+            
+            oam_buffer[i] = $ef // move the sprite off screen
+        }
+        else {
+            oam_buffer[i] = 0
+        }
+    }
+}
+
+void load_palletes() {
+    byte i
+    read_ppu_status() // read PPU status to reset the high/low latch
+    ppu_set_addr(ppu_pallete_ram) // point the PPU to palette ram
+    for i,0,until,$20 {
+        ppu_write_data(pallete[i])
+    }
+}
+
+void update_player_sprites() {
+    oam_buffer[playersprite0_x] = playery
+    oam_buffer[playersprite0_tile] = sprite0_tile
+    oam_buffer[playersprite0_attrs] = sprite0_attrs
+    oam_buffer[playersprite0_y] = playerx
+    
+    oam_buffer[playersprite1_x] = playery
+    oam_buffer[playersprite1_tile] = sprite1_tile
+    oam_buffer[playersprite1_attrs] = sprite1_attrs
+    oam_buffer[playersprite1_y] = playerx + 8
+    
+    oam_buffer[playersprite2_x] = playery + 8
+    oam_buffer[playersprite2_tile] = sprite2_tile
+    oam_buffer[playersprite2_attrs] = sprite2_attrs
+    oam_buffer[playersprite2_y] = playerx
+    
+    oam_buffer[playersprite3_x] = playery + 8
+    oam_buffer[playersprite3_tile] = sprite3_tile
+    oam_buffer[playersprite3_attrs] = sprite3_attrs
+    oam_buffer[playersprite3_y] = playerx + 8
+}
+
+inline asm void ppu_wait_vblank() {
+    vblankwait:
+        BIT $2002
+        ! BPL vblankwait
+    ? RTS
+}
+
+inline asm void wait_cycles(byte x) {
+    //burn some cycles to wait for the end of the scanline
+    WaitScanline:
+        DEX
+        ! BNE WaitScanline
+    ? RTS
+}
+
+inline byte flip_sign(byte a) {
+    //flip the sign of a signed byte
+    if a & %10000000 != 0{
+        a -= 1
+        a ^= $FF
+    }
+    else {
+        a ^= $FF
+        a += 1
+    }
+    return a
+}
+
+const array pallete = [
+  $0F,$17,$18,$29,$34,$38,$18,$2A,$38,$39,$3A,$3B,$3C,$3D,$3E,$0F, //nametable palettes
+  $3C,$10,$37,$0F,$07,$10,$2D,$0F,$0F,$00,$0F,$36,$31,$02,$38,$3C  //sprite palettes
+]
+
+//define each metatile
+const array metatiles = [
+			//Tile positions:
+			//top-left	bot-left	top-right	bot-right
+            $24,		$24,		$24,		$24, // 		$00, should always be
+                                                     //        all background
+            $30,		$31,		$30,		$31, // 		$01, basic top ground tile
+            $31,		$31,		$31,		$31, //		$02, all ground tile
+            $24,		$32,		$24,		$24, //		$03, floor flower tile
+            $24,		$24,		$24,		$33, //		$04, floor grass tile
+            $24,		$36,		$24,		$37, //		$05, bushes tile A
+            $24,		$30,		$24,		$24 //		$06, single-tile platform
+]
+
+
+//contains 4 screens worth of metatiles
+//each metatile column is 16 bytes long
+//each metatile column contains 3 bytes of wasted space, two at the top, and one at end
+//(this is a holdover from one of my older projects, you could rearange it so that all
+//the unused bytes are contiguous, you'd just have to change the loops in the draw_column functions)
+const array screen_metatiles = [
+	//note: all columns will have 3 wasted bytes
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF, 		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF, 		// 15 meta tiles to fill a column plus one filler tile
+
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $03, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $04, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $06, $00, $00, $00, $00,
+		$00, $00, $00, $00, $05, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $01, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $00, $00, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $01, $00, $00, $00,
+		$00, $00, $00, $00, $00, $00, $00, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $01, $00, $00, $00,
+		$00, $00, $00, $00, $00, $00, $00, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $01, $00, $00, $00,
+		$00, $00, $00, $00, $03, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $01, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+
+	 $00, $00, $00, $00, $01, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $01, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $01, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $01, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $03, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $04, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $01, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $01, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $01, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $01, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $00, $00, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $00, $00, $FF,		// 15 meta tiles to fill a column plus one filler tile
+
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $01, $00, $00, $00, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $01, $00, $00, $00, $FF, 		// 15 meta tiles to fill a column plus one filler tile
+        
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,     // 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $03, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $04, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF,		// 15 meta tiles to fill a column plus one filler tile
+	
+	 $00, $00, $00, $00, $00, $00, $00, $00,
+		$00, $00, $00, $00, $00, $01, $02, $FF 		// 15 meta tiles to fill a column plus one filler tile
+
+]
+
+const array attrs = file("graphics/attrib.bin")
+
+
+segment(chrrom) const array graphics @ $0000 = file("graphics/nesthing.chr")
