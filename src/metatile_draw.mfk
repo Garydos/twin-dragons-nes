@@ -8,6 +8,7 @@ bool changed_screen
 pointer current_level_tiles
 pointer current_level_attrs
 
+
 void load_attr_column(byte screen_column, byte nametable, word attrs_column) {
     byte i
     pointer attrs_ptr

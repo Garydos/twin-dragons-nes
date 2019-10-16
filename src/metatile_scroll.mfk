@@ -3,6 +3,7 @@ byte draw_nametable //the nametable we want to draw on
 byte draw_seam_column //screen column at the draw/scroll seam
 word next_column      //level column to be drawn to next
 byte current_screen   //screen to load next
+byte max_screen       //final screen number
 byte xscroll          //screen x scroll value
 byte prev_xscroll     //previous xcroll value
 bool scrolling_right
@@ -37,7 +38,7 @@ inline void update_scroll_left() {
     if xscroll > prev_xscroll {
         //we overflowed to a new screen
         current_screen -= 1
-        if current_screen >= 4 {
+        if current_screen > max_screen {
             current_screen = 3
         }
         nametable ^= %00000001
@@ -76,7 +77,7 @@ inline void update_scroll_right() {
     if xscroll < prev_xscroll {
         //we overflowed to a new screen
         current_screen += 1
-        if current_screen >= 4 {
+        if current_screen > max_screen {
             current_screen = 0
         }
         nametable ^= %00000001
@@ -180,34 +181,18 @@ inline void right_metatile_scroll() {
         set_next_column()
         next_column += $20
         
-        if next_column >= $80 {
-            // if we're on the final screen, then wrap around to the beginning
-            next_column -= $80
-        }
-        
         next_column >>= 2
         next_column += 1
         
-        if (xscroll+attr_draw_offset) < (prev_xscroll+attr_draw_offset) {
-            //we've overflowed onto a new screen, so draw on the right nametable
-            load_attr_column((xscroll+attr_draw_offset)>>5,draw_nametable,next_column)
-        }
-        else {
-            load_attr_column((xscroll+attr_draw_offset)>>5,draw_nametable,next_column)
-            //add 1 to 3rd argument because we are loading the column that is one ahead
-            //of our loading seam
-        }
+        load_attr_column((xscroll+attr_draw_offset)>>5,draw_nametable,next_column)
+        //add 1 to 3rd argument because we are loading the column that is one ahead
+        //of our loading seam
     }
     else if changed_meta_column || draw_counter > 0 {
         // on a 16 pixel boundary, so
         // load the appropriate tiles
         set_next_column()
         next_column += $20
-        
-        if next_column >= $80 {
-            // if we're on the final screen, then wrap around to the beginning
-            next_column -= $80
-        }
         next_column >>= 1
         
         draw_column_with_counter(xscroll>>4,draw_nametable,next_column)
@@ -223,9 +208,6 @@ byte get_column_from_screenx(byte screenx) {
     new_column_offset += screenx
     new_column_offset >>= 3
     new_column += new_column_offset.lo
-    if new_column >= $80 {
-       new_column -= $80
-    }
     
     return new_column
 }

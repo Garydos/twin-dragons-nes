@@ -11,6 +11,10 @@ import metatile_scroll
 import physics
 import sprite_manager
 
+const byte scroll_right_boundary = $78
+const byte scroll_left_boundary = $78
+
+
 void main() {
     init_sprites()
     load_palletes()
@@ -47,6 +51,7 @@ void main() {
     
     current_level_tiles = screen_metatiles
     current_level_attrs = attrs
+    max_screen = 3 // 4 screens
     
     //screen 1 + screen 2 leftmost column
     draw_full_screen(0,0)
@@ -86,7 +91,7 @@ void nmi() {
     //NOTE: handle_scrolling sometimes takes so long that sprite DMA
     //bleeds into the drawing of the first scanline (particularly when crossing screens).  
     //For now, avoid having sprites appear at the very top of the screen and all should
-    //still be good.
+    //still be well.
     ppu_oam_dma_write(oam_buffer.addr.hi)
     
     //TODO: famitone is probably fast enough to run in the time
@@ -285,12 +290,12 @@ inline void apply_player_frict() {
 inline void prepare_scrolling() {
     //prepare the scrolling info for the next frame
     //based on the player's movements
-    if playerx > $78 && not(current_screen == 3 && xscroll == 0) {
+    if playerx > scroll_right_boundary && not(current_screen == max_screen && xscroll == 0) {
         // playerx = $78
         //update the position of the screen sprites
-        scroll_speed = playerx - $78
+        scroll_speed = playerx - scroll_right_boundary
         //fix scroll_speed so that we never overshoot the right scroll limit
-        if current_screen == 2 && scroll_speed + xscroll < xscroll {
+        if current_screen == (max_screen-1) && scroll_speed + xscroll < xscroll {
             scroll_speed = ($FF - xscroll) + 1
         }
         playerx -= scroll_speed
@@ -298,10 +303,10 @@ inline void prepare_scrolling() {
         scrolling_right = true
         scrolling_left = false
     }
-    else if playerx < $78 && not(current_screen == 0 && xscroll == 0) {
+    else if playerx < scroll_left_boundary && not(current_screen == 0 && xscroll == 0) {
         // playerx = $78
         //update the position of the screen sprites
-        scroll_speed = $78 - playerx
+        scroll_speed = scroll_left_boundary - playerx
         if current_screen == 0 && xscroll - scroll_speed > xscroll {
             scroll_speed = xscroll
         }
