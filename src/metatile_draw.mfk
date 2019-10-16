@@ -6,7 +6,7 @@ bool changed_attr_column
 bool changed_screen
 
 
-void load_attr_column(byte screen_column, byte nametable, byte attrs_column) {
+void load_attr_column(byte screen_column, byte nametable, word attrs_column) {
     byte i
     pointer attrs_ptr
     attrs_ptr = get_attrs_column(attrs_column)
@@ -34,7 +34,7 @@ void load_attr_column(byte screen_column, byte nametable, byte attrs_column) {
     }
 }
 
-void load_attr_column_with_counter(byte screen_column, byte nametable, byte attrs_column) {
+void load_attr_column_with_counter(byte screen_column, byte nametable, word attrs_column) {
     pointer attrs_ptr
     attrs_ptr = get_attrs_column(attrs_column)
 
@@ -93,7 +93,7 @@ inline void load_attr_second_draw(byte nametable, byte screen_column, pointer at
     draw_counter = 0
 }
 
-inline pointer get_attrs_column(byte metatiles_column) {
+inline pointer get_attrs_column(word metatiles_column) {
     pointer attrs_ptr
     attrs_ptr = metatiles_column
     attrs_ptr <<= 3 // *= $08
@@ -135,7 +135,7 @@ void draw_full_screen(byte nametable, byte metatile_column) {
     draw_column(15,nametable,metatile_column)
 }
 
-void draw_column_with_counter(byte screen_column, byte nametable, byte metatiles_column) {
+void draw_column_with_counter(byte screen_column, byte nametable, word metatiles_column) {
     pointer metatiles_ptr
     
     screen_column <<= 1 // *= 2, convert to metatile column #
@@ -210,7 +210,7 @@ inline void draw_column_second_draw(byte nametable, byte screen_column, pointer 
     }
 }
 
-void draw_column(byte screen_column, byte nametable, byte metatiles_column) {
+void draw_column(byte screen_column, byte nametable, word metatiles_column) {
     byte i
     pointer metatiles_ptr
     
@@ -263,7 +263,7 @@ void draw_column(byte screen_column, byte nametable, byte metatiles_column) {
     }
 }
 
-inline pointer get_metatile_column(byte metatiles_column) {
+inline pointer get_metatile_column(word metatiles_column) {
     pointer metatiles_ptr
     metatiles_ptr = metatiles_column
     metatiles_ptr <<= 4 // *= $10
