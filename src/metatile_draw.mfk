@@ -5,6 +5,8 @@ bool changed_meta_column
 bool changed_attr_column
 bool changed_screen
 
+pointer current_level_tiles
+pointer current_level_attrs
 
 void load_attr_column(byte screen_column, byte nametable, word attrs_column) {
     byte i
@@ -95,9 +97,9 @@ inline void load_attr_second_draw(byte nametable, byte screen_column, pointer at
 
 inline pointer get_attrs_column(word metatiles_column) {
     pointer attrs_ptr
-    attrs_ptr = metatiles_column
-    attrs_ptr <<= 3 // *= $08
-    attrs_ptr += attrs
+    attrs_ptr = current_level_attrs
+    metatiles_column <<= 3 // *= $08
+    attrs_ptr += metatiles_column
     return attrs_ptr
 }
 
@@ -265,9 +267,9 @@ void draw_column(byte screen_column, byte nametable, word metatiles_column) {
 
 inline pointer get_metatile_column(word metatiles_column) {
     pointer metatiles_ptr
-    metatiles_ptr = metatiles_column
-    metatiles_ptr <<= 4 // *= $10
-    metatiles_ptr += screen_metatiles
+    metatiles_ptr = current_level_tiles
+    metatiles_column <<= 4 // *= $10
+    metatiles_ptr += metatiles_column
     return metatiles_ptr
 }
 

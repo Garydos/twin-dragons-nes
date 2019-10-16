@@ -45,6 +45,9 @@ void main() {
     jumping = false
     can_jump = true
     
+    current_level_tiles = screen_metatiles
+    current_level_attrs = attrs
+    
     //screen 1 + screen 2 leftmost column
     draw_full_screen(0,0)
     draw_column(0,1,16)
@@ -67,8 +70,8 @@ void main() {
 }
 
 void nmi() {
-    ppu_oam_dma_write(oam_buffer.addr.hi)
-    
+    //Do scroll handling before anything since it needs 
+    //to set the scroll before the screen starts drawing
     handle_scrolling()
     
     //set scroll to 0 for now so that the status bar
@@ -77,6 +80,14 @@ void nmi() {
     ppu_ctrl = %10010000 // no need to or the nametable for this one,
                          // as the status bar should always be at the first nametable
     ppu_mask = %00011100
+    
+    //Transfer the sprites to the screen through DMA
+    
+    //NOTE: handle_scrolling sometimes takes so long that sprite DMA
+    //bleeds into the drawing of the first scanline (particularly when crossing screens).  
+    //For now, avoid having sprites appear at the very top of the screen and all should
+    //still be good.
+    ppu_oam_dma_write(oam_buffer.addr.hi)
     
     //TODO: famitone is probably fast enough to run in the time
     //it takes for the status bar to be drawn, so try placing it
