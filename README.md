@@ -1,5 +1,13 @@
-# twin-dragons-nes
-An NES Platformer Written In Millfork
+# Twin Dragons
+
+*An NES Platformer Written In Millfork*
+
+---
+
+# Building
+
+Run any of the `.bat` files to compile.  All binaries are placed in the
+`bin` directory.
 
 # Licensing
 * Some artwork in this project was originally made by [surt](https://opengameart.org/content/twin-dragons) and is distributed here under a CC-BY 3.0 license.
