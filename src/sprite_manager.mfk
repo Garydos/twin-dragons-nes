@@ -1,0 +1,82 @@
+array oam_buffer [256] @$200 // sprite buffer
+
+//constant offsets for oam_buffer
+//so we can draw the player metasprite easily,
+//in a real game you should use a oam manager
+const byte playersprite0_x = 4
+const byte playersprite0_tile = 5
+const byte playersprite0_attrs = 6
+const byte playersprite0_y = 7
+
+const byte playersprite1_x = 8
+const byte playersprite1_tile = 9
+const byte playersprite1_attrs = 10
+const byte playersprite1_y = 11
+
+const byte playersprite2_x = 12
+const byte playersprite2_tile = 13
+const byte playersprite2_attrs = 14
+const byte playersprite2_y = 15
+
+const byte playersprite3_x = 16
+const byte playersprite3_tile = 17
+const byte playersprite3_attrs = 18
+const byte playersprite3_y = 19
+
+//player sprite constants
+const byte sprite0_attrs = 0
+const byte sprite1_attrs = 0
+const byte sprite2_attrs = 0
+const byte sprite3_attrs = 0
+const byte sprite0_tile = 0
+const byte sprite1_tile = 1
+const byte sprite2_tile = 2
+const byte sprite3_tile = 3
+
+void init_sprites() {
+    byte i
+    for i,0,to,255 {
+        if (i & %00000011) == 0 {
+            //each sprite takes up 4 bytes, and we want to edit
+            //the y position of each sprite (0th byte)
+            //so we use the %00000011 mask to write every 4th byte (every 0th sprite byte)
+            
+            oam_buffer[i] = $ef // move the sprite off screen
+        }
+        else {
+            oam_buffer[i] = 0
+        }
+    }
+}
+
+void prepare_sprite0() {
+    //move sprite0 to overlap with bottom edge
+    //of the status bar in preparation for splitting
+    //the screen
+    oam_buffer[0] = $16
+    oam_buffer[1] = $FF
+    oam_buffer[2] = $00
+    oam_buffer[3] = $08
+}
+
+void update_player_sprites() {
+    oam_buffer[playersprite0_x] = playery
+    oam_buffer[playersprite0_tile] = sprite0_tile
+    oam_buffer[playersprite0_attrs] = sprite0_attrs
+    oam_buffer[playersprite0_y] = playerx
+    
+    oam_buffer[playersprite1_x] = playery
+    oam_buffer[playersprite1_tile] = sprite1_tile
+    oam_buffer[playersprite1_attrs] = sprite1_attrs
+    oam_buffer[playersprite1_y] = playerx + 8
+    
+    oam_buffer[playersprite2_x] = playery + 8
+    oam_buffer[playersprite2_tile] = sprite2_tile
+    oam_buffer[playersprite2_attrs] = sprite2_attrs
+    oam_buffer[playersprite2_y] = playerx
+    
+    oam_buffer[playersprite3_x] = playery + 8
+    oam_buffer[playersprite3_tile] = sprite3_tile
+    oam_buffer[playersprite3_attrs] = sprite3_attrs
+    oam_buffer[playersprite3_y] = playerx + 8
+}

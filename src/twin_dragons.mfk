@@ -4,50 +4,12 @@
 //use a to jump
 //use b to dash
 
-//TODO: rework scrolling so that it works even
-//if you skip over the specific xscroll values it needs
-//to detect a new column
-
 import nes_joy
 import nes_lib
 import metatile_draw
 import metatile_scroll
 import physics
-
-array oam_buffer [256] @$200 // sprite buffer
-
-//constant offsets for oam_buffer
-//so we can draw the player metasprite easily,
-//in a real game you should use a oam manager
-const byte playersprite0_x = 4
-const byte playersprite0_tile = 5
-const byte playersprite0_attrs = 6
-const byte playersprite0_y = 7
-
-const byte playersprite1_x = 8
-const byte playersprite1_tile = 9
-const byte playersprite1_attrs = 10
-const byte playersprite1_y = 11
-
-const byte playersprite2_x = 12
-const byte playersprite2_tile = 13
-const byte playersprite2_attrs = 14
-const byte playersprite2_y = 15
-
-const byte playersprite3_x = 16
-const byte playersprite3_tile = 17
-const byte playersprite3_attrs = 18
-const byte playersprite3_y = 19
-
-//player sprite constants
-const byte sprite0_attrs = 0
-const byte sprite1_attrs = 0
-const byte sprite2_attrs = 0
-const byte sprite3_attrs = 0
-const byte sprite0_tile = 0
-const byte sprite1_tile = 1
-const byte sprite2_tile = 2
-const byte sprite3_tile = 3
+import sprite_manager
 
 void main() {
     init_sprites()
@@ -107,6 +69,49 @@ void main() {
 void nmi() {
     ppu_oam_dma_write(oam_buffer.addr.hi)
     
+    handle_scrolling()
+    
+    //set scroll to 0 for now so that the status bar
+    //stays still
+    ppu_set_scroll(0,0)
+    ppu_ctrl = %10010000 // no need to or the nametable for this one,
+                         // as the status bar should always be at the first nametable
+    ppu_mask = %00011100
+    
+    //TODO: famitone is probably fast enough to run in the time
+    //it takes for the status bar to be drawn, so try placing it
+    //here
+    
+    //wait for status bar drawing to be done
+    status_bar_wait()
+    
+    //The status bar is done drawing, so draw the rest of
+    //the screen with the correct scroll values
+    ppu_set_scroll(xscroll,0)
+    ppu_ctrl = %10010000 | nametable
+    ppu_mask = %00011100
+    
+    game_logic()
+}
+
+inline void status_bar_wait() {
+    //start checking for a sprite0 hit
+    //so that we know the status bar is done drawing
+    
+    //first wait for the previous frame's sprite0 hit
+    //to clear
+    while (ppu_status & %01000000) != 0 {
+    }
+    
+    //then wait for this frame's sprite0 hit
+    while (ppu_status & %01000000) == 0 {
+    }
+    
+    //now wait for the end of the scanline
+    wait_cycles($10)
+}
+
+inline void handle_scrolling() {
     //either scrolling right or have a column to finish drawing
     if scrolling_right || (previous_scroll == 0 && draw_counter > 0) {
         
@@ -131,75 +136,46 @@ void nmi() {
     
         previous_scroll = 1
     }
-    
-    //set scroll to 0 for now so that the status bar
-    //stays still
-    ppu_set_scroll(0,0)
-    ppu_ctrl = %10010000 // no need to or the nametable for this one,
-                         // as the status bar should always be at the first nametable
-    ppu_mask = %00011100
-    
-    //now we start checking for a sprite0 hit
-    //so that we know the status bar is done drawing
-    
-    //first wait for the previous frame's sprite0 hit
-    //to clear
-    while (ppu_status & %01000000) != 0 {
-    }
-    
-    //then wait for this frame's sprite0 hit
-    while (ppu_status & %01000000) == 0 {
-    }
-    
-    //now wait for the end of the scanline
-    wait_cycles($10)
-    
-    //we have now reached the end of the scanline, and the
-    //status bar is done drawing, so draw the rest of
-    //the screen with the correct scroll values
-    ppu_set_scroll(xscroll,0)
-    ppu_ctrl = %10010000 | nametable
-    ppu_mask = %00011100
-    
-    game_logic()
 }
 
-inline void game_logic() {
-    //game logic goes here
-    read_joy1()
-    
+macro void playerx_apply_accel() {
+    if (playerx_accel >> 2) < playerx_speed {
+        //if we're less than the maximum acceleration,
+        //then continually add acceleration
+        playerx_accel += 1
+    }
+    else {
+        //if we're equal to or grater than the maximum
+        //acceleration, then clamp it to the max
+        playerx_accel = playerx_speed << 2
+    }
+}
+
+macro void playery_apply_gravity() {
+    playery_accel = player_gravity_accel
+    playeryvel += playery_accel
+    jumping = false
+}
+
+inline void handle_player_dash() {
     if input_b != 0 {
         playerx_speed = 7
     }
     else {
         playerx_speed = 5
     }
-    
+}
+
+inline void handle_player_x_input() {
     if input_dx > 0 {
-        // scrolling_right = true
-        // scrolling_left = false
         if playerx < $F0 {
-            if (playerx_accel >> 2) < playerx_speed {
-                playerx_accel += 1
-            }
-            else {
-                playerx_accel = playerx_speed << 2
-            }
-            // playerxvel += playerx_speed
+            playerx_apply_accel()
             playerxvel += (playerx_accel >> 2)
         }
     }
     else if input_dx < 0 {
-        // scrolling_right = false
-        // scrolling_left = true
         if playerx > $08 {
-            if (playerx_accel >> 2) < playerx_speed {
-                playerx_accel += 1
-            }
-            else {
-                playerx_accel = playerx_speed << 2
-            }
-            // playerxvel -= playerx_speed
+            playerx_apply_accel()
             playerxvel -= (playerx_accel >> 2)
         }
     }
@@ -208,7 +184,9 @@ inline void game_logic() {
         scrolling_right = false
         playerx_accel = 0
     }
-    
+}
+
+inline void handle_player_y_input() {
     if input_a != 0 {
         if can_jump {
             playeryvel = 0
@@ -221,23 +199,26 @@ inline void game_logic() {
             playeryvel -= (playery_accel >> 2)
         }
         else {
-            playery_accel = player_gravity_accel
-            playeryvel += playery_accel
-            jumping = false
+            playery_apply_gravity()
         }
     }
     else {
-        // scrolling_right = false
-        // scrolling_left = true
-        playery_accel = player_gravity_accel
-        playeryvel += playery_accel
-        jumping = false
+        playery_apply_gravity()
         if on_ground {
             can_jump = true
         }
     }
+}
+
+inline void handle_player_input() {
+    read_joy1()
     
-    
+    handle_player_dash()
+    handle_player_x_input()
+    handle_player_y_input()
+}
+
+inline void cap_player_vel() {
     //cap velocity
     if playerxvel >= player_max_xvel {
         playerxvel = player_max_xvel
@@ -256,9 +237,9 @@ inline void game_logic() {
         playeryvel = player_max_yvel_neg
         playery_frac = 0
     }
-    
-    check_player_collis_and_update_player_loc()
-    
+}
+
+inline void apply_player_frict() {
     //apply friction
     if playerxvel < 0 {
         playerxvel += player_x_friction
@@ -272,7 +253,11 @@ inline void game_logic() {
             playerxvel = 0
         }
     }
-    
+}
+
+inline void prepare_scrolling() {
+    //prepare the scrolling info for the next frame
+    //based on the player's movements
     if playerx > $78 && not(current_screen == 3 && xscroll == 0) {
         // playerx = $78
         //update the position of the screen sprites
@@ -303,7 +288,17 @@ inline void game_logic() {
         scrolling_left = false
         scrolling_right = false
     }
+}
 
+inline void game_logic() {
+    //game logic goes here
+    handle_player_input()
+    cap_player_vel()
+    
+    check_player_collis_and_update_player_loc()
+    
+    apply_player_frict()
+    prepare_scrolling()
     snap_player_pos_limits()
     update_player_sprites()
 }
@@ -426,32 +421,6 @@ void clear_status_bar() {
     }
 }
 
-void prepare_sprite0() {
-    //move sprite0 to overlap with bottom edge
-    //of the status bar in preperation for splitting
-    //the screen
-    oam_buffer[0] = $16
-    oam_buffer[1] = $FF
-    oam_buffer[2] = $00
-    oam_buffer[3] = $08
-}
-
-void init_sprites() {
-    byte i
-    for i,0,to,255 {
-        if (i & %00000011) == 0 {
-            //each sprite takes up 4 bytes, and we want to edit
-            //the y position of each sprite (0th byte)
-            //so we use the %00000011 mask to write every 4th byte (every 0th sprite byte)
-            
-            oam_buffer[i] = $ef // move the sprite off screen
-        }
-        else {
-            oam_buffer[i] = 0
-        }
-    }
-}
-
 void load_palletes() {
     byte i
     read_ppu_status() // read PPU status to reset the high/low latch
@@ -459,28 +428,6 @@ void load_palletes() {
     for i,0,until,$20 {
         ppu_write_data(pallete[i])
     }
-}
-
-void update_player_sprites() {
-    oam_buffer[playersprite0_x] = playery
-    oam_buffer[playersprite0_tile] = sprite0_tile
-    oam_buffer[playersprite0_attrs] = sprite0_attrs
-    oam_buffer[playersprite0_y] = playerx
-    
-    oam_buffer[playersprite1_x] = playery
-    oam_buffer[playersprite1_tile] = sprite1_tile
-    oam_buffer[playersprite1_attrs] = sprite1_attrs
-    oam_buffer[playersprite1_y] = playerx + 8
-    
-    oam_buffer[playersprite2_x] = playery + 8
-    oam_buffer[playersprite2_tile] = sprite2_tile
-    oam_buffer[playersprite2_attrs] = sprite2_attrs
-    oam_buffer[playersprite2_y] = playerx
-    
-    oam_buffer[playersprite3_x] = playery + 8
-    oam_buffer[playersprite3_tile] = sprite3_tile
-    oam_buffer[playersprite3_attrs] = sprite3_attrs
-    oam_buffer[playersprite3_y] = playerx + 8
 }
 
 const array pallete = [
