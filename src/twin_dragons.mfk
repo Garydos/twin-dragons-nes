@@ -94,6 +94,22 @@ void nmi() {
     game_logic()
 }
 
+void irq() {
+}
+
+inline void game_logic() {
+    //game logic goes here
+    handle_player_input()
+    cap_player_vel()
+    
+    check_player_collis_and_update_player_loc()
+    
+    apply_player_frict()
+    prepare_scrolling()
+    snap_player_pos_limits()
+    update_player_sprites()
+}
+
 inline void status_bar_wait() {
     //start checking for a sprite0 hit
     //so that we know the status bar is done drawing
@@ -290,21 +306,6 @@ inline void prepare_scrolling() {
     }
 }
 
-inline void game_logic() {
-    //game logic goes here
-    handle_player_input()
-    cap_player_vel()
-    
-    check_player_collis_and_update_player_loc()
-    
-    apply_player_frict()
-    prepare_scrolling()
-    snap_player_pos_limits()
-    update_player_sprites()
-}
-
-void irq() {
-}
 
 inline void snap_player_pos_limits() {
     //snap the player back to the playable area of the screen

@@ -34,10 +34,6 @@ const byte player_max_yvel = 32
 const byte player_max_yvel_neg = -24
 const byte player_gravity_accel = 4
 
-//variables for debugging, find these
-//in fceux's hex editor and watch them
-byte _current_tile //the current tile player position is touching
-
 inline void reset_collis_flags() {
     collis_flag = false
     up_collis_flag = false
@@ -63,6 +59,7 @@ void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte 
     byte new_row2
     byte i
     byte limit
+    byte current_tile
     
     //do the collision stuff, set the left and right
     //flags depending on left/right or up/down collisions
@@ -78,8 +75,8 @@ void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte 
         i = 0
         
         while i <= limit{
-            _current_tile = get_tile(new_column1+i, new_row1)
-            if _current_tile != $24 {
+            current_tile = get_tile(new_column1+i, new_row1)
+            if current_tile != $24 {
                 collis_flag = true
                 down_collis_flag = true
                 return
@@ -97,8 +94,8 @@ void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte 
         i = 0
         
         while i <= limit{
-            _current_tile = get_tile(new_column1+i, new_row1)
-            if _current_tile != $24 {
+            current_tile = get_tile(new_column1+i, new_row1)
+            if current_tile != $24 {
                 collis_flag = true
                 up_collis_flag = true
                 return
@@ -119,8 +116,8 @@ void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte 
         i = 0
 
         while i <= limit{
-            _current_tile = get_tile(new_column1, new_row1+i)
-            if _current_tile != $24 {
+            current_tile = get_tile(new_column1, new_row1+i)
+            if current_tile != $24 {
                 collis_flag = true
                 right_collis_flag = true
                 return
@@ -137,8 +134,8 @@ void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte 
         i = 0
 
         while i <= limit{
-            _current_tile = get_tile(new_column1, new_row1+i)
-            if _current_tile != $24 {
+            current_tile = get_tile(new_column1, new_row1+i)
+            if current_tile != $24 {
                 collis_flag = true
                 left_collis_flag = true
                 return
