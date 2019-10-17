@@ -5,10 +5,13 @@ bool up_collis_flag
 bool right_collis_flag
 bool left_collis_flag
 
-//player physics flags
-bool on_ground
-bool jumping
-bool can_jump
+const byte player_max_xvel = 10
+const byte player_max_xvel_neg = -10
+const byte player_x_friction = 8
+const byte player_x_air_friction = 8
+const byte player_max_yvel = 32
+const byte player_max_yvel_neg = -24
+const byte player_gravity_accel = 4
 
 struct HitBox {
     byte x,
@@ -148,7 +151,7 @@ void check_player_collis_and_update_player_loc() {
     update_player_y_speed()
     
     check_background_collis_vert(player1.pos.x, player1.pos.y, player_width, player_height)
-    on_ground = down_collis_flag
+    player1.on_ground = down_collis_flag
     if collis_flag{   
         // playery = old_playery
         // playery_frac = old_playery_frac

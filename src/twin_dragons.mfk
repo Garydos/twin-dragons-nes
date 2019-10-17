@@ -25,6 +25,7 @@ void main() {
     draw_status_bar()
     prepare_sprite0()
     init_player1($0A, $60)
+    reset_collis_flags()
     
     xscroll = 0
     nametable = 0
@@ -36,18 +37,10 @@ void main() {
     
     scrolling_right = false
     scrolling_left = false
-    collis_flag = false
-    down_collis_flag = false
-    up_collis_flag = false
-    right_collis_flag = false
-    left_collis_flag = false
     changed_column = false
     changed_meta_column = false
     changed_attr_column = false
     changed_screen = false
-    on_ground = false
-    jumping = false
-    can_jump = true
     
     current_level_tiles = screen_metatiles
     current_level_attrs = attrs
@@ -123,7 +116,7 @@ inline void game_logic() {
     apply_player_frict()
     prepare_scrolling()
     snap_player_pos_limits()
-    update_player_sprites()
+    update_player1_anim()
 }
 
 inline void status_bar_wait() {
@@ -186,7 +179,7 @@ macro void playerx_apply_accel() {
 macro void playery_apply_gravity() {
     player1.yaccel = player_gravity_accel
     player1.yvel += player1.yaccel
-    jumping = false
+    player1.jumping = false
 }
 
 inline void handle_player_dash() {
@@ -220,13 +213,13 @@ inline void handle_player_x_input() {
 
 inline void handle_player_y_input() {
     if input_a != 0 {
-        if can_jump {
+        if player1.can_jump {
             player1.yvel = 0
             player1.yaccel = 8
-            jumping = true
-            can_jump = false
+            player1.jumping = true
+            player1.can_jump = false
         }
-        if player1.yaccel < 24 && jumping {
+        if player1.yaccel < 24 && player1.jumping {
             player1.yaccel += 2
             player1.yvel -= (player1.yaccel >> 2)
         }
@@ -236,8 +229,8 @@ inline void handle_player_y_input() {
     }
     else {
         playery_apply_gravity()
-        if on_ground {
-            can_jump = true
+        if player1.on_ground {
+            player1.can_jump = true
         }
     }
 }
@@ -331,7 +324,7 @@ inline void snap_player_pos_limits() {
     }
     if player1.pos.y > down_screen_limit {
         player1.pos.y = down_screen_limit
-        on_ground = true
+        player1.on_ground = true
     }
     if player1.pos.y < up_screen_limit {
         player1.pos.y = up_screen_limit

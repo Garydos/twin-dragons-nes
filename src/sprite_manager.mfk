@@ -87,3 +87,25 @@ void update_player_sprites() {
     oam_buffer[playersprite3_attrs] = sprite3_attrs
     oam_buffer[playersprite3_y] = player1.pos.x + 8
 }
+
+void update_player_sprites_2() {
+    oam_buffer[playersprite0_x] = player1.pos.y
+    oam_buffer[playersprite0_tile] = $06
+    oam_buffer[playersprite0_attrs] = sprite0_attrs
+    oam_buffer[playersprite0_y] = player1.pos.x
+    
+    oam_buffer[playersprite1_x] = player1.pos.y
+    oam_buffer[playersprite1_tile] = sprite1_tile
+    oam_buffer[playersprite1_attrs] = sprite1_attrs
+    oam_buffer[playersprite1_y] = player1.pos.x + 8
+    
+    oam_buffer[playersprite2_x] = player1.pos.y + 8
+    oam_buffer[playersprite2_tile] = sprite2_tile
+    oam_buffer[playersprite2_attrs] = sprite2_attrs
+    oam_buffer[playersprite2_y] = player1.pos.x
+    
+    oam_buffer[playersprite3_x] = player1.pos.y + 8
+    oam_buffer[playersprite3_tile] = sprite3_tile
+    oam_buffer[playersprite3_attrs] = sprite3_attrs
+    oam_buffer[playersprite3_y] = player1.pos.x + 8
+}
