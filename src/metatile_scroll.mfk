@@ -9,6 +9,8 @@ byte prev_xscroll     //previous xcroll value
 bool scrolling_right
 bool scrolling_left
 byte previous_scroll //0 = scrolling right, 1 = scrolling left
+const byte scroll_right_boundary = $88
+const byte scroll_left_boundary = $68
 
 //How many pixels before a new attribute table column
 //is needed should we load them?  This is necessary because loading

@@ -11,8 +11,10 @@ import metatile_scroll
 import physics
 import sprite_manager
 
-const byte scroll_right_boundary = $78
-const byte scroll_left_boundary = $78
+const byte right_screen_limit = $F0
+const byte left_screen_limit = $08
+const byte up_screen_limit = $20
+const byte down_screen_limit = $D0
 
 
 void main() {
@@ -200,13 +202,13 @@ inline void handle_player_dash() {
 
 inline void handle_player_x_input() {
     if input_dx > 0 {
-        if playerx < $F0 {
+        if playerx < right_screen_limit {
             playerx_apply_accel()
             playerxvel += (playerx_accel >> 2)
         }
     }
     else if input_dx < 0 {
-        if playerx > $08 {
+        if playerx > left_screen_limit {
             playerx_apply_accel()
             playerxvel -= (playerx_accel >> 2)
         }
@@ -291,11 +293,10 @@ inline void prepare_scrolling() {
     //prepare the scrolling info for the next frame
     //based on the player's movements
     if playerx > scroll_right_boundary && not(current_screen == max_screen && xscroll == 0) {
-        // playerx = $78
         //update the position of the screen sprites
         scroll_speed = playerx - scroll_right_boundary
         //fix scroll_speed so that we never overshoot the right scroll limit
-        if current_screen == (max_screen-1) && scroll_speed + xscroll < xscroll {
+        if current_screen == (max_screen-1) && (scroll_speed + xscroll) < xscroll {
             scroll_speed = ($FF - xscroll) + 1
         }
         playerx -= scroll_speed
@@ -304,10 +305,9 @@ inline void prepare_scrolling() {
         scrolling_left = false
     }
     else if playerx < scroll_left_boundary && not(current_screen == 0 && xscroll == 0) {
-        // playerx = $78
         //update the position of the screen sprites
         scroll_speed = scroll_left_boundary - playerx
-        if current_screen == 0 && xscroll - scroll_speed > xscroll {
+        if current_screen == 0 && (xscroll - scroll_speed) > xscroll {
             scroll_speed = xscroll
         }
         //set screen scroll left limit
@@ -325,18 +325,18 @@ inline void prepare_scrolling() {
 
 inline void snap_player_pos_limits() {
     //snap the player back to the playable area of the screen
-    if playerx > $F0 {
-        playerx = $F0
+    if playerx > right_screen_limit {
+        playerx = right_screen_limit
     }
-    if playerx < $08 {
-        playerx = $08
+    if playerx < left_screen_limit {
+        playerx = left_screen_limit
     }
-    if playery > $D0 {
-        playery = $D0
+    if playery > down_screen_limit {
+        playery = down_screen_limit
         on_ground = true
     }
-    if playery < $20 {
-        playery = $20
+    if playery < up_screen_limit {
+        playery = up_screen_limit
     }
 }
 
