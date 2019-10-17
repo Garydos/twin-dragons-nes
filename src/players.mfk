@@ -2,8 +2,8 @@ struct Player {
     HitBox pos,
     byte xfrac, //fractional part of player's x coordinate, can range from 0-3 (first 2 bits)
     byte yfrac, //fractional part of player's y coordinate, can range from 0-3 (first 2 bits)
-    byte xvel,
-    byte yvel,
+    sbyte xvel,
+    sbyte yvel,
     byte xaccel,
     byte yaccel,
     byte xspeed,
@@ -12,6 +12,9 @@ struct Player {
     Player1_Anims current_anim,
     byte anim_frame
 }
+//velocities are added to playerx_frac and playery_frac, so they should be treated as
+//fractional parts (i.e. playerxvel = 4 means playerx will increase by 1, playerxvel = 8
+//means playerx will increase by 2, etc...)
 
 enum Player1_Anims {
     IDLE_ANIM
@@ -27,5 +30,20 @@ const byte player_max_yvel = 32
 const byte player_max_yvel_neg = -24
 const byte player_gravity_accel = 4
 
-volatile Player player1
+Player player1
 array player1_sprites [16]
+
+void init_player1(byte x, byte y) {
+    //player1 //doesn't compile without this pointless expression statement, don't remove
+    player1.pos.x = x
+    player1.pos.y = y
+    player1.pos.width = player_width
+    player1.pos.height = player_height
+    player1.xfrac = 0
+    player1.yfrac = 0
+    player1.xvel = 0
+    player1.yvel = 0
+    player1.xaccel = 0
+    player1.yaccel = 0
+    player1.xspeed = 8
+}
