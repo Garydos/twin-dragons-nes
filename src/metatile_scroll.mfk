@@ -20,6 +20,15 @@ const byte scroll_left_boundary = $68
 //x velocity of the player (in pixels)
 const byte attr_draw_offset = 8
 
+void reset_scroll_flags() {
+    scrolling_right = false
+    scrolling_left = false
+    changed_column = false
+    changed_meta_column = false
+    changed_attr_column = false
+    changed_screen = false
+}
+
 macro void set_next_column() {
     //takes the draw_seam_column
     //and current_screen values and converts

@@ -104,35 +104,52 @@ inline pointer get_attrs_column(word metatiles_column) {
     return attrs_ptr
 }
 
-void draw_full_screen(byte nametable, byte metatile_column) {
+inline void draw_full_screen(byte nametable, byte screen_num) {
+    word metatile_column
+    
+    metatile_column = screen_num
+    metatile_column <<= 4
+    draw_full_screen_meta(nametable, metatile_column)
+}
+
+void draw_full_screen_meta(byte nametable, word metatile_column) {
+    //draw a full screen starting from the specified metatile column
+    load_attr_column(0,nametable,metatile_column>>1)
     draw_column(0,nametable,metatile_column)
     metatile_column += 1
     draw_column(1,nametable,metatile_column)
     metatile_column += 1
+    load_attr_column(1,nametable,metatile_column>>1)
     draw_column(2,nametable,metatile_column)
     metatile_column += 1
     draw_column(3,nametable,metatile_column)
     metatile_column += 1
+    load_attr_column(2,nametable,metatile_column>>1)
     draw_column(4,nametable,metatile_column)
     metatile_column += 1
     draw_column(5,nametable,metatile_column)
     metatile_column += 1
+    load_attr_column(3,nametable,metatile_column>>1)
     draw_column(6,nametable,metatile_column)
     metatile_column += 1
     draw_column(7,nametable,metatile_column)
     metatile_column += 1
+    load_attr_column(4,nametable,metatile_column>>1)
     draw_column(8,nametable,metatile_column)
     metatile_column += 1
     draw_column(9,nametable,metatile_column)
     metatile_column += 1
+    load_attr_column(5,nametable,metatile_column>>1)
     draw_column(10,nametable,metatile_column)
     metatile_column += 1
     draw_column(11,nametable,metatile_column)
     metatile_column += 1
+    load_attr_column(6,nametable,metatile_column>>1)
     draw_column(12,nametable,metatile_column)
     metatile_column += 1
     draw_column(13,nametable,metatile_column)
     metatile_column += 1
+    load_attr_column(7,nametable,metatile_column>>1)
     draw_column(14,nametable,metatile_column)
     metatile_column += 1
     draw_column(15,nametable,metatile_column)
