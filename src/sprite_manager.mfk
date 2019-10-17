@@ -1,3 +1,10 @@
+struct Sprite { //NES hardware sprite layout
+    byte y,         // Y Coordinate - 1
+    byte tile,      // tile index #
+    byte attrs,     // attributes
+    byte x          // X Coordinate
+}
+
 array oam_buffer [256] @$200 // sprite buffer
 
 //constant offsets for oam_buffer

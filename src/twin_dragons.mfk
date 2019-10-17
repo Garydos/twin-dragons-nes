@@ -10,12 +10,13 @@ import metatile_draw
 import metatile_scroll
 import physics
 import sprite_manager
+import players
 
 const byte right_screen_limit = $F0
 const byte left_screen_limit = $08
 const byte up_screen_limit = $20
 const byte down_screen_limit = $D0
-
+byte scroll_speed
 
 void main() {
     init_sprites()

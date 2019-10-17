@@ -1,0 +1,31 @@
+struct Player {
+    HitBox pos,
+    byte xfrac, //fractional part of player's x coordinate, can range from 0-3 (first 2 bits)
+    byte yfrac, //fractional part of player's y coordinate, can range from 0-3 (first 2 bits)
+    byte xvel,
+    byte yvel,
+    byte xaccel,
+    byte yaccel,
+    byte xspeed,
+    pointer sprites,
+    byte num_sprites,
+    Player1_Anims current_anim,
+    byte anim_frame
+}
+
+enum Player1_Anims {
+    IDLE_ANIM
+}
+
+const byte player_width = 12 //width in pixels
+const byte player_height = 14 //height in pixels
+const byte player_max_xvel = 10
+const byte player_max_xvel_neg = -10
+const byte player_x_friction = 8
+const byte player_x_air_friction = 8
+const byte player_max_yvel = 32
+const byte player_max_yvel_neg = -24
+const byte player_gravity_accel = 4
+
+volatile Player player1
+array player1_sprites [16]

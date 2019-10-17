@@ -23,16 +23,13 @@ volatile sbyte playeryvel
 byte playerx_speed
 byte playerx_accel
 byte playery_accel
-byte scroll_speed
-const byte player_width = 12 //width in pixels
-const byte player_height = 14 //height in pixels
-const byte player_max_xvel = 10
-const byte player_max_xvel_neg = -10
-const byte player_x_friction = 8
-const byte player_x_air_friction = 8
-const byte player_max_yvel = 32
-const byte player_max_yvel_neg = -24
-const byte player_gravity_accel = 4
+
+struct HitBox {
+    byte x,
+    byte y,
+    byte width,
+    byte height
+}
 
 inline void reset_collis_flags() {
     collis_flag = false
