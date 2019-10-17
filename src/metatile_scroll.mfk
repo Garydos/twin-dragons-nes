@@ -29,6 +29,14 @@ void reset_scroll_flags() {
     changed_screen = false
 }
 
+void init_scroll_vars() {
+    xscroll = 0
+    nametable = 0
+    draw_seam_column = 0
+    draw_counter = 0
+    previous_scroll = 0
+}
+
 macro void set_next_column() {
     //takes the draw_seam_column
     //and current_screen values and converts

@@ -8,7 +8,6 @@ bool changed_screen
 pointer current_level_tiles
 pointer current_level_attrs
 
-
 void load_attr_column(byte screen_column, byte nametable, word attrs_column) {
     byte i
     pointer attrs_ptr
@@ -104,12 +103,39 @@ inline pointer get_attrs_column(word metatiles_column) {
     return attrs_ptr
 }
 
-inline void draw_full_screen(byte nametable, byte screen_num) {
+inline void draw_full_screen(byte screen_num) {
+    //draw the full screen at nametable 0, plus
+    //two extra metatile/attribute columns so that
+    //you can scroll both ways if needed
     word metatile_column
+    word attr_column
     
     metatile_column = screen_num
     metatile_column <<= 4
-    draw_full_screen_meta(nametable, metatile_column)
+    
+    if screen_num != 0 {
+        //draw one column to the left of the visible screen
+        metatile_column -= 1
+        draw_column(15,1,metatile_column)
+        metatile_column += 1
+        
+        attr_column = metatile_column
+        attr_column >>= 1
+        attr_column -= 1
+        load_attr_column(7,1,attr_column)
+    }
+    draw_full_screen_meta(0, metatile_column)
+    if screen_num != max_screen {
+        //draw one column to the right of the visible screen
+        metatile_column += 16
+        draw_column(0,1,metatile_column)
+        metatile_column -= 16
+        
+        attr_column = metatile_column
+        attr_column >>= 1
+        attr_column += 8
+        load_attr_column(0,1,attr_column)
+    }
 }
 
 void draw_full_screen_meta(byte nametable, word metatile_column) {

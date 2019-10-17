@@ -24,26 +24,16 @@ void main() {
     clear_status_bar()
     draw_status_bar()
     prepare_sprite0()
-    init_player1($0A, $60)
+    init_player1($78, $60)
     reset_collis_flags()
     reset_scroll_flags()
-    
-    xscroll = 0
-    nametable = 0
-    draw_seam_column = 0
-    draw_counter = 0
-    previous_scroll = 0
-    current_screen = 0
-    scroll_speed = 2
+    init_scroll_vars()
     
     current_level_tiles = screen_metatiles
     current_level_attrs = attrs
     max_screen = 3 // 4 screens
     
-    //screen 0 + screen 1 leftmost column
-    draw_full_screen(0,0)
-    draw_column(0,1,16)
-    load_attr_column(0,1,8)
+    load_screen(0)
     
     ppu_set_scroll(0,0)
     ppu_wait_vblank()
@@ -90,6 +80,11 @@ void nmi() {
 }
 
 void irq() {
+}
+
+void load_screen(byte screen_num) {
+    current_screen = screen_num
+    draw_full_screen(screen_num)
 }
 
 inline void game_logic() {
