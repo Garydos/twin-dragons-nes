@@ -2,10 +2,27 @@ struct Sprite { //NES hardware sprite layout
     byte y,         // Y Coordinate - 1
     byte tile,      // tile index #
     byte attrs,     // attributes
-    byte x          // X Coordinate
+    byte x,         // X Coordinate
+    bool even       // arbitrary value given to sprites
+                    // by whatever object is using them to ensure proper sprite flickering.
+                    // The value of this should be alternated 
+                    // between the sprites of a metasprite (e.g. sprite0=even,sprite1=odd, etc...)
+                    // to ensure sprites flicker properly.
 }
 
+
+
 array oam_buffer [256] @$200 // sprite buffer
+
+byte right_stack //stack variable for the left side of oam_buffer
+byte left_stack //stack variable for the right side of oam_buffer
+bool even_on_left_stack // Are the even sprites on the queue going on the left or right stack this frame?
+                     // this value should be alternated every frame to ensure proper sprite
+                     // flickering
+byte sprite_queue_num   //number of sprites currently in the queue
+
+array(pointer.Sprite) sprite_queue [63] //63 and not 64 because we never use sprite 0 for anything
+                                        //other than screen splitting for the status bar
 
 //constant offsets for oam_buffer
 //so we can draw the player metasprite easily,
@@ -39,6 +56,98 @@ const byte sprite0_tile = 0
 const byte sprite1_tile = 1
 const byte sprite2_tile = 2
 const byte sprite3_tile = 3
+
+void init_sprite_manager() {
+    left_stack = $00
+    right_stack = $FF
+    sprite_queue_num = 0
+    even_on_left_stack = true
+}
+
+void draw_sprites() {
+    //Take all the sprites in the queue, and move them
+    //to the proper spots in the OAM buffer.
+    //After that, prepare for the next time we draw sprites
+    //by clearing the sprite queue and alternating the
+    //even_on_left_stack variable to ensure sprite flickering
+    
+    //get the old sprites off the screen
+    clear_stacks()
+    //write the new sprites
+    transfer_queue_to_oam_buffer()
+    clear_sprite_queue()
+    even_on_left_stack = not(even_on_left_stack)
+}
+
+void clear_sprite_queue() {
+    sprite_queue_num = 0
+}
+
+void add_sprite_to_queue(pointer addr) {
+    sprite_queue[sprite_queue_num] = pointer.Sprite(addr)
+    sprite_queue_num += 1
+}
+
+void transfer_queue_to_oam_buffer() {
+    byte i
+    pointer.Sprite spr
+    
+    for i,0,until,sprite_queue_num {
+        spr = sprite_queue[i]
+        if even_on_left_stack {
+            if spr->even {
+                add_to_left_stack(spr)
+            }
+            else {
+                add_to_right_stack(spr)
+            }
+        }
+        else {
+            if spr->even {
+                add_to_right_stack(spr)
+            }
+            else {
+                add_to_left_stack(spr)
+            }
+        }
+    }
+}
+
+inline void add_to_left_stack(pointer.Sprite spr) {
+    oam_buffer[left_stack] = spr->y
+    oam_buffer[left_stack+1] = spr->tile
+    oam_buffer[left_stack+2] = spr->attrs
+    oam_buffer[left_stack+3] = spr->x
+    
+    left_stack += 4
+}
+
+inline void add_to_right_stack(pointer.Sprite spr) {
+    oam_buffer[right_stack-3] = spr->y
+    oam_buffer[right_stack-2] = spr->tile
+    oam_buffer[right_stack-1] = spr->attrs
+    oam_buffer[right_stack] = spr->x
+    
+    left_stack -= 4
+}
+
+void clear_stacks() {
+    clear_left_stack()
+    clear_right_stack()
+}
+
+inline void clear_left_stack() {
+    while left_stack > $00 {
+        left_stack -= 4 //sprites take up 4 bytes in hardware
+        oam_buffer[left_stack] = $ef //move the sprite offscreen
+    }
+}
+inline void clear_right_stack() {
+    while right_stack < $FF {
+        right_stack += 4 //sprites take up 4 bytes in hardware
+        oam_buffer[right_stack-3] = $ef //move the sprite offscreen
+    }
+}
 
 void init_sprites() {
     byte i

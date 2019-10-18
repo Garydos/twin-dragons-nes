@@ -24,7 +24,6 @@ void main() {
     clear_status_bar()
     draw_status_bar()
     prepare_sprite0()
-    init_player1($78, $60)
     reset_collis_flags()
     reset_scroll_flags()
     init_scroll_vars()
@@ -34,6 +33,8 @@ void main() {
     max_screen = 3 // 4 screens
     
     load_screen(0)
+    
+    init_player1($78, $60)
     
     ppu_set_scroll(0,0)
     ppu_wait_vblank()
@@ -98,6 +99,7 @@ inline void game_logic() {
     prepare_scrolling()
     snap_player_pos_limits()
     update_player1_anim()
+    //draw_sprites()
 }
 
 inline void status_bar_wait() {
