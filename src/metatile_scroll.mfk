@@ -218,7 +218,7 @@ inline void right_metatile_scroll() {
     }
 }
 
-byte get_column_from_screenx(byte screenx) {
+inline byte get_column_from_screenx(byte screenx) {
     byte new_column
     word new_column_offset //must be a word because (xscroll+newplayerx) can overflow
     
@@ -231,6 +231,6 @@ byte get_column_from_screenx(byte screenx) {
     return new_column
 }
 
-byte get_row_from_screeny(byte screeny) {
+inline byte get_row_from_screeny(byte screeny) {
     return screeny >> 3
 }

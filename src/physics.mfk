@@ -36,7 +36,7 @@ inline void check_background_collis_vert(byte screenx, byte screeny, byte sprite
     check_background_collis(screenx, screeny, spritewidth, spriteheight, true)
 }
 
-//TODO: optimize this function, possibly rewrite in assembly
+//TODO: optimize this function
 void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte spriteheight, bool vert) {
     //check if the bounding box is colliding with collidable background tiles
     //on its left and right edges
@@ -212,7 +212,8 @@ void check_obj_collis_and_update_loc() {
 void check_obj_collis_and_update_loc_fast() {
     //doesn't do checks for fast velocities,
     //so if you use this function instead of the regular one,
-    //objects will visibly stop in the air/next to the obstacle
+    //objects will visibly stop/slowdown next to the obstacle
+    //if they're going too fast
     byte old_x
     byte old_x_frac
     byte old_y
