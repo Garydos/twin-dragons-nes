@@ -12,6 +12,7 @@ import metatile_scroll
 import physics
 import sprite_manager
 import players
+import enemies
 import music
 
 const byte right_screen_limit = $EF
@@ -32,7 +33,7 @@ void main() {
     init_scroll_vars()
     //set up the music
     FamiToneInit($01, nesthing_ost.addr)
-    FamiToneMusicPlay($00)
+    //FamiToneMusicPlay($00)
     
     current_level_tiles = screen_metatiles
     current_level_attrs = attrs
@@ -111,6 +112,7 @@ inline void game_logic() {
     handle_player_input()
     cap_player_vel()
     
+    obj_ptr = pointer.Player(player1.addr)
     check_player_collis_and_update_player_loc()
     
     apply_player_frict()

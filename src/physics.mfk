@@ -137,8 +137,13 @@ void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte 
     }
 }
 
+//compiler bug: If player_ptr is a parameter to check_player_collis_and_update_player_loc
+//instead of being a global variable, then it is assigned the same address as other pointer
+//local variables in other functions.  This means that player_ptr is overwritten by function
+//calls made within the body of check_player_collis_and_update_player_loc if it's a parameter.
+//The workaround is to have it as a global variable, that way no other function will touch it.
+pointer.Player obj_ptr
 void check_player_collis_and_update_player_loc() {
-    sbyte temp_vel
     byte old_playerx
     byte old_playerx_frac
     byte old_playery
@@ -170,7 +175,8 @@ void check_player_collis_and_update_player_loc() {
         player1.yfrac = 0
         do {
             collis_flag = false
-            player1.pos.y -= 1
+            //player->pos.y -= 1
+            obj_ptr->pos.y -= 1
             check_background_collis_vert(player1.pos.x, player1.pos.y, player_width, player_height)
         } while collis_flag
     }
