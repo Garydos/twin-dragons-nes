@@ -5,13 +5,12 @@ animation_info:
 The rest of the bytes are frame numbers for each frame of the animation.
 Each animation frame is played once per game frame.
 	
-	
 frame_info:
 	1st byte - mirrored in chrrom flag
-		   (in the current game engine,
-	            all characters drawn facing right
-                    in chrrom are considered to be non-mirrored,
-                    and characters facing left are mirrored) 
+            (in the current game engine,
+            all characters drawn facing right
+            in chrrom are considered to be non-mirrored,
+            and characters facing left are mirrored) 
 	2nd byte - center of frame in pixels
 	3rd byte - number of sprites
 

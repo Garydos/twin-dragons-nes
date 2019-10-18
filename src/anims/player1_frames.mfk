@@ -107,7 +107,7 @@ void player1_frame_0() {
     add_sprite_to_queue(player1_sprites[4].addr)
 }
 
-const array frame0 = [1,8,5,0,0,0,-4,0,1,0,4,8,2,0,0,8,3,0,8,-3,$10,0,4]
+const array frame0 = [1,8,5, 0,0,0,-4,  0,1,0,4,  8,2,0,0,  8,3,0,8,  -3,$10,0,4]
 
 void player1_frame_1() {
     player1_draw_frame(frame0.addr)

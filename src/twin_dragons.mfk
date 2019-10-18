@@ -1,4 +1,4 @@
-// compile with -t nes_small_v and -O4
+// compile with -t nes_small_v and -O1 (O4 is broken at the moment)
 
 //use the dpad to move the player around
 //use a to jump
@@ -12,6 +12,7 @@ import metatile_scroll
 import physics
 import sprite_manager
 import players
+import music
 
 const byte right_screen_limit = $EF
 const byte left_screen_limit = $08
@@ -29,6 +30,9 @@ void main() {
     reset_collis_flags()
     reset_scroll_flags()
     init_scroll_vars()
+    //set up the music
+    FamiToneInit($01, nesthing_ost.addr)
+    FamiToneMusicPlay($00)
     
     current_level_tiles = screen_metatiles
     current_level_attrs = attrs
@@ -66,9 +70,8 @@ void nmi() {
     //still be well.
     ppu_oam_dma_write(oam_buffer.addr.hi)
     
-    //TODO: famitone is probably fast enough to run in the time
-    //it takes for the status bar to be drawn, so try placing it
-    //here
+    //update the music
+    FamiToneUpdate()
     
     //wait for status bar drawing to be done
     status_bar_wait()
@@ -110,8 +113,12 @@ inline void status_bar_wait() {
     
     //first wait for the previous frame's sprite0 hit
     //to clear
-    while (ppu_status & %01000000) != 0 {
-    }
+   
+    // while (ppu_status & %01000000) != 0 {
+    // }
+    //not necessary anymore since we do stuff
+    //that takes up time before we check for the status
+    //bar to be done drawing
     
     //then wait for this frame's sprite0 hit
     while (ppu_status & %01000000) == 0 {

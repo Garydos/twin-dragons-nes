@@ -1,0 +1,6 @@
+import famitone5
+
+//change @$CAC0 to whatever address you compiled your songs to,
+//usually @$8AC0 if you changed famitone5.bin to start at $8000
+const array nesthing_ost @$CAC0 = file("nesthing_ost.bin")
+const array nesthing_ost_samples @$FC00 = file("nesthing_ost.dmc")
