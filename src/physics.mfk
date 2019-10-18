@@ -139,9 +139,48 @@ void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte 
 pointer.Phys_Obj obj_ptr
 void check_obj_collis_and_update_loc() {
     //do vertical collision checking
+    obj_collis_vert()
     
-    //if we're going too fast, do the collision checking in two steps
-    //to ensure we stick to the ground
+    collis_flag = false
+    
+    //do horizontal collision checking
+    obj_collis_horiz()
+    
+    //leave resetting the collision flags to the calling function
+}
+
+void obj_collis_horiz() {
+    update_obj_x_speed()
+
+    check_background_collis_horiz(obj_ptr->pos.x, obj_ptr->pos.y, obj_ptr->pos.width, obj_ptr->pos.height)
+    if collis_flag {
+        // playerx = old_x
+        // playerx_frac = old_x_frac
+        obj_ptr->xvel = 0
+    }
+    
+    //if the speed was great enough to possibly have skipped over a
+    //landing point, then stick them to the wall
+    if right_collis_flag {
+        obj_ptr->xfrac = 0
+        do {
+            collis_flag = false
+            obj_ptr->pos.x -= 1
+            check_background_collis_horiz(obj_ptr->pos.x, obj_ptr->pos.y, obj_ptr->pos.width, obj_ptr->pos.height)
+        } while collis_flag
+    }
+    //do the same for a negative velocities
+    else if left_collis_flag {
+        obj_ptr->xfrac = 0
+        do {
+            collis_flag = false
+            obj_ptr->pos.x += 1
+            check_background_collis_horiz(obj_ptr->pos.x, obj_ptr->pos.y, obj_ptr->pos.width, obj_ptr->pos.height)
+        }while collis_flag
+    }
+}
+
+void obj_collis_vert() {
     
     update_obj_y_speed()
     
@@ -173,40 +212,6 @@ void check_obj_collis_and_update_loc() {
             check_background_collis_vert(obj_ptr->pos.x, obj_ptr->pos.y, obj_ptr->pos.width, obj_ptr->pos.height)
         }while collis_flag
     }
-    
-    collis_flag = false
-    
-    //do horizontal collision checking
-    update_obj_x_speed()
-
-    check_background_collis_horiz(obj_ptr->pos.x, obj_ptr->pos.y, obj_ptr->pos.width, obj_ptr->pos.height)
-    if collis_flag {
-        // playerx = old_x
-        // playerx_frac = old_x_frac
-        obj_ptr->xvel = 0
-    }
-    
-    //if the speed was great enough to possibly have skipped over a
-    //landing point, then stick them to the wall
-    if right_collis_flag {
-        obj_ptr->xfrac = 0
-        do {
-            collis_flag = false
-            obj_ptr->pos.x -= 1
-            check_background_collis_vert(obj_ptr->pos.x, obj_ptr->pos.y, obj_ptr->pos.width, obj_ptr->pos.height)
-        } while collis_flag
-    }
-    //do the same for a negative velocities
-    else if left_collis_flag {
-        obj_ptr->xfrac = 0
-        do {
-            collis_flag = false
-            obj_ptr->pos.x += 1
-            check_background_collis_vert(obj_ptr->pos.x, obj_ptr->pos.y, obj_ptr->pos.width, obj_ptr->pos.height)
-        }while collis_flag
-    }
-    
-    //leave resetting the collision flags to the calling function
 }
 
 void check_obj_collis_and_update_loc_fast() {

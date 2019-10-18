@@ -309,7 +309,7 @@ void draw_column(byte screen_column, byte nametable, word metatiles_column) {
     }
 }
 
-inline pointer get_metatile_column(word metatiles_column) {
+pointer get_metatile_column(word metatiles_column) {
     pointer metatiles_ptr
     metatiles_ptr = current_level_tiles
     metatiles_column <<= 4 // *= $10
