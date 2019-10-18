@@ -28,6 +28,13 @@ inline void reset_collis_flags() {
     right_collis_flag = false
 }
 
+bool is_collidable(byte tile) {
+    if tile != $FF {
+        return true
+    }
+    return false
+}
+
 macro void check_background_collis_horiz(byte screenx, byte screeny, byte spritewidth, byte spriteheight) {
     check_background_collis(screenx, screeny, spritewidth, spriteheight, false)
 }
@@ -49,7 +56,6 @@ void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte 
     
     //do the collision stuff, set the left and right
     //flags depending on left/right or up/down collisions
-    //assume that any tile that is not $24 (sky tile) is collidable
 
     if vert {
         //DOWN SIDE

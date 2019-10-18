@@ -328,7 +328,7 @@ void draw_status_bar() {
     //write to first nametable
     ppu_set_addr(ppu_nametable0+$40)
     ppu_write_data($24) //$24 = sky tile
-    ppu_write_data($11) //$11 = 'H'
+    ppu_write_data($FF) //$11 = 'H'
     ppu_write_data($0E) //$0E = 'E'
     ppu_write_data($0A) //$0A = 'A'
     ppu_write_data($15) //$15 = 'L'
@@ -434,12 +434,12 @@ const array metatiles = [
 			//top-left	bot-left	top-right	bot-right
             $24,		$24,		$24,		$24, // 		$00, should always be
                                                      //        all background
-            $30,		$31,		$30,		$31, // 		$01, basic top ground tile
-            $31,		$31,		$31,		$31, //		$02, all ground tile
-            $24,		$32,		$24,		$24, //		$03, floor flower tile
-            $24,		$24,		$24,		$33, //		$04, floor grass tile
-            $24,		$36,		$24,		$37, //		$05, bushes tile A
-            $24,		$30,		$24,		$24 //		$06, single-tile platform
+            $00,		$03,		$01,		$02, // 		$01, basic top ground tile
+            $04,		$06,		$05,		$07, //		$02, all ground tile
+            $24,		$24,		$24,		$24, //		$03, floor flower tile
+            $24,		$24,		$24,		$24, //		$04, floor grass tile
+            $24,		$24,		$24,		$24, //		$05, bushes tile A
+            $24,		$24,		$24,		$24 //		$06, single-tile platform
 ]
 
 
@@ -452,4 +452,4 @@ const array screen_metatiles = file("levels/level1.bin")
 
 const array attrs = file("graphics/attrib.bin")
 
-segment(chrrom) const array graphics @ $0000 = file("graphics/nesthing.chr")
+segment(chrrom) const array graphics @ $0000 = file("graphics/twin_dragons.chr")
