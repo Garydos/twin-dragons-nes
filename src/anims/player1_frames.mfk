@@ -1,0 +1,31 @@
+void player1_frame_0() {
+    player1_sprites[0].y = player1.pos.y
+    player1_sprites[0].tile = sprite0_tile
+    player1_sprites[0].attrs = sprite0_attrs
+    player1_sprites[0].x = player1.pos.x
+    player1_sprites[0].even = true
+    
+    player1_sprites[1].y = player1.pos.y
+    player1_sprites[1].tile = sprite1_tile
+    player1_sprites[1].attrs = sprite1_attrs
+    player1_sprites[1].x = player1.pos.x + 8
+    player1_sprites[1].even = false
+    
+    player1_sprites[2].y = player1.pos.y + 8
+    player1_sprites[2].tile = sprite2_tile
+    player1_sprites[2].attrs = sprite2_attrs
+    player1_sprites[2].x = player1.pos.x
+    player1_sprites[2].even = true
+    
+    player1_sprites[3].y = player1.pos.y + 8
+    player1_sprites[3].tile = sprite3_tile
+    player1_sprites[3].attrs = sprite3_attrs
+    player1_sprites[3].x = player1.pos.x + 8
+    player1_sprites[3].even = false
+    
+    //now add these sprites to the queue
+    add_sprite_to_queue(player1_sprites[0].addr)
+    add_sprite_to_queue(player1_sprites[1].addr)
+    add_sprite_to_queue(player1_sprites[2].addr)
+    add_sprite_to_queue(player1_sprites[3].addr)
+}

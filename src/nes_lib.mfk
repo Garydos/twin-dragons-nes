@@ -1,3 +1,6 @@
+//This file is for NES specific functions/defintions that are used
+//accross files
+
 //ppu address definitions
 const word ppu_nametable0 = $2000
 const word ppu_nametable1 = $2400

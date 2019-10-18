@@ -6,6 +6,7 @@
 
 import nes_joy
 import nes_lib
+import game_lib
 import metatile_draw
 import metatile_scroll
 import physics
@@ -99,7 +100,7 @@ inline void game_logic() {
     apply_player_frict()
     prepare_scrolling()
     snap_player_pos_limits()
-    update_player1_anim()
+    handle_player_anim()
     draw_sprites()
 }
 

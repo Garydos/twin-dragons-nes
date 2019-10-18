@@ -1,0 +1,14 @@
+//This file is for game specific functions/defintions that are used
+//accross files
+
+macro void anim_clamp_frames(byte frame, byte max_frame, bool loop) {
+    //loop or clamp the frame number
+    if frame > max_frame {
+        if loop {
+            frame = 0
+        }
+        else {
+            frame = max_frame
+        }
+    }
+}

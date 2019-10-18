@@ -1,3 +1,5 @@
+import player1_anims
+
 struct Player {
     HitBox pos,
     byte xfrac, //fractional part of player's x coordinate, can range from 0-3 (first 2 bits)
@@ -10,17 +12,12 @@ struct Player {
     bool on_ground,
     bool jumping,
     bool can_jump,
-    byte num_sprites,
     Player1_Anims anim,
     byte anim_frame
 }
 //velocities are added to playerx_frac and playery_frac, so they should be treated as
 //fractional parts (i.e. playerxvel = 4 means playerx will increase by 1, playerxvel = 8
 //means playerx will increase by 2, etc...)
-
-enum Player1_Anims {
-    IDLE_ANIM
-}
 
 const byte player_width = 12 //width in pixels
 const byte player_height = 14 //height in pixels
@@ -46,40 +43,4 @@ void init_player1(byte x, byte y) {
     player1.can_jump = true
     player1.anim_frame = 0
     player1.anim = IDLE_ANIM
-}
-
-void update_player1_anim() {
-    return [player1.anim] {
-        IDLE_ANIM   @ handle_p1_idle_anim
-    }
-}
-
-macro void anim_clamp_frames(byte frame, byte max_frame, bool loop) {
-    if frame > max_frame {
-        if loop {
-            frame = 0
-        }
-        else {
-            frame = max_frame
-        }
-    }
-}
-
-
-const byte p1_idle_anim_max_frame = 0
-const bool p1_idle_anime_loop = false
-const array p1_idle_anim_frames = [0]
-
-void handle_p1_idle_anim() {
-    anim_clamp_frames(player1.anim_frame, p1_idle_anim_max_frame, p1_idle_anime_loop)
-    
-    draw_p1_frame(p1_idle_anim_frames[player1.anim_frame])
-    
-    player1.anim_frame += 1
-}
-
-void draw_p1_frame(byte frame_num) {
-    return [frame_num] {
-        0   @ update_player_sprites
-    }
 }
