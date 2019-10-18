@@ -335,7 +335,7 @@ inline void draw_metatile_second_column(byte metatile) {
     ppu_write_data(metatile_ptr[3])
 }
 
-byte get_tile(byte column, byte row) {
+inline byte get_tile(byte column, byte row) {
     //return the tile number of the tile
     //located at column by row
     //here, column refers to the 8 pixel wide

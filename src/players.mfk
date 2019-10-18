@@ -1,25 +1,5 @@
 import player1_anims
 
-struct Player {
-    HitBox pos,
-    byte xfrac, //fractional part of player's x coordinate, can range from 0-3 (first 2 bits)
-    byte yfrac, //fractional part of player's y coordinate, can range from 0-3 (first 2 bits)
-    sbyte xvel,
-    sbyte yvel,
-    byte xaccel,
-    byte yaccel,
-    byte xspeed,
-    bool on_ground,
-    bool jumping,
-    bool can_jump,
-    Player1_Anims anim,
-    byte anim_frame,
-    bool mirroring
-}
-//velocities are added to playerx_frac and playery_frac, so they should be treated as
-//fractional parts (i.e. playerxvel = 4 means playerx will increase by 1, playerxvel = 8
-//means playerx will increase by 2, etc...)
-
 const byte player_width = 16 //width in pixels
 const byte player_height = 16 //height in pixels
 

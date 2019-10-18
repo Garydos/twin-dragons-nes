@@ -1,9 +1,3 @@
-struct Enemy {
-    byte id,
-    byte enemy_type,
-    HitBox pos
-}
-
 const byte max_enemies = 12
 
 array(Enemy) enemy_heap [max_enemies]

@@ -1,6 +1,57 @@
 //This file is for game specific functions/defintions that are used
 //accross files
 
+struct Box {
+    byte x,
+    byte y,
+    byte width,
+    byte height
+}
+
+//All objects that can physically collide with the background
+//should have their structs' first bytes line up with the structure
+//of this struct
+struct Phys_Obj {
+    Box pos,
+    byte xfrac, //fractional part of player's x coordinate, can range from 0-3 (first 2 bits)
+    byte yfrac, //fractional part of player's y coordinate, can range from 0-3 (first 2 bits)
+    sbyte xvel,
+    sbyte yvel
+}
+
+struct Player {
+    Box pos,
+    byte xfrac, //fractional part of player's x coordinate, can range from 0-3 (first 2 bits)
+    byte yfrac, //fractional part of player's y coordinate, can range from 0-3 (first 2 bits)
+    sbyte xvel,
+    sbyte yvel,
+    byte xaccel,
+    byte yaccel,
+    byte xspeed,
+    bool on_ground,
+    bool jumping,
+    bool can_jump,
+    Player1_Anims anim,
+    byte anim_frame,
+    bool mirroring
+}
+//velocities are added to playerx_frac and playery_frac, so they should be treated as
+//fractional parts (i.e. playerxvel = 4 means playerx will increase by 1, playerxvel = 8
+//means playerx will increase by 2, etc...)
+
+struct Enemy {
+    Box pos,
+    byte xfrac, //fractional part of player's x coordinate, can range from 0-3 (first 2 bits)
+    byte yfrac, //fractional part of player's y coordinate, can range from 0-3 (first 2 bits)
+    sbyte xvel,
+    sbyte yvel,
+    byte xaccel,
+    byte yaccel,
+    byte id,
+    byte enemy_type
+}
+
+
 macro void anim_clamp_frames(byte frame, byte max_frame, bool loop) {
     //loop or clamp the frame number
     if frame > max_frame {
