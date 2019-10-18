@@ -20,6 +20,7 @@ byte scroll_speed
 
 void main() {
     init_sprites()
+    init_sprite_manager()
     load_palletes()
     clear_status_bar()
     draw_status_bar()
@@ -99,7 +100,7 @@ inline void game_logic() {
     prepare_scrolling()
     snap_player_pos_limits()
     update_player1_anim()
-    //draw_sprites()
+    draw_sprites()
 }
 
 inline void status_bar_wait() {

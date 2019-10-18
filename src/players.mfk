@@ -10,7 +10,6 @@ struct Player {
     bool on_ground,
     bool jumping,
     bool can_jump,
-    pointer sprites,
     byte num_sprites,
     Player1_Anims anim,
     byte anim_frame
@@ -27,7 +26,7 @@ const byte player_width = 12 //width in pixels
 const byte player_height = 14 //height in pixels
 
 Player player1
-array player1_sprites [16]
+array(Sprite) player1_sprites [8]
 
 void init_player1(byte x, byte y) {
     //player1 //doesn't compile without this pointless expression statement, don't remove
@@ -82,6 +81,5 @@ void handle_p1_idle_anim() {
 void draw_p1_frame(byte frame_num) {
     return [frame_num] {
         0   @ update_player_sprites
-        1   @ update_player_sprites_2
     }
 }
