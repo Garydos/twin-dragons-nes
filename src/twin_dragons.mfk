@@ -70,11 +70,24 @@ void nmi() {
     //still be well.
     ppu_oam_dma_write(oam_buffer.addr.hi)
     
+    //first wait for the previous frame's sprite0 hit
+    //to clear
+   
+    while (ppu_status & %01000000) != 0 {
+    }
+    
     //update the music
     FamiToneUpdate()
     
-    //wait for status bar drawing to be done
-    status_bar_wait()
+    //start checking for a sprite0 hit
+    //so that we know the status bar is done drawing
+    
+    //then wait for this frame's sprite0 hit
+    while (ppu_status & %01000000) == 0 {
+    }
+    
+    //now wait for the end of the scanline
+    wait_cycles($10)
     
     //The status bar is done drawing, so draw the rest of
     //the screen with the correct scroll values
@@ -105,27 +118,6 @@ inline void game_logic() {
     snap_player_pos_limits()
     handle_player_anim()
     draw_sprites()
-}
-
-inline void status_bar_wait() {
-    //start checking for a sprite0 hit
-    //so that we know the status bar is done drawing
-    
-    //first wait for the previous frame's sprite0 hit
-    //to clear
-   
-    // while (ppu_status & %01000000) != 0 {
-    // }
-    //not necessary anymore since we do stuff
-    //that takes up time before we check for the status
-    //bar to be done drawing
-    
-    //then wait for this frame's sprite0 hit
-    while (ppu_status & %01000000) == 0 {
-    }
-    
-    //now wait for the end of the scanline
-    wait_cycles($10)
 }
 
 inline void handle_scrolling() {
