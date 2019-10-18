@@ -1,0 +1,33 @@
+struct Enemy {
+    byte id,
+    byte enemy_type,
+    HitBox pos
+}
+
+const byte max_enemies = 12
+
+array(Enemy) enemy_heap [max_enemies]
+//Enemies will grab an available index number for enemy_heap from
+//available_enemy_heap_spots when they're spawned
+array available_enemy_heap_spots [max_enemies]
+byte enemy_heap_spots_top
+
+void init_enemy_heap() {
+    byte i
+    
+    for i,0,until,max_enemies {
+        //refill the available heap spot stack
+        available_enemy_heap_spots[i] = i
+    }
+    enemy_heap_spots_top = max_enemies
+}
+
+byte get_enemy_heap_spot() {
+    enemy_heap_spots_top -= 1
+    return available_enemy_heap_spots[enemy_heap_spots_top]
+}
+
+void return_enemy_heap_spot(byte spot) {
+    available_enemy_heap_spots[enemy_heap_spots_top] = spot
+    enemy_heap_spots_top += 1
+}
