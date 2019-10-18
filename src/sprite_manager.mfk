@@ -26,16 +26,6 @@ byte sprite_queue_num   //number of sprites currently in the queue
 array(pointer.Sprite) sprite_queue [63] //63 and not 64 because we never use sprite 0 for anything
                                         //other than screen splitting for the status bar
 
-//player sprite constants
-const byte sprite0_attrs = 0
-const byte sprite1_attrs = 0
-const byte sprite2_attrs = 0
-const byte sprite3_attrs = 0
-const byte sprite0_tile = 0
-const byte sprite1_tile = 1
-const byte sprite2_tile = 2
-const byte sprite3_tile = 3
-
 void init_sprite_manager() {
     left_stack = left_stack_lim //skip sprite 0
     right_stack = right_stack_lim

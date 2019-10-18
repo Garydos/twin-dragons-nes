@@ -13,14 +13,15 @@ struct Player {
     bool jumping,
     bool can_jump,
     Player1_Anims anim,
-    byte anim_frame
+    byte anim_frame,
+    bool mirroring
 }
 //velocities are added to playerx_frac and playery_frac, so they should be treated as
 //fractional parts (i.e. playerxvel = 4 means playerx will increase by 1, playerxvel = 8
 //means playerx will increase by 2, etc...)
 
-const byte player_width = 12 //width in pixels
-const byte player_height = 14 //height in pixels
+const byte player_width = 16 //width in pixels
+const byte player_height = 16 //height in pixels
 
 Player player1
 array(Sprite) player1_sprites [8]
@@ -43,4 +44,5 @@ void init_player1(byte x, byte y) {
     player1.can_jump = true
     player1.anim_frame = 0
     player1.anim = IDLE_ANIM
+    player1.mirroring = true
 }

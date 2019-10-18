@@ -178,12 +178,14 @@ inline void handle_player_dash() {
 
 inline void handle_player_x_input() {
     if input_dx > 0 {
+        player1.mirroring = true
         if player1.pos.x < right_screen_limit {
             playerx_apply_accel()
             player1.xvel += (player1.xaccel >> 2)
         }
     }
     else if input_dx < 0 {
+        player1.mirroring = false
         if player1.pos.x > left_screen_limit {
             playerx_apply_accel()
             player1.xvel -= (player1.xaccel >> 2)
@@ -425,7 +427,7 @@ void load_palletes() {
 
 const array pallete = [
   $0F,$17,$18,$29,$34,$38,$18,$2A,$38,$39,$3A,$3B,$3C,$3D,$3E,$0F, //nametable palettes
-  $3C,$10,$37,$0F,$07,$10,$2D,$0F,$0F,$00,$0F,$36,$31,$02,$38,$3C  //sprite palettes
+  $0F,$17,$28,$39,$07,$10,$2D,$0F,$0F,$00,$0F,$36,$31,$02,$38,$3C  //sprite palettes, first byte is the background color
 ]
 
 //define each metatile
