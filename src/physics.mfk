@@ -29,7 +29,7 @@ inline void reset_collis_flags() {
 }
 
 bool is_collidable(byte tile) {
-    if tile != $FF {
+    if tile != $24 {
         return true
     }
     return false
@@ -68,7 +68,7 @@ void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte 
         
         while i <= limit{
             current_tile = get_tile(new_column1+i, new_row1)
-            if current_tile != $24 {
+            if is_collidable(current_tile) {
                 collis_flag = true
                 down_collis_flag = true
                 return
@@ -87,7 +87,7 @@ void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte 
         
         while i <= limit{
             current_tile = get_tile(new_column1+i, new_row1)
-            if current_tile != $24 {
+            if is_collidable(current_tile) {
                 collis_flag = true
                 up_collis_flag = true
                 return
@@ -109,7 +109,7 @@ void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte 
 
         while i <= limit{
             current_tile = get_tile(new_column1, new_row1+i)
-            if current_tile != $24 {
+            if is_collidable(current_tile) {
                 collis_flag = true
                 right_collis_flag = true
                 return
@@ -127,7 +127,7 @@ void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte 
 
         while i <= limit{
             current_tile = get_tile(new_column1, new_row1+i)
-            if current_tile != $24 {
+            if is_collidable(current_tile) {
                 collis_flag = true
                 left_collis_flag = true
                 return

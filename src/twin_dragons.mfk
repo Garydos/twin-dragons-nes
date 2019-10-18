@@ -13,7 +13,7 @@ import physics
 import sprite_manager
 import players
 
-const byte right_screen_limit = $F0
+const byte right_screen_limit = $EF
 const byte left_screen_limit = $08
 const byte up_screen_limit = $20
 const byte down_screen_limit = $D0
@@ -179,6 +179,7 @@ inline void handle_player_dash() {
 inline void handle_player_x_input() {
     if input_dx > 0 {
         player1.mirroring = true
+        switch_player1_anim(WALK_ANIM, false)
         if player1.pos.x < right_screen_limit {
             playerx_apply_accel()
             player1.xvel += (player1.xaccel >> 2)
@@ -186,6 +187,7 @@ inline void handle_player_x_input() {
     }
     else if input_dx < 0 {
         player1.mirroring = false
+        switch_player1_anim(WALK_ANIM, false)
         if player1.pos.x > left_screen_limit {
             playerx_apply_accel()
             player1.xvel -= (player1.xaccel >> 2)
@@ -195,6 +197,7 @@ inline void handle_player_x_input() {
         scrolling_left = false
         scrolling_right = false
         player1.xaccel = 0
+        switch_player1_anim(IDLE_ANIM, true)
     }
 }
 
@@ -426,8 +429,8 @@ void load_palletes() {
 }
 
 const array pallete = [
-  $0F,$17,$18,$29,$34,$38,$18,$2A,$38,$39,$3A,$3B,$3C,$3D,$3E,$0F, //nametable palettes
-  $0F,$17,$28,$39,$07,$10,$2D,$0F,$0F,$00,$0F,$36,$31,$02,$38,$3C  //sprite palettes, first byte is the background color
+  $21,$17,$18,$29,$21,$38,$18,$2A,$21,$39,$3A,$3B,$21,$3D,$3E,$0F, //nametable palettes
+  $21,$09,$29,$36,$21,$10,$2D,$0F,$21,$00,$0F,$36,$21,$02,$38,$3C  //sprite palettes, first byte is the background color
 ]
 
 //define each metatile

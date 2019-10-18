@@ -2,33 +2,50 @@ import player1_frames
 
 //List of all available animations
 enum Player1_Anims {
-    IDLE_ANIM
+    IDLE_ANIM,
+    WALK_ANIM
 }
 
 //Update the current animation
 void handle_player_anim() {
     return [player1.anim] {
         IDLE_ANIM   @ handle_player1_idle_anim
+        WALK_ANIM   @ handle_player1_walk_anim
     }
 }
 
-//Draw the current frame of the current animation
-void draw_player1_frame(byte frame_num) {
-    return [frame_num] {
-        0   @ player1_frame_0
+//Switch the animation if necessary
+void switch_player1_anim(Player1_Anims anim, bool force) {
+    if force || (anim != player1.anim) {
+        player1.anim_frame = 0
     }
+    player1.anim = anim
 }
 
 // -- IDLE_ANIM
 const byte player1_idle_anim_max_frame = 0
-const bool player1_idle_anime_loop = false
+const bool player1_idle_anim_loop = false
 const array player1_idle_anim_frames = [0]
 
 void handle_player1_idle_anim() {
-    anim_clamp_frames(player1.anim_frame, player1_idle_anim_max_frame, player1_idle_anime_loop)
+    anim_clamp_frames(player1.anim_frame, player1_idle_anim_max_frame, player1_idle_anim_loop)
     
     draw_player1_frame(player1_idle_anim_frames[player1.anim_frame])
     
     player1.anim_frame += 1
 }
 // -- IDLE_ANIM
+
+// -- WALK_ANIM
+const byte player1_walk_anim_max_frame = 0
+const bool player1_walk_anim_loop = true
+const array player1_walk_anim_frames = [1]
+
+void handle_player1_walk_anim() {
+    anim_clamp_frames(player1.anim_frame, player1_walk_anim_max_frame, player1_walk_anim_loop)
+    
+    draw_player1_frame(player1_walk_anim_frames[player1.anim_frame])
+    
+    player1.anim_frame += 1
+}
+// -- WALK_ANIM

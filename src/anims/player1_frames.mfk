@@ -1,4 +1,67 @@
+//Draw the current frame of the current animation
+void draw_player1_frame(byte frame_num) {
+    return [frame_num] {
+        0   @ player1_frame_0
+        1   @ player1_frame_1
+    }
+}
+
 void player1_frame_0() {
+    player1_sprites[0].y = player1.pos.y
+    player1_sprites[0].tile = 0
+    player1_sprites[0].even = true
+    
+    player1_sprites[1].y = player1.pos.y
+    player1_sprites[1].tile = 1
+    player1_sprites[1].even = false
+    
+    player1_sprites[2].y = player1.pos.y + 8
+    player1_sprites[2].tile = 2
+    player1_sprites[2].even = true
+    
+    player1_sprites[3].y = player1.pos.y + 8
+    player1_sprites[3].tile = 3
+    player1_sprites[3].even = false
+    
+    player1_sprites[4].y = player1.pos.y - 3
+    player1_sprites[4].tile = $10
+    player1_sprites[4].even = false
+    
+    //take care of any mirroring
+    if player1.mirroring {
+        player1_sprites[0].attrs = %01000000
+        player1_sprites[1].attrs = %01000000
+        player1_sprites[2].attrs = %01000000
+        player1_sprites[3].attrs = %01000000
+        player1_sprites[4].attrs = %01000000
+        player1_sprites[0].x = player1.pos.x + 8 + 4
+        player1_sprites[1].x = player1.pos.x + 4
+        player1_sprites[2].x = player1.pos.x + 8
+        player1_sprites[3].x = player1.pos.x
+        player1_sprites[4].x = player1.pos.x + 8 - 4
+    }
+    else {
+        player1_sprites[0].attrs = %00000000
+        player1_sprites[1].attrs = %00000000
+        player1_sprites[2].attrs = %00000000
+        player1_sprites[3].attrs = %00000000
+        player1_sprites[4].attrs = %00000000
+        player1_sprites[0].x = player1.pos.x - 4
+        player1_sprites[1].x = player1.pos.x + 8 - 4
+        player1_sprites[2].x = player1.pos.x
+        player1_sprites[3].x = player1.pos.x + 8
+        player1_sprites[4].x = player1.pos.x + 8 - 4
+    }
+    
+    //now add these sprites to the queue
+    add_sprite_to_queue(player1_sprites[0].addr)
+    add_sprite_to_queue(player1_sprites[1].addr)
+    add_sprite_to_queue(player1_sprites[2].addr)
+    add_sprite_to_queue(player1_sprites[3].addr)
+    add_sprite_to_queue(player1_sprites[4].addr)
+}
+
+void player1_frame_1() {
     player1_sprites[0].y = player1.pos.y
     player1_sprites[0].tile = 0
     player1_sprites[0].even = true
