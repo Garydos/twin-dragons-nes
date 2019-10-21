@@ -10,7 +10,7 @@ struct Box {
 
 //All objects that can physically collide with the background
 //should have their structs' first bytes line up with the structure
-//of this struct
+//of this struct.  Polymorphism without an inheritance system, basically.
 struct Phys_Obj {
     Box pos,
     byte xfrac, //fractional part of player's x coordinate, can range from 0-3 (first 2 bits)

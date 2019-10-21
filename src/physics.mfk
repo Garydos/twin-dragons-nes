@@ -154,8 +154,6 @@ void obj_collis_horiz() {
 
     check_background_collis_horiz(obj_ptr->pos.x, obj_ptr->pos.y, obj_ptr->pos.width, obj_ptr->pos.height)
     if collis_flag {
-        // playerx = old_x
-        // playerx_frac = old_x_frac
         obj_ptr->xvel = 0
     }
     
@@ -185,10 +183,7 @@ void obj_collis_vert() {
     update_obj_y_speed()
     
     check_background_collis_vert(obj_ptr->pos.x, obj_ptr->pos.y, obj_ptr->pos.width, obj_ptr->pos.height)
-    // obj_ptr->on_ground = down_collis_flag
-    if collis_flag{   
-        // playery = old_y
-        // playery_frac = old_y_frac
+    if collis_flag{
         obj_ptr->yvel = 0
     }
     
@@ -198,7 +193,6 @@ void obj_collis_vert() {
         obj_ptr->yfrac = 0
         do {
             collis_flag = false
-            //player->pos.y -= 1
             obj_ptr->pos.y -= 1
             check_background_collis_vert(obj_ptr->pos.x, obj_ptr->pos.y, obj_ptr->pos.width, obj_ptr->pos.height)
         } while collis_flag

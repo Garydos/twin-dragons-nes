@@ -31,6 +31,8 @@ void main() {
     reset_collis_flags()
     reset_scroll_flags()
     init_scroll_vars()
+    init_enemy_heap()
+    spawn_enemy(0, $80,$80)
     //set up the music
     FamiToneInit($01, nesthing_ost.addr)
     //FamiToneMusicPlay($00)
@@ -116,11 +118,12 @@ inline void game_logic() {
     check_obj_collis_and_update_loc()
     player1.on_ground = down_collis_flag
     reset_collis_flags()
-    
+
     apply_player_frict()
     prepare_scrolling()
     snap_player_pos_limits()
     handle_player_anim()
+    handle_enemy_anims()
     draw_sprites()
 }
 

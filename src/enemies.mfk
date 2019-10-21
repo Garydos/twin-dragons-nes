@@ -1,10 +1,12 @@
-const byte max_enemies = 12
+const byte max_enemies = 16
 
-array(Enemy) enemy_heap [max_enemies]
+array(Enemy) enemy_heap [max_enemies] align(128)
 //Enemies will grab an available index number for enemy_heap from
 //available_enemy_heap_spots when they're spawned
 array available_enemy_heap_spots [max_enemies]
 byte enemy_heap_spots_top
+array current_enemies [max_enemies]
+byte current_enemy_count
 
 void init_enemy_heap() {
     byte i
@@ -14,14 +16,60 @@ void init_enemy_heap() {
         available_enemy_heap_spots[i] = i
     }
     enemy_heap_spots_top = max_enemies
+    current_enemy_count = 0
 }
 
-byte get_enemy_heap_spot() {
+inline byte get_enemy_heap_spot() {
+    byte spot
+    
     enemy_heap_spots_top -= 1
-    return available_enemy_heap_spots[enemy_heap_spots_top]
+    spot = available_enemy_heap_spots[enemy_heap_spots_top]
+    current_enemies[current_enemy_count] = spot
+    current_enemy_count += 1
+    return spot
 }
 
-void return_enemy_heap_spot(byte spot) {
+inline void return_enemy_heap_spot(byte spot) {
+    byte i
+    
     available_enemy_heap_spots[enemy_heap_spots_top] = spot
     enemy_heap_spots_top += 1
+    
+    i = 0
+    while current_enemies[i] != spot {
+        i += 1
+    }
+    while i < current_enemy_count {
+        current_enemies[i] = current_enemies[i+1]
+    }
+    current_enemy_count -= 1
+}
+
+void spawn_enemy(byte type, byte x, byte y) {
+    //spawn enemy of type type at position (x,y)
+    byte heap_spot
+    
+    heap_spot = get_enemy_heap_spot()
+    enemy_heap[heap_spot].pos.x = x
+    enemy_heap[heap_spot].pos.y = y
+    enemy_heap[heap_spot].xfrac = 0
+    enemy_heap[heap_spot].yfrac = 0
+    enemy_heap[heap_spot].xvel = 0
+    enemy_heap[heap_spot].yvel = 0
+    enemy_heap[heap_spot].xaccel = 0
+    enemy_heap[heap_spot].yaccel = 0
+    enemy_heap[heap_spot].id = heap_spot
+    enemy_heap[heap_spot].enemy_type = type
+}
+
+
+Sprite test_sprite
+void handle_enemy_anims() {
+    test_sprite.y = enemy_heap[current_enemies[0]].pos.y
+    test_sprite.tile = $00
+    test_sprite.attrs = $00
+    test_sprite.x = enemy_heap[current_enemies[0]].pos.x
+    test_sprite.even = true
+    
+    add_sprite_to_queue(test_sprite)
 }
