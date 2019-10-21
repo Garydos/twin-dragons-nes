@@ -1,17 +1,7 @@
-import player1_frames
-
 //List of all available animations
 enum Player1_Anims {
     IDLE_ANIM,
     WALK_ANIM
-}
-
-//Update the current animation
-void handle_player_anim() {
-    return [player1.anim] {
-        IDLE_ANIM   @ handle_player1_idle_anim
-        WALK_ANIM   @ handle_player1_walk_anim
-    }
 }
 
 //Switch the animation if necessary
@@ -22,30 +12,93 @@ void switch_player1_anim(Player1_Anims anim, bool force) {
     player1.anim = anim
 }
 
-// -- IDLE_ANIM
-const byte player1_idle_anim_max_frame = 0
-const bool player1_idle_anim_loop = false
-const array player1_idle_anim_frames = [0]
-
-void handle_player1_idle_anim() {
-    anim_clamp_frames(player1.anim_frame, player1_idle_anim_max_frame, player1_idle_anim_loop)
+//Update the current animation
+void handle_player_anim() {
+    bool loop
+    byte max_frame
+    pointer anim_ptr
     
-    draw_player1_frame(player1_idle_anim_frames[player1.anim_frame])
+    if player1.anim == IDLE_ANIM {
+        anim_ptr = player_idle_anim.addr
+    }
+    else if player1.anim == WALK_ANIM {
+        anim_ptr = player_idle_anim.addr
+    }
+    
+    if anim_ptr[0] != 0 {
+        loop = true
+    }
+    else {
+        loop = false
+    }
+    max_frame = anim_ptr[1]
+    anim_ptr += 2
+    
+    anim_clamp_frames(player1.anim_frame, max_frame, loop)
+
+    draw_player1_frame(anim_ptr[player1.anim_frame])
     
     player1.anim_frame += 1
 }
-// -- IDLE_ANIM
 
-// -- WALK_ANIM
-const byte player1_walk_anim_max_frame = 0
-const bool player1_walk_anim_loop = true
-const array player1_walk_anim_frames = [1]
-
-void handle_player1_walk_anim() {
-    anim_clamp_frames(player1.anim_frame, player1_walk_anim_max_frame, player1_walk_anim_loop)
-    
-    draw_player1_frame(player1_walk_anim_frames[player1.anim_frame])
-    
-    player1.anim_frame += 1
+//Draw the current frame of the current animation
+inline void draw_player1_frame(byte frame_num) {
+    if frame_num == 0 {
+        sprite_draw_frame(frame0.addr, player1.mirroring)
+    }
+    else if frame_num == 1 {
+        sprite_draw_frame(frame0.addr, player1.mirroring)
+    }
 }
-// -- WALK_ANIM
+
+void sprite_draw_frame(pointer frame_info, bool mirroring) {
+    //compiler bug: can't manipulate parameter directly,
+    //  have to use local variable
+    pointer frame
+    byte mirror
+    byte center
+    byte num_sprites
+    sbyte offset
+    Sprite spr
+    
+    frame = frame_info
+    mirror = frame[0]
+    center = frame[1]
+    num_sprites = frame[2]
+    frame += 3
+    
+    //set proper mirroring
+    
+    if mirroring{
+        mirror ^= 1
+    }
+    else {
+        mirror ^= 0
+    }
+    
+    while num_sprites > 0 {
+        if mirror == 0{
+            spr.y = player1.pos.y + frame[0]
+            spr.tile = frame[1]
+            spr.attrs = frame[2] | %01000000
+            spr.x = (player1.pos.x+center) - frame[3]
+            spr.even = true
+        }
+        else {
+            spr.y = player1.pos.y + frame[0]
+            spr.tile = frame[1]
+            spr.attrs = frame[2]
+            spr.x = player1.pos.x + frame[3]
+            spr.even = true
+        }
+        
+        frame += 4
+        num_sprites -= 1
+        add_sprite_to_queue(spr)
+    }
+}
+
+//Animation Info
+const array player_idle_anim = [0,1,0]
+//Frame Info
+const array frame0 = [1,8,5, 0,0,0,-4,  0,1,0,4,  8,2,0,0,  8,3,0,8,  -3,$10,0,4]

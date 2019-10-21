@@ -48,7 +48,8 @@ struct Enemy {
     byte xaccel,
     byte yaccel,
     byte id,
-    byte enemy_type
+    byte enemy_type,
+    bool mirroring
 }
 
 

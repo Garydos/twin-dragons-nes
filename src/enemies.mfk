@@ -52,6 +52,8 @@ void spawn_enemy(byte type, byte x, byte y) {
     heap_spot = get_enemy_heap_spot()
     enemy_heap[heap_spot].pos.x = x
     enemy_heap[heap_spot].pos.y = y
+    enemy_heap[heap_spot].pos.width = 8
+    enemy_heap[heap_spot].pos.height = 8
     enemy_heap[heap_spot].xfrac = 0
     enemy_heap[heap_spot].yfrac = 0
     enemy_heap[heap_spot].xvel = 0
@@ -60,6 +62,7 @@ void spawn_enemy(byte type, byte x, byte y) {
     enemy_heap[heap_spot].yaccel = 0
     enemy_heap[heap_spot].id = heap_spot
     enemy_heap[heap_spot].enemy_type = type
+    enemy_heap[heap_spot].mirroring = false
 }
 
 
