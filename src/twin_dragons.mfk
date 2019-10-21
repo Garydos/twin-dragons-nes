@@ -114,10 +114,7 @@ inline void game_logic() {
     handle_player_input()
     cap_player_vel()
     
-    obj_ptr = pointer.Phys_Obj(player1.addr)
-    check_obj_collis_and_update_loc()
-    player1.on_ground = down_collis_flag
-    reset_collis_flags()
+    check_player_collis_and_update_loc(pointer.Player(player1.addr))
 
     apply_player_frict()
     prepare_scrolling()

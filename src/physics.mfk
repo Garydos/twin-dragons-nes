@@ -131,26 +131,33 @@ void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte 
     }
 }
 
-//compiler bug: If player_ptr is a parameter to check_player_collis_and_update_player_loc
-//instead of being a global variable, then it is assigned the same address as other pointer
-//local variables in other functions.  This means that player_ptr is overwritten by function
-//calls made within the body of check_player_collis_and_update_player_loc if it's a parameter.
-//The workaround is to have it as a global variable, that way no other function will touch it.
-pointer.Phys_Obj obj_ptr
-void check_obj_collis_and_update_loc() {
+inline void check_player_collis_and_update_loc(pointer.Player player_ptr) {
     //do vertical collision checking
-    obj_collis_vert()
+    obj_collis_vert(pointer.Phys_Obj(player_ptr))
     
     collis_flag = false
     
     //do horizontal collision checking
-    obj_collis_horiz()
+    obj_collis_horiz(pointer.Phys_Obj(player_ptr))
     
-    //leave resetting the collision flags to the calling function
+    player_ptr->on_ground = down_collis_flag
+    reset_collis_flags()
 }
 
-void obj_collis_horiz() {
-    update_obj_x_speed()
+inline void check_obj_collis_and_update_loc(pointer.Phys_Obj obj_ptr) {
+    //do vertical collision checking
+    obj_collis_vert(pointer.Phys_Obj(player_ptr))
+    
+    collis_flag = false
+    
+    //do horizontal collision checking
+    obj_collis_horiz(pointer.Phys_Obj(player_ptr))
+
+    reset_collis_flags()
+}
+
+void obj_collis_horiz(pointer.Phys_Obj obj_ptr) {
+    update_obj_x_speed(obj_ptr)
 
     check_background_collis_horiz(obj_ptr->pos.x, obj_ptr->pos.y, obj_ptr->pos.width, obj_ptr->pos.height)
     if collis_flag {
@@ -178,9 +185,10 @@ void obj_collis_horiz() {
     }
 }
 
-void obj_collis_vert() {
+void obj_collis_vert(pointer.Phys_Obj obj_ptr) {
+    byte y
     
-    update_obj_y_speed()
+    update_obj_y_speed(obj_ptr)
     
     check_background_collis_vert(obj_ptr->pos.x, obj_ptr->pos.y, obj_ptr->pos.width, obj_ptr->pos.height)
     if collis_flag{
@@ -191,11 +199,12 @@ void obj_collis_vert() {
     //landing point, then stick them to the ground
     if down_collis_flag {
         obj_ptr->yfrac = 0
-        do {
-            collis_flag = false
-            obj_ptr->pos.y -= 1
-            check_background_collis_vert(obj_ptr->pos.x, obj_ptr->pos.y, obj_ptr->pos.width, obj_ptr->pos.height)
-        } while collis_flag
+        obj_ptr->pos.y = ((obj_ptr->pos.y + obj_ptr->pos.height) & %11111000) - obj_ptr->pos.height - 1
+        //(obj_ptr->y + obj_ptr->height) = farthest point that collided with the ground
+        //Take that value and align it to the top of the closest 8-pixel tile boundary by
+        //and-ing it with 8.  Now subtract that by obj_ptr->height since we want to have
+        //it stuck to the ground and not in the ground. Subtract by one because sprites are
+        //always off by one relative to the background
     }
     //do the same for a negative velocities
     else if up_collis_flag {
@@ -208,53 +217,7 @@ void obj_collis_vert() {
     }
 }
 
-void check_obj_collis_and_update_loc_fast() {
-    //doesn't do checks for fast velocities,
-    //so if you use this function instead of the regular one,
-    //objects will visibly stop/slowdown next to the obstacle
-    //if they're going too fast
-    byte old_x
-    byte old_x_frac
-    byte old_y
-    byte old_y_frac
-    
-    old_x = obj_ptr->pos.x
-    old_y = obj_ptr->pos.y    
-    old_x_frac = obj_ptr->xfrac
-    old_y_frac = obj_ptr->yfrac
-    
-    //do vertical collision checking
-    
-    //if we're going too fast, do the collision checking in two steps
-    //to ensure we stick to the ground
-    
-    update_obj_y_speed()
-    
-    check_background_collis_vert(obj_ptr->pos.x, obj_ptr->pos.y, obj_ptr->pos.width, obj_ptr->pos.height)
-    // obj_ptr->on_ground = down_collis_flag
-    if collis_flag{   
-        obj_ptr->pos.y = old_y
-        obj_ptr->yfrac = old_y_frac
-        obj_ptr->yvel = 0
-    }
-
-    collis_flag = false
-    
-    //do horizontal collision checking
-    update_obj_x_speed()
-
-    check_background_collis_horiz(obj_ptr->pos.x, obj_ptr->pos.y, obj_ptr->pos.width, obj_ptr->pos.height)
-    if collis_flag {
-        obj_ptr->pos.x = old_x
-        obj_ptr->xfrac = old_x_frac
-        obj_ptr->xvel = 0
-    }
-    
-    //leave resetting the collision flags to the calling function
-}
-
-
-void update_obj_x_speed() {
+void update_obj_x_speed(pointer.Phys_Obj obj_ptr) {
     if obj_ptr->xvel < 0{
         obj_ptr->xvel = flip_sign(obj_ptr->xvel) //obj_ptr->xvel *= -1
         obj_ptr->pos.x -= obj_ptr->xvel >> 2
@@ -276,7 +239,7 @@ void update_obj_x_speed() {
     }
 }
 
-void update_obj_y_speed() {
+void update_obj_y_speed(pointer.Phys_Obj obj_ptr) {
     if obj_ptr->yvel < 0{
         obj_ptr->yvel = flip_sign(obj_ptr->yvel)
         obj_ptr->pos.y -= obj_ptr->yvel >> 2

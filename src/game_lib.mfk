@@ -52,6 +52,11 @@ struct Enemy {
     bool mirroring
 }
 
+struct Anim {
+    byte anim_num,  //current animation number
+    byte anim_frame, //current frame of current animation
+    bool mirroring  //is the frame mirrored or not?
+}
 
 macro void anim_clamp_frames(byte frame, byte max_frame, bool loop) {
     //loop or clamp the frame number

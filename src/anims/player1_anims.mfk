@@ -14,8 +14,6 @@ void switch_player1_anim(Player1_Anims anim, bool force) {
 
 //Update the current animation
 void handle_player_anim() {
-    bool loop
-    byte max_frame
     pointer anim_ptr
     
     if player1.anim == IDLE_ANIM {
@@ -24,6 +22,13 @@ void handle_player_anim() {
     else if player1.anim == WALK_ANIM {
         anim_ptr = player_idle_anim.addr
     }
+    
+    player1.anim_frame = handle_anim(anim_ptr, player1.anim_frame)
+}
+
+byte handle_anim(pointer anim_ptr, byte frame) {
+    bool loop
+    byte max_frame
     
     if anim_ptr[0] != 0 {
         loop = true
@@ -34,11 +39,13 @@ void handle_player_anim() {
     max_frame = anim_ptr[1]
     anim_ptr += 2
     
-    anim_clamp_frames(player1.anim_frame, max_frame, loop)
+    anim_clamp_frames(frame, max_frame, loop)
 
-    draw_player1_frame(anim_ptr[player1.anim_frame])
+    draw_player1_frame(anim_ptr[frame])
     
-    player1.anim_frame += 1
+    frame += 1
+    
+    return frame
 }
 
 //Draw the current frame of the current animation
@@ -60,6 +67,9 @@ void sprite_draw_frame(pointer frame_info, bool mirroring) {
     byte num_sprites
     sbyte offset
     Sprite spr
+    bool even
+    
+    even = true
     
     frame = frame_info
     mirror = frame[0]
@@ -77,28 +87,28 @@ void sprite_draw_frame(pointer frame_info, bool mirroring) {
     }
     
     while num_sprites > 0 {
-        if mirror == 0{
-            spr.y = player1.pos.y + frame[0]
-            spr.tile = frame[1]
+        spr.y = player1.pos.y + frame[0]
+        spr.tile = frame[1]
+        spr.even = even
+        
+        if mirror == 0 {
             spr.attrs = frame[2] | %01000000
             spr.x = (player1.pos.x+center) - frame[3]
-            spr.even = true
         }
         else {
-            spr.y = player1.pos.y + frame[0]
-            spr.tile = frame[1]
             spr.attrs = frame[2]
             spr.x = player1.pos.x + frame[3]
-            spr.even = true
         }
         
         frame += 4
         num_sprites -= 1
         add_sprite_to_queue(spr)
+        
+        even = not(even)
     }
 }
 
 //Animation Info
-const array player_idle_anim = [0,1,0]
+const array player_idle_anim = [0,0,0]
 //Frame Info
 const array frame0 = [1,8,5, 0,0,0,-4,  0,1,0,4,  8,2,0,0,  8,3,0,8,  -3,$10,0,4]
