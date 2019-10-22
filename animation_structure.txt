@@ -2,8 +2,8 @@ animation_info:
 	1st byte - loop animation flag
 	2nd byte - max frame number (number of frames - 1)
 
-The rest of the bytes are frame numbers for each frame of the animation.
-Each animation frame is played once per game frame.
+The rest of the bytes are frame numbers and frame times for each animation frame.
+The frame number comes first and the frame time comes second.
 	
 frame_info:
 	1st byte - mirrored in chrrom flag

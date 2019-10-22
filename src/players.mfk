@@ -24,5 +24,6 @@ void init_player1(byte x, byte y) {
     player1.can_jump = true
     player1.anim.anim_frame = 0
     player1.anim.anim_num = byte(IDLE_ANIM)
+    player1.anim.frame_timer = 0
     player1.anim.mirroring = true
 }

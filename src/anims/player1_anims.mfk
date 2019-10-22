@@ -6,8 +6,9 @@ enum Player1_Anims {
 
 //Switch the animation if necessary
 void switch_player1_anim(Player1_Anims anim, bool force) {
-    if force || (anim != player1.anim) {
+    if force || (anim != player1.anim.anim_num) {
         player1.anim.anim_frame = 0
+        player1.anim.frame_timer = 0
     }
     player1.anim.anim_num = byte(anim)
 }
@@ -20,13 +21,13 @@ void handle_player_anim(pointer.Anim player_anim) {
         anim_ptr = player_idle_anim.addr
     }
     else if player_anim->anim_num == WALK_ANIM {
-        anim_ptr = player_idle_anim.addr
+        anim_ptr = player_walk_anim.addr
     }
     
-    player_anim->anim_frame = handle_anim(anim_ptr, player_anim->anim_frame, player_anim->mirroring)
+    handle_anim(anim_ptr, player_anim)
 }
 
-byte handle_anim(pointer anim_ptr, byte frame, bool mirroring) {
+inline void handle_anim(pointer anim_ptr, pointer.Anim anim) {
     bool loop
     byte max_frame
     
@@ -39,22 +40,41 @@ byte handle_anim(pointer anim_ptr, byte frame, bool mirroring) {
     max_frame = anim_ptr[1]
     anim_ptr += 2
     
-    anim_clamp_frames(frame, max_frame, loop)
+    if anim->anim_frame > max_frame {
+        if loop {
+            anim->anim_frame = 0
+        }
+        else {
+            anim->anim_frame = max_frame
+        }
+        anim->frame_timer = 0
+    }
 
-    draw_player_frame(anim_ptr[frame], mirroring)
+    draw_player_frame(anim_ptr[anim->anim_frame << 1], anim->mirroring)
     
-    frame += 1
-    
-    return frame
+    anim->frame_timer += 1
+    if anim->frame_timer == anim_ptr[(anim->anim_frame << 1)+1]{
+        anim->anim_frame += 1
+        anim->frame_timer = 0
+    }
 }
 
 //Draw the current frame of the current animation
 inline void draw_player_frame(byte frame_num, bool mirroring) {
     if frame_num == 0 {
-        sprite_draw_frame(frame0.addr, mirroring)
+        sprite_draw_frame(player_idle_frame0.addr, mirroring)
     }
     else if frame_num == 1 {
-        sprite_draw_frame(frame0.addr, mirroring)
+        sprite_draw_frame(player_walk_frame0.addr, mirroring)
+    }
+    else if frame_num == 2 {
+        sprite_draw_frame(player_walk_frame1.addr, mirroring)
+    }
+    else if frame_num == 3 {
+        sprite_draw_frame(player_walk_frame2.addr, mirroring)
+    }
+    else if frame_num == 4 {
+        sprite_draw_frame(player_walk_frame3.addr, mirroring)
     }
 }
 
@@ -110,5 +130,12 @@ void sprite_draw_frame(pointer frame_info, bool mirroring) {
 
 //Animation Info
 const array player_idle_anim = [0,0,0]
+const array player_walk_anim = [1,3,1,8,2,8,3,8,4,8]
 //Frame Info
-const array frame0 = [1,8,5, 0,0,0,-4,  0,1,0,4,  8,2,0,0,  8,3,0,8,  -3,$10,0,4]
+
+const array player_idle_frame0 = [1,8,5, 0,0,0,-4,  0,1,0,4,  8,2,0,0,  8,3,0,8,  -3,$10,0,4]
+
+const array player_walk_frame0 = [1,8,5, 0,4,0,-4,  0,5,0,4,  8,6,0,0,  8,7,0,8,  -3,$11,0,4]
+const array player_walk_frame1 = [1,8,5, 0,4,0,-4,  0,5,0,4,  8,$0E,0,0,  8,$0F,0,8,  -3,$11,0,4]
+const array player_walk_frame2 = [1,8,5, 0,4,0,-4,  0,5,0,4,  8,$0C,0,0,  8,$0D,0,8,  -3,$11,0,4]
+const array player_walk_frame3 = [1,8,5, 0,4,0,-4,  0,5,0,4,  8,8,0,0,  8,9,0,8,  -3,$11,0,4]

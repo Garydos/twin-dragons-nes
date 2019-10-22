@@ -53,17 +53,6 @@ struct Enemy {
 struct Anim {
     byte anim_num,  //current animation number
     byte anim_frame, //current frame of current animation
+    byte frame_timer, //amount of game frames left to show current animation frame
     bool mirroring  //is the frame mirrored or not?
-}
-
-macro void anim_clamp_frames(byte frame, byte max_frame, bool loop) {
-    //loop or clamp the frame number
-    if frame > max_frame {
-        if loop {
-            frame = 0
-        }
-        else {
-            frame = max_frame
-        }
-    }
 }
