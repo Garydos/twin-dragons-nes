@@ -35,7 +35,7 @@ void main() {
     spawn_enemy(0, $80,$80)
     //set up the music
     FamiToneInit($01, nesthing_ost.addr)
-    //FamiToneMusicPlay($00)
+    // FamiToneMusicPlay($00)
     
     current_level_tiles = screen_metatiles
     current_level_attrs = attrs
@@ -119,7 +119,7 @@ inline void game_logic() {
     apply_player_frict()
     prepare_scrolling()
     snap_player_pos_limits()
-    handle_player_anim()
+    handle_player_anim(pointer.Anim(player1.anim.addr))
     handle_enemy_anims()
     draw_sprites()
 }
@@ -181,7 +181,7 @@ inline void handle_player_dash() {
 
 inline void handle_player_x_input() {
     if input_dx > 0 {
-        player1.mirroring = true
+        player1.anim.mirroring = true
         switch_player1_anim(WALK_ANIM, false)
         if player1.pos.x < right_screen_limit {
             playerx_apply_accel()
@@ -189,7 +189,7 @@ inline void handle_player_x_input() {
         }
     }
     else if input_dx < 0 {
-        player1.mirroring = false
+        player1.anim.mirroring = false
         switch_player1_anim(WALK_ANIM, false)
         if player1.pos.x > left_screen_limit {
             playerx_apply_accel()

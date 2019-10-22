@@ -31,9 +31,7 @@ struct Player {
     bool on_ground,
     bool jumping,
     bool can_jump,
-    Player1_Anims anim,
-    byte anim_frame,
-    bool mirroring
+    Anim anim
 }
 //velocities are added to playerx_frac and playery_frac, so they should be treated as
 //fractional parts (i.e. playerxvel = 4 means playerx will increase by 1, playerxvel = 8

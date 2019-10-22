@@ -205,6 +205,7 @@ void obj_collis_vert(pointer.Phys_Obj obj_ptr) {
         //and-ing it with 8.  Now subtract that by obj_ptr->height since we want to have
         //it stuck to the ground and not in the ground. Subtract by one because sprites are
         //always off by one relative to the background
+        //Note: this breaks if obj_ptr is moving faster than 8 pixels per frame
     }
     //do the same for a negative velocities
     else if up_collis_flag {

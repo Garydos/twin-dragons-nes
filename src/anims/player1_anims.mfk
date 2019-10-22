@@ -7,26 +7,26 @@ enum Player1_Anims {
 //Switch the animation if necessary
 void switch_player1_anim(Player1_Anims anim, bool force) {
     if force || (anim != player1.anim) {
-        player1.anim_frame = 0
+        player1.anim.anim_frame = 0
     }
-    player1.anim = anim
+    player1.anim.anim_num = byte(anim)
 }
 
 //Update the current animation
-void handle_player_anim() {
+void handle_player_anim(pointer.Anim player_anim) {
     pointer anim_ptr
     
-    if player1.anim == IDLE_ANIM {
+    if player_anim->anim_num == IDLE_ANIM {
         anim_ptr = player_idle_anim.addr
     }
-    else if player1.anim == WALK_ANIM {
+    else if player_anim->anim_num == WALK_ANIM {
         anim_ptr = player_idle_anim.addr
     }
     
-    player1.anim_frame = handle_anim(anim_ptr, player1.anim_frame)
+    player_anim->anim_frame = handle_anim(anim_ptr, player_anim->anim_frame, player_anim->mirroring)
 }
 
-byte handle_anim(pointer anim_ptr, byte frame) {
+byte handle_anim(pointer anim_ptr, byte frame, bool mirroring) {
     bool loop
     byte max_frame
     
@@ -41,7 +41,7 @@ byte handle_anim(pointer anim_ptr, byte frame) {
     
     anim_clamp_frames(frame, max_frame, loop)
 
-    draw_player1_frame(anim_ptr[frame])
+    draw_player_frame(anim_ptr[frame], mirroring)
     
     frame += 1
     
@@ -49,12 +49,12 @@ byte handle_anim(pointer anim_ptr, byte frame) {
 }
 
 //Draw the current frame of the current animation
-inline void draw_player1_frame(byte frame_num) {
+inline void draw_player_frame(byte frame_num, bool mirroring) {
     if frame_num == 0 {
-        sprite_draw_frame(frame0.addr, player1.mirroring)
+        sprite_draw_frame(frame0.addr, mirroring)
     }
     else if frame_num == 1 {
-        sprite_draw_frame(frame0.addr, player1.mirroring)
+        sprite_draw_frame(frame0.addr, mirroring)
     }
 }
 
