@@ -113,14 +113,12 @@ inline void game_logic() {
     //game logic goes here
     handle_player_input()
     cap_player_vel()
-    
     check_player_collis_and_update_loc(pointer.Player(player1.addr))
-
     apply_player_frict()
     prepare_scrolling()
     snap_player_pos_limits()
     handle_player_anim(pointer.Anim(player1.anim.addr))
-    handle_enemy_anims()
+    update_enemies()
     draw_sprites()
 }
 

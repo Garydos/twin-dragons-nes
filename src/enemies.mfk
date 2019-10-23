@@ -76,3 +76,7 @@ void handle_enemy_anims() {
     
     add_sprite_to_queue(test_sprite)
 }
+
+void update_enemies() {
+    handle_enemy_anims()
+}

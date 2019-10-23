@@ -146,12 +146,12 @@ inline void check_player_collis_and_update_loc(pointer.Player player_ptr) {
 
 inline void check_obj_collis_and_update_loc(pointer.Phys_Obj obj_ptr) {
     //do vertical collision checking
-    obj_collis_vert(pointer.Phys_Obj(player_ptr))
+    obj_collis_vert(obj_ptr)
     
     collis_flag = false
     
     //do horizontal collision checking
-    obj_collis_horiz(pointer.Phys_Obj(player_ptr))
+    obj_collis_horiz(obj_ptr)
 
     reset_collis_flags()
 }
