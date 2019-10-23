@@ -67,16 +67,20 @@ void spawn_enemy(byte type, byte x, byte y) {
 
 
 Sprite test_sprite
-void handle_enemy_anims() {
-    test_sprite.y = enemy_heap[current_enemies[0]].pos.y
+inline void handle_enemy_anims(byte i) {
+    test_sprite.y = enemy_heap[current_enemies[i]].pos.y
     test_sprite.tile = $00
     test_sprite.attrs = $00
-    test_sprite.x = enemy_heap[current_enemies[0]].pos.x
+    test_sprite.x = enemy_heap[current_enemies[i]].pos.x
     test_sprite.even = true
     
     add_sprite_to_queue(test_sprite)
 }
 
 void update_enemies() {
-    handle_enemy_anims()
+    byte i
+    
+    for i,0,until,current_enemy_count {
+        handle_enemy_anims(i)
+    }
 }

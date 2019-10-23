@@ -168,26 +168,20 @@ void obj_collis_horiz(pointer.Phys_Obj obj_ptr) {
     //landing point, then stick them to the wall
     if right_collis_flag {
         obj_ptr->xfrac = 0
-        do {
-            collis_flag = false
-            obj_ptr->pos.x -= 1
-            check_background_collis_horiz(obj_ptr->pos.x, obj_ptr->pos.y, obj_ptr->pos.width, obj_ptr->pos.height)
-        } while collis_flag
+        obj_ptr->pos.x = ((obj_ptr->pos.x + obj_ptr->pos.width) & %11111000) - obj_ptr->pos.width + (((xscroll^%00000111)+1)&%00000111) - 1
+        //Got the math for this by looking at a naive implementation (basically copy-pasting the pos.y equalivalent,
+        //and then seeing where things went wrong) to find a way to programatically correct those errors.  So yeah,
+        //not entirely sure why this math works but it has something to with the fact that scrolling messes up tile
+        //and sprite alignment.  ¯\_(ツ)_/¯
     }
     //do the same for a negative velocities
     else if left_collis_flag {
         obj_ptr->xfrac = 0
-        do {
-            collis_flag = false
-            obj_ptr->pos.x += 1
-            check_background_collis_horiz(obj_ptr->pos.x, obj_ptr->pos.y, obj_ptr->pos.width, obj_ptr->pos.height)
-        }while collis_flag
+        obj_ptr->pos.x = (obj_ptr->pos.x & %11111000) - (xscroll & %00000111) + 8
     }
 }
 
 void obj_collis_vert(pointer.Phys_Obj obj_ptr) {
-    byte y
-    
     update_obj_y_speed(obj_ptr)
     
     check_background_collis_vert(obj_ptr->pos.x, obj_ptr->pos.y, obj_ptr->pos.width, obj_ptr->pos.height)
@@ -210,11 +204,11 @@ void obj_collis_vert(pointer.Phys_Obj obj_ptr) {
     //do the same for a negative velocities
     else if up_collis_flag {
         obj_ptr->yfrac = 0
-        do {
-            collis_flag = false
-            obj_ptr->pos.y += 1
-            check_background_collis_vert(obj_ptr->pos.x, obj_ptr->pos.y, obj_ptr->pos.width, obj_ptr->pos.height)
-        }while collis_flag
+        obj_ptr->pos.y = (obj_ptr->pos.y & %11111000) + 8
+        //each tile is 8 pixels high, if the top of the object
+        //is in a tile, then align it to the tile (by and'ing by 8),
+        //then jump to the next tile (that is not collidable hopefully,
+        //as long as the velocity didn't exceed 8 pixels per frame).
     }
 }
 
