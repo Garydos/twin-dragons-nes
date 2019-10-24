@@ -1,11 +1,11 @@
-const byte max_enemies = 12
+const byte max_enemies = 8
 
-array(Enemy) enemy_heap [max_enemies] align(128)
+array(Enemy) enemy_heap [max_enemies] @$200
 //Enemies will grab an available index number for enemy_heap from
 //available_enemy_heap_spots when they're spawned
-array available_enemy_heap_spots [max_enemies]
+array available_enemy_heap_spots [max_enemies] align(16)
 byte enemy_heap_spots_top
-array current_enemies [max_enemies]
+array current_enemies [max_enemies] align(16)
 byte current_enemy_count
 
 void init_enemy_heap() {

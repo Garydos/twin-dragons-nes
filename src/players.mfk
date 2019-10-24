@@ -4,7 +4,6 @@ const byte player_width = 16 //width in pixels
 const byte player_height = 14 //height in pixels
 
 Player player1
-array(Sprite) player1_sprites [8]
 
 void init_player1(byte x, byte y) {
     //player1 //doesn't compile without this pointless expression statement, don't remove
