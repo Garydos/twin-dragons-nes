@@ -14,7 +14,7 @@ void switch_player1_anim(Player1_Anims anim, bool force) {
 }
 
 //Update the current animation
-void handle_player_anim(pointer.Anim player_anim) {
+void handle_player_anim(pointer.Anim player_anim, byte x, byte y) {
     pointer anim_ptr
     
     if player_anim->anim_num == IDLE_ANIM {
@@ -24,10 +24,10 @@ void handle_player_anim(pointer.Anim player_anim) {
         anim_ptr = player_walk_anim.addr
     }
     
-    handle_anim(anim_ptr, player_anim)
+    handle_anim(anim_ptr, player_anim, x, y)
 }
 
-inline void handle_anim(pointer anim_ptr, pointer.Anim anim) {
+inline void handle_anim(pointer anim_ptr, pointer.Anim anim, byte x, byte y) {
     bool loop
     byte max_frame
     
@@ -50,7 +50,7 @@ inline void handle_anim(pointer anim_ptr, pointer.Anim anim) {
         anim->frame_timer = 0
     }
 
-    draw_player_frame(anim_ptr[anim->anim_frame << 1], anim->mirroring)
+    draw_player_frame(anim_ptr[anim->anim_frame << 1], x,y, anim->mirroring)
     
     anim->frame_timer += 1
     if anim->frame_timer == anim_ptr[(anim->anim_frame << 1)+1]{
@@ -60,25 +60,25 @@ inline void handle_anim(pointer anim_ptr, pointer.Anim anim) {
 }
 
 //Draw the current frame of the current animation
-inline void draw_player_frame(byte frame_num, bool mirroring) {
+inline void draw_player_frame(byte frame_num, byte x, byte y, bool mirroring) {
     if frame_num == 0 {
-        sprite_draw_frame(player_idle_frame0.addr, mirroring)
+        sprite_draw_frame(player_idle_frame0.addr, x,y, mirroring)
     }
     else if frame_num == 1 {
-        sprite_draw_frame(player_walk_frame0.addr, mirroring)
+        sprite_draw_frame(player_walk_frame0.addr, x,y,mirroring)
     }
     else if frame_num == 2 {
-        sprite_draw_frame(player_walk_frame1.addr, mirroring)
+        sprite_draw_frame(player_walk_frame1.addr, x,y,mirroring)
     }
     else if frame_num == 3 {
-        sprite_draw_frame(player_walk_frame2.addr, mirroring)
+        sprite_draw_frame(player_walk_frame2.addr, x,y,mirroring)
     }
     else if frame_num == 4 {
-        sprite_draw_frame(player_walk_frame3.addr, mirroring)
+        sprite_draw_frame(player_walk_frame3.addr, x,y,mirroring)
     }
 }
 
-void sprite_draw_frame(pointer frame_info, bool mirroring) {
+void sprite_draw_frame(pointer frame_info, byte x, byte y, bool mirroring) {
     //compiler bug: can't manipulate parameter directly,
     //  have to use local variable
     pointer frame
@@ -107,17 +107,17 @@ void sprite_draw_frame(pointer frame_info, bool mirroring) {
     }
     
     while num_sprites > 0 {
-        spr.y = player1.pos.y + frame[0]
+        spr.y = y + frame[0]
         spr.tile = frame[1]
         spr.even = even
         
         if mirror == 0 {
             spr.attrs = frame[2] | %01000000
-            spr.x = (player1.pos.x+center) - frame[3]
+            spr.x = (x+center) - frame[3]
         }
         else {
             spr.attrs = frame[2]
-            spr.x = player1.pos.x + frame[3]
+            spr.x = x + frame[3]
         }
         
         frame += 4

@@ -36,9 +36,9 @@ void main() {
     init_scroll_vars()
     init_enemy_heap()
     spawn_enemy(0, $80,$80)
-    spawn_enemy(0, $70,$80)
-    spawn_enemy(0, $85,$A0)
-    spawn_enemy(0, $75,$A0)
+    // spawn_enemy(0, $70,$80)
+    // spawn_enemy(0, $85,$A0)
+    // spawn_enemy(0, $75,$A0)
     // spawn_enemy(0, $90,$A0)
     // spawn_enemy(0, $A0,$A0)
     // spawn_enemy(0, $B0,$A0)
@@ -142,7 +142,7 @@ inline void game_logic() {
     snap_player_pos_limits()
     //get the old sprites off the screen
     clear_stacks()
-    handle_player_anim(pointer.Anim(player1.anim.addr))
+    handle_player_anim(pointer.Anim(player1.anim.addr), player1.pos.x,player1.pos.y)
     handle_enemy_anims()
 }
 

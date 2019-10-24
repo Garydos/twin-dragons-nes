@@ -1,6 +1,7 @@
 const byte max_enemies = 8
 
 array(Enemy) enemy_heap [max_enemies] @$200
+array(Enemy_Aux) enemy_aux_heap [max_enemies] align(32)
 //Enemies will grab an available index number for enemy_heap from
 //available_enemy_heap_spots when they're spawned
 array available_enemy_heap_spots [max_enemies] align(16)
@@ -13,7 +14,7 @@ void init_enemy_heap() {
     
     for i,0,until,max_enemies {
         //refill the available heap spot stack
-        available_enemy_heap_spots[i] = i
+        available_enemy_heap_spots[i] = max_enemies - 1 - i
     }
     enemy_heap_spots_top = max_enemies
     current_enemy_count = 0
@@ -52,8 +53,6 @@ void spawn_enemy(byte type, byte x, byte y) {
     heap_spot = get_enemy_heap_spot()
     enemy_heap[heap_spot].pos.x = x
     enemy_heap[heap_spot].pos.y = y
-    enemy_heap[heap_spot].pos.width = 8
-    enemy_heap[heap_spot].pos.height = 8
     enemy_heap[heap_spot].xfrac = 0
     enemy_heap[heap_spot].yfrac = 0
     enemy_heap[heap_spot].xvel = 0
@@ -62,7 +61,19 @@ void spawn_enemy(byte type, byte x, byte y) {
     enemy_heap[heap_spot].yaccel = 0
     enemy_heap[heap_spot].id = heap_spot
     enemy_heap[heap_spot].enemy_type = type
-    enemy_heap[heap_spot].mirroring = false
+
+    if type == 0 {
+        init_boomba(heap_spot)
+    }
+}
+
+inline void init_boomba(byte heap_spot) {
+    enemy_heap[heap_spot].pos.width = 8
+    enemy_heap[heap_spot].pos.height = 8
+    enemy_heap[heap_spot].anim.anim_num = 0
+    enemy_heap[heap_spot].anim.anim_frame = 0
+    enemy_heap[heap_spot].anim.frame_timer = 0
+    enemy_heap[heap_spot].anim.mirroring = false
 }
 
 inline void cap_phys_obj_vel(pointer.Phys_Obj obj_ptr) {
@@ -98,23 +109,36 @@ inline void handle_enemy_anims() {
     
     for i,0,until,current_enemy_count {
         enemy_ptr = pointer.Enemy(enemy_heap[current_enemies[i]].addr)
-        test_sprite.y = enemy_ptr->pos.y
-        test_sprite.tile = $00
-        test_sprite.attrs = $00
-        test_sprite.x = enemy_ptr->pos.x
-        test_sprite.even = true
         
-        add_sprite(test_sprite)
+        if enemy_ptr->enemy_type == 0 {
+            handle_boomba_anims(enemy_ptr)
+        }
     }
 }
 
+inline void handle_boomba_anims(pointer.Enemy enemy_ptr) {
+    handle_player_anim(pointer.Anim(enemy_ptr->anim.addr), enemy_ptr->pos.x, enemy_ptr->pos.y)
+}
+
 inline void handle_enemy_phys(pointer.Enemy enemy_ptr) {
+    if enemy_ptr->enemy_type == 0 {
+        handle_boomba_phys(enemy_ptr)
+    }
+}
+
+inline void handle_boomba_phys(pointer.Enemy enemy_ptr) {
     phys_obj_apply_gravity(pointer.Phys_Obj(enemy_ptr))
     cap_phys_obj_vel(pointer.Phys_Obj(enemy_ptr))
     check_obj_collis_and_update_loc(pointer.Phys_Obj(enemy_ptr))
 }
 
 inline void handle_enemy_logic(pointer.Enemy enemy_ptr) {
+    if enemy_ptr->enemy_type == 0 {
+        handle_boomba_logic(enemy_ptr)
+    }
+}
+
+inline void handle_boomba_logic(pointer.Enemy enemy_ptr) {
     enemy_ptr->xvel = 4
 }
 
@@ -126,14 +150,13 @@ inline void prepare_enemy_scroll(sbyte scroll_speed_signed) {
     }
 }
 
-
-
 void update_enemies() {
     byte i
     pointer.Enemy enemy_ptr
     
     for i,0,until,current_enemy_count {
         enemy_ptr = pointer.Enemy(enemy_heap[current_enemies[i]].addr)
+        
         handle_enemy_logic(enemy_ptr)
         handle_enemy_phys(enemy_ptr)
     }
