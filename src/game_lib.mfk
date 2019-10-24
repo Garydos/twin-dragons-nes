@@ -16,7 +16,9 @@ struct Phys_Obj {
     byte xfrac, //fractional part of player's x coordinate, can range from 0-3 (first 2 bits)
     byte yfrac, //fractional part of player's y coordinate, can range from 0-3 (first 2 bits)
     sbyte xvel,
-    sbyte yvel
+    sbyte yvel,
+    byte xaccel,
+    byte yaccel
 }
 
 struct Player {

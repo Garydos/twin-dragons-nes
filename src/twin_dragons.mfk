@@ -21,6 +21,9 @@ const byte up_screen_limit = $20
 const byte down_screen_limit = $D0
 byte scroll_speed
 
+//flag that indicates if the new frame is ready
+volatile bool new_frame
+
 void main() {
     init_sprites()
     init_sprite_manager()
@@ -33,6 +36,10 @@ void main() {
     init_scroll_vars()
     init_enemy_heap()
     spawn_enemy(0, $80,$80)
+    spawn_enemy(0, $70,$80)
+    spawn_enemy(0, $85,$A0)
+    spawn_enemy(0, $75,$A0)
+    
     //set up the music
     FamiToneInit($01, nesthing_ost.addr)
     // FamiToneMusicPlay($00)
@@ -50,28 +57,38 @@ void main() {
     ppu_ctrl = %10010000   // enable NMI, sprites from Pattern Table 0, background from Pattern Table 1
     ppu_mask = %00011110   // enable sprites, enable background, no clipping on left side
 
-    while(true) {}
+    new_frame = false
+    while(true) {
+        while new_frame == true {
+            //wait for the new frame to be drawn
+        }
+        game_logic()
+        new_frame = true
+    }
 }
 
 void nmi() {
+    if new_frame {
     //Do scroll handling before anything since it needs 
     //to set the scroll before the screen starts drawing
     handle_scrolling()
-    
+    }
     //set scroll to 0 for now so that the status bar
     //stays still
     ppu_set_scroll(0,0)
-    ppu_ctrl = %10010000 // no need to or the nametable for this one,
+    ppu_ctrl = %00010000 // no need to or the nametable for this one,
                          // as the status bar should always be at the first nametable
     ppu_mask = %00011100
     
     //Transfer the sprites to the screen through DMA
     
+    if new_frame {
     //NOTE: handle_scrolling sometimes takes so long that sprite DMA
     //bleeds into the drawing of the first scanline (particularly when crossing screens).  
     //For now, avoid having sprites appear at the very top of the screen and all should
     //still be well.
     ppu_oam_dma_write(oam_buffer.addr.hi)
+    }
     
     //first wait for the previous frame's sprite0 hit
     //to clear
@@ -98,7 +115,7 @@ void nmi() {
     ppu_ctrl = %10010000 | nametable
     ppu_mask = %00011100
     
-    game_logic()
+    new_frame = false
 }
 
 void irq() {
@@ -115,10 +132,11 @@ inline void game_logic() {
     cap_player_vel()
     check_player_collis_and_update_loc(pointer.Player(player1.addr))
     apply_player_frict()
+    update_enemies()
     prepare_scrolling()
     snap_player_pos_limits()
     handle_player_anim(pointer.Anim(player1.anim.addr))
-    update_enemies()
+    handle_enemy_anims()
     draw_sprites()
 }
 
@@ -282,10 +300,13 @@ inline void prepare_scrolling() {
             scroll_speed = ($FF - xscroll) + 1
         }
         player1.pos.x -= scroll_speed
+        scroll_speed = flip_sign(scroll_speed)
+        prepare_other_scrolling(scroll_speed)
+        scroll_speed = flip_sign(scroll_speed)
         //scroll the screen as well
         scrolling_right = true
         scrolling_left = false
-    }
+        }
     else if player1.pos.x < scroll_left_boundary && not(current_screen == 0 && xscroll == 0) {
         //update the position of the screen sprites
         scroll_speed = scroll_left_boundary - player1.pos.x
@@ -294,6 +315,7 @@ inline void prepare_scrolling() {
         }
         //set screen scroll left limit
         player1.pos.x += scroll_speed
+        prepare_other_scrolling(scroll_speed)
         //scroll the screen as well
         scrolling_right = false
         scrolling_left = true
@@ -304,6 +326,9 @@ inline void prepare_scrolling() {
     }
 }
 
+inline void prepare_other_scrolling(sbyte scroll_speed_signed) {
+    prepare_enemy_scroll(scroll_speed_signed)
+}
 
 inline void snap_player_pos_limits() {
     //snap the player back to the playable area of the screen

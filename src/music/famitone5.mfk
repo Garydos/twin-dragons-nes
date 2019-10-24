@@ -1,5 +1,5 @@
-const array FT_TEMP   [3]     @$FD
-const array FT_VARS   [256]   @$300
+array FT_TEMP   [3]     @$FD
+array FT_VARS   [256]   @$300
 
 //------------------------------------------------------------------------------
 // reset APU, initialize FamiTone

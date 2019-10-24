@@ -65,22 +65,76 @@ void spawn_enemy(byte type, byte x, byte y) {
     enemy_heap[heap_spot].mirroring = false
 }
 
-
-Sprite test_sprite
-inline void handle_enemy_anims(byte i) {
-    test_sprite.y = enemy_heap[current_enemies[i]].pos.y
-    test_sprite.tile = $00
-    test_sprite.attrs = $00
-    test_sprite.x = enemy_heap[current_enemies[i]].pos.x
-    test_sprite.even = true
+inline void cap_phys_obj_vel(pointer.Phys_Obj obj_ptr) {
+    //cap velocity
+    if obj_ptr->xvel >= player_max_xvel {
+        obj_ptr->xvel = player_max_xvel
+        obj_ptr->xfrac = 0
+    }
+    if obj_ptr->xvel <= player_max_xvel_neg {
+        obj_ptr->xvel = player_max_xvel_neg
+        obj_ptr->xfrac = 0
+    }    
     
-    add_sprite_to_queue(test_sprite)
+    if obj_ptr->yvel >= player_max_yvel {
+        obj_ptr->yvel = player_max_yvel
+        obj_ptr->yfrac = 0
+    }
+    if obj_ptr->yvel <= player_max_yvel_neg {
+        obj_ptr->yvel = player_max_yvel_neg
+        obj_ptr->yfrac = 0
+    }
 }
 
-void update_enemies() {
+inline void phys_obj_apply_gravity(pointer.Phys_Obj obj_ptr) {
+    obj_ptr->yaccel = player_gravity_accel
+    obj_ptr->yvel += obj_ptr->yaccel
+}
+
+Sprite test_sprite
+inline void handle_enemy_anims() {
+    byte i
+    pointer.Enemy enemy_ptr
+    
+    for i,0,until,current_enemy_count {
+        enemy_ptr = pointer.Enemy(enemy_heap[current_enemies[i]].addr)
+        test_sprite.y = enemy_ptr->pos.y
+        test_sprite.tile = $00
+        test_sprite.attrs = $00
+        test_sprite.x = enemy_ptr->pos.x
+        test_sprite.even = true
+        
+        add_sprite_to_queue(test_sprite)
+    }
+}
+
+inline void handle_enemy_phys(pointer.Enemy enemy_ptr) {
+    phys_obj_apply_gravity(pointer.Phys_Obj(enemy_ptr))
+    cap_phys_obj_vel(pointer.Phys_Obj(enemy_ptr))
+    check_obj_collis_and_update_loc(pointer.Phys_Obj(enemy_ptr))
+}
+
+inline void handle_enemy_logic(pointer.Enemy enemy_ptr) {
+    enemy_ptr->xvel = 4
+}
+
+inline void prepare_enemy_scroll(sbyte scroll_speed_signed) {
     byte i
     
     for i,0,until,current_enemy_count {
-        handle_enemy_anims(i)
+        enemy_heap[current_enemies[i]].pos.x += scroll_speed_signed
+    }
+}
+
+
+
+void update_enemies() {
+    byte i
+    pointer.Enemy enemy_ptr
+    
+    for i,0,until,current_enemy_count {
+        enemy_ptr = pointer.Enemy(enemy_heap[current_enemies[i]].addr)
+        handle_enemy_logic(enemy_ptr)
+        handle_enemy_phys(enemy_ptr)
     }
 }
