@@ -19,7 +19,7 @@ const byte right_screen_limit = $EF
 const byte left_screen_limit = $08
 const byte up_screen_limit = $20
 const byte down_screen_limit = $D0
-byte scroll_speed
+volatile byte scroll_speed
 
 //flag that indicates if the new frame is ready
 volatile bool new_frame
@@ -42,7 +42,7 @@ void main() {
     
     //set up the music
     FamiToneInit($01, nesthing_ost.addr)
-    // FamiToneMusicPlay($00)
+    FamiToneMusicPlay($00)
     
     current_level_tiles = screen_metatiles
     current_level_attrs = attrs
@@ -69,9 +69,9 @@ void main() {
 
 void nmi() {
     if new_frame {
-    //Do scroll handling before anything since it needs 
-    //to set the scroll before the screen starts drawing
-    handle_scrolling()
+        //Do scroll handling before anything since it needs 
+        //to set the scroll before the screen starts drawing
+        handle_scrolling()
     }
     //set scroll to 0 for now so that the status bar
     //stays still
@@ -80,16 +80,18 @@ void nmi() {
                          // as the status bar should always be at the first nametable
     ppu_mask = %00011100
     
-    //Transfer the sprites to the screen through DMA
-    
     if new_frame {
-    //NOTE: handle_scrolling sometimes takes so long that sprite DMA
-    //bleeds into the drawing of the first scanline (particularly when crossing screens).  
-    //For now, avoid having sprites appear at the very top of the screen and all should
-    //still be well.
-    ppu_oam_dma_write(oam_buffer.addr.hi)
+        //Transfer the sprites to the screen through DMA
+        
+        //need to do this because of weird sprite glitches, that I assume happen
+        //because the sprite manager is interrupted and doesn't reenter properly
+        prepare_sprite0()
+        //NOTE: handle_scrolling sometimes takes so long that sprite DMA
+        //bleeds into the drawing of the first scanline (particularly when crossing screens).  
+        //For now, avoid having sprites appear at the very top of the screen and all should
+        //still be well.
+        ppu_oam_dma_write(oam_buffer.addr.hi)
     }
-    
     //first wait for the previous frame's sprite0 hit
     //to clear
    

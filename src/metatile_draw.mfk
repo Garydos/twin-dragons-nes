@@ -1,9 +1,9 @@
-byte draw_counter
+volatile byte draw_counter
 //flags for drawing
-bool changed_column
-bool changed_meta_column
-bool changed_attr_column
-bool changed_screen
+volatile bool changed_column
+volatile bool changed_meta_column
+volatile bool changed_attr_column
+volatile bool changed_screen
 
 pointer current_level_tiles
 pointer current_level_attrs

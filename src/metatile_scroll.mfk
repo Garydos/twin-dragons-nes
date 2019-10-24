@@ -1,14 +1,14 @@
-byte nametable //current nametable
-byte draw_nametable //the nametable we want to draw on
-byte draw_seam_column //screen column at the draw/scroll seam
-word next_column      //level column to be drawn to next
-byte current_screen   //screen to load next
+volatile byte nametable //current nametable
+volatile byte draw_nametable //the nametable we want to draw on
+volatile byte draw_seam_column //screen column at the draw/scroll seam
+volatile word next_column      //level column to be drawn to next
+volatile byte current_screen   //screen to load next
 byte max_screen       //final screen number
-byte xscroll          //screen x scroll value
-byte prev_xscroll     //previous xcroll value
+volatile byte xscroll          //screen x scroll value
+volatile byte prev_xscroll     //previous xcroll value
 bool scrolling_right
 bool scrolling_left
-byte previous_scroll //0 = scrolling right, 1 = scrolling left
+volatile byte previous_scroll //0 = scrolling right, 1 = scrolling left
 const byte scroll_right_boundary = $88
 const byte scroll_left_boundary = $68
 
@@ -130,7 +130,7 @@ inline void update_scroll_right() {
     prev_xscroll -= attr_draw_offset
 }
 
-void passed_column_boundary(byte xscroll_new, byte xscroll_old) {
+macro void passed_column_boundary(byte xscroll_new, byte xscroll_old) {
     //compares the two, and then sets changed_column appropriately
     if (xscroll_new & %11111000) != (xscroll_old & %11111000) {
         changed_column = true
@@ -140,7 +140,7 @@ void passed_column_boundary(byte xscroll_new, byte xscroll_old) {
     }
 }
 
-void passed_meta_column_boundary(byte xscroll_new, byte xscroll_old) {
+macro void passed_meta_column_boundary(byte xscroll_new, byte xscroll_old) {
     //compares the two, and then sets changed_meta_column appropriately
     if (xscroll_new & %11110000) != (xscroll_old & %11110000) {
         changed_meta_column = true
@@ -150,7 +150,7 @@ void passed_meta_column_boundary(byte xscroll_new, byte xscroll_old) {
     }
 }
 
-void passed_attr_column_boundary(byte xscroll_new, byte xscroll_old) {
+macro void passed_attr_column_boundary(byte xscroll_new, byte xscroll_old) {
     //compares the two, and then sets changed_meta_column appropriately
     if (xscroll_new & %11100000) != (xscroll_old & %11100000) {
         changed_attr_column = true
