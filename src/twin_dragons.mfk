@@ -42,7 +42,7 @@ void main() {
     
     //set up the music
     FamiToneInit($01, nesthing_ost.addr)
-    FamiToneMusicPlay($00)
+    // FamiToneMusicPlay($00)
     
     current_level_tiles = screen_metatiles
     current_level_attrs = attrs
@@ -55,7 +55,7 @@ void main() {
     ppu_set_scroll(0,0)
     ppu_wait_vblank()
     ppu_ctrl = %10010000   // enable NMI, sprites from Pattern Table 0, background from Pattern Table 1
-    ppu_mask = %00011110   // enable sprites, enable background, no clipping on left side
+    ppu_mask = %00011100   // enable sprites, enable background, no clipping on left side
 
     new_frame = false
     while(true) {
