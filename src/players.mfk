@@ -1,7 +1,7 @@
 import player1_anims
 
 const byte player_width = 16 //width in pixels
-const byte player_height = 14 //height in pixels
+const byte player_height = 16 //height in pixels
 
 Player player1
 

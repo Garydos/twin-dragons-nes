@@ -54,10 +54,10 @@ struct Enemy {
 
 //These structs contain other variables different enemies need
 struct Enemy_Aux {
+    byte spawner, //reference number for spawner, used to respawn
     byte aux0,
     byte aux1,
-    byte aux2,
-    byte aux3
+    byte aux2
 }
 
 struct Anim {

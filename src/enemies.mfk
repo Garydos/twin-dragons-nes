@@ -68,9 +68,9 @@ void spawn_enemy(byte type, byte x, byte y) {
 }
 
 inline void init_boomba(byte heap_spot) {
-    enemy_heap[heap_spot].pos.width = 8
-    enemy_heap[heap_spot].pos.height = 8
-    enemy_heap[heap_spot].anim.anim_num = 0
+    enemy_heap[heap_spot].pos.width = 16
+    enemy_heap[heap_spot].pos.height = 16
+    enemy_heap[heap_spot].anim.anim_num = 1
     enemy_heap[heap_spot].anim.anim_frame = 0
     enemy_heap[heap_spot].anim.frame_timer = 0
     enemy_heap[heap_spot].anim.mirroring = false
