@@ -1,4 +1,4 @@
-const byte max_enemies = 16
+const byte max_enemies = 12
 
 array(Enemy) enemy_heap [max_enemies] align(128)
 //Enemies will grab an available index number for enemy_heap from
