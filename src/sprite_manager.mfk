@@ -10,7 +10,7 @@ struct Sprite { //NES hardware sprite layout
                     // to ensure sprites flicker properly.
 }
 
-array oam_buffer [256] @$200 // sprite buffer
+array oam_buffer [256] align(256) // sprite buffer
 
 const byte left_stack_lim = $04
 const byte right_stack_lim = $FF
@@ -19,69 +19,31 @@ byte left_stack //stack variable for the right side of oam_buffer
 bool even_on_left_stack // Are the even sprites on the queue going on the left or right stack this frame?
                      // this value should be alternated every frame to ensure proper sprite
                      // flickering
-byte sprite_queue_num   //number of sprites currently in the queue
-
-array(Sprite) sprite_queue [50]
-
+                     
 void init_sprite_manager() {
     left_stack = left_stack_lim //skip sprite 0
     right_stack = right_stack_lim
-    sprite_queue_num = 0
     even_on_left_stack = true
 }
 
-void draw_sprites() {
-    //Take all the sprites in the queue, and move them
-    //to the proper spots in the OAM buffer.
-    //After that, prepare for the next time we draw sprites
-    //by clearing the sprite queue and alternating the
-    //even_on_left_stack variable to ensure sprite flickering
-    
-    //get the old sprites off the screen
-    clear_stacks()
-    //write the new sprites
-    transfer_queue_to_oam_buffer()
-    //clear the queue
-    clear_sprite_queue()
-    //prepare for the next frame
-    even_on_left_stack = not(even_on_left_stack)
-}
-
-void clear_sprite_queue() {
-    sprite_queue_num = 0
-}
-
-void add_sprite_to_queue(Sprite spr) {
-    sprite_queue[sprite_queue_num].y = spr.y
-    sprite_queue[sprite_queue_num].tile = spr.tile
-    sprite_queue[sprite_queue_num].attrs = spr.attrs
-    sprite_queue[sprite_queue_num].x = spr.x
-    sprite_queue[sprite_queue_num].even = spr.even
-    
-    sprite_queue_num += 1
-}
-
-void transfer_queue_to_oam_buffer() {
-    byte i
-    
-    for i,0,until,sprite_queue_num {
+void add_sprite(Sprite spr) {
+    if spr.even {
         if even_on_left_stack {
-            if sprite_queue[i].even {
-                add_to_left_stack(sprite_queue[i])
-            }
-            else {
-                add_to_right_stack(sprite_queue[i])
-            }
+            add_to_left_stack(spr)
         }
         else {
-            if sprite_queue[i].even {
-                add_to_right_stack(sprite_queue[i])
-            }
-            else {
-                add_to_left_stack(sprite_queue[i])
-            }
+            add_to_right_stack(spr)
         }
     }
+    else {
+        if even_on_left_stack {
+            add_to_right_stack(spr)
+        }
+        else {
+            add_to_left_stack(spr)
+        }
+    }
+    even_on_left_stack = not(even_on_left_stack)
 }
 
 inline void add_to_left_stack(Sprite spr) {

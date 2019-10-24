@@ -104,7 +104,7 @@ inline void handle_enemy_anims() {
         test_sprite.x = enemy_ptr->pos.x
         test_sprite.even = true
         
-        add_sprite_to_queue(test_sprite)
+        add_sprite(test_sprite)
     }
 }
 

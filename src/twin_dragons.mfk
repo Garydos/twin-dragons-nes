@@ -40,9 +40,9 @@ void main() {
     spawn_enemy(0, $85,$A0)
     spawn_enemy(0, $75,$A0)
     spawn_enemy(0, $90,$A0)
-    spawn_enemy(0, $A0,$A0)
-    spawn_enemy(0, $B0,$A0)
-    spawn_enemy(0, $C0,$A0)
+    // spawn_enemy(0, $A0,$A0)
+    // spawn_enemy(0, $B0,$A0)
+    // spawn_enemy(0, $C0,$A0)
     
     //set up the music
     FamiToneInit($01, nesthing_ost.addr)
@@ -140,9 +140,10 @@ inline void game_logic() {
     update_enemies()
     prepare_scrolling()
     snap_player_pos_limits()
+    //get the old sprites off the screen
+    clear_stacks()
     handle_player_anim(pointer.Anim(player1.anim.addr))
     handle_enemy_anims()
-    draw_sprites()
 }
 
 inline void handle_scrolling() {

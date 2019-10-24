@@ -122,7 +122,7 @@ void sprite_draw_frame(pointer frame_info, bool mirroring) {
         
         frame += 4
         num_sprites -= 1
-        add_sprite_to_queue(spr)
+        add_sprite(spr)
         
         even = not(even)
     }
