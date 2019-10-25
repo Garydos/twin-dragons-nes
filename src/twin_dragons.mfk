@@ -33,7 +33,7 @@ const byte num_spawn_locations = 2
 //spawn location in spawn_column_locations
 array spawner_flags [32]
 
-bool binary_search_success
+volatile bool binary_search_success
 
 void main() {
     init_sprites()
@@ -47,14 +47,14 @@ void main() {
     init_scroll_vars()
     init_enemy_heap()
     init_spawner_flags()
-    // spawn_enemy(0, $80,$80)
-    // spawn_enemy(0, $70,$80)
-    // spawn_enemy(0, $85,$A0)
-    // spawn_enemy(0, $75,$A0)
-    // spawn_enemy(0, $90,$A0)
-    // spawn_enemy(0, $A0,$A0)
-    // spawn_enemy(0, $B0,$A0)
-    // spawn_enemy(0, $C0,$A0)
+    // spawn_enemy(0, $80,$80,0)
+    // spawn_enemy(0, $70,$80,0)
+    // spawn_enemy(0, $85,$A0,0)
+    // spawn_enemy(0, $75,$A0,0)
+    // spawn_enemy(0, $90,$A0,0)
+    // spawn_enemy(0, $A0,$A0,0)
+    // spawn_enemy(0, $B0,$A0,0)
+    // spawn_enemy(0, $C0,$A0,0)
     
     //set up the music
     FamiToneInit($01, nesthing_ost.addr)
@@ -114,7 +114,7 @@ void nmi() {
     }
     
     //update the music
-    FamiToneUpdate()
+    // FamiToneUpdate()
     
     //start checking for a sprite0 hit
     //so that we know the status bar is done drawing

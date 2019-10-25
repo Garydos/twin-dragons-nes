@@ -28,16 +28,35 @@ bool is_collidable(byte tile) {
     return false
 }
 
+inline void check_background_collis_down(byte screenx, byte screeny, byte spritewidth, byte spriteheight) {
+    check_background_collis(screenx, screeny, spritewidth, spriteheight, 0)
+}
+
+inline void check_background_collis_up(byte screenx, byte screeny, byte spritewidth, byte spriteheight) {
+    check_background_collis(screenx, screeny, spritewidth, spriteheight, 1)
+}
+
+inline void check_background_collis_right(byte screenx, byte screeny, byte spritewidth, byte spriteheight) {
+    check_background_collis(screenx, screeny, spritewidth, spriteheight, 2)
+}
+
+inline void check_background_collis_left(byte screenx, byte screeny, byte spritewidth, byte spriteheight) {
+    check_background_collis(screenx, screeny, spritewidth, spriteheight, 3)
+}
+
+
 inline void check_background_collis_horiz(byte screenx, byte screeny, byte spritewidth, byte spriteheight) {
-    check_background_collis(screenx, screeny, spritewidth, spriteheight, false)
+    check_background_collis(screenx, screeny, spritewidth, spriteheight, 2)
+    check_background_collis(screenx, screeny, spritewidth, spriteheight, 3)
 }
 
 inline void check_background_collis_vert(byte screenx, byte screeny, byte spritewidth, byte spriteheight) {
-    check_background_collis(screenx, screeny, spritewidth, spriteheight, true)
+    check_background_collis(screenx, screeny, spritewidth, spriteheight, 0)
+    check_background_collis(screenx, screeny, spritewidth, spriteheight, 1)
 }
 
 //TODO: optimize this function
-void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte spriteheight, bool vert) {
+void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte spriteheight, byte side) {
     //check if the bounding box is colliding with collidable background tiles
     //on its left and right edges
     byte new_column1
@@ -51,7 +70,7 @@ void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte 
     //do the collision stuff, set the left and right
     //flags depending on left/right or up/down collisions
 
-    if vert {
+    if side == 0 {
         //DOWN SIDE
         new_row1 = get_row_from_screeny(screeny+spriteheight)
         new_column1 = get_column_from_screenx(screenx)
@@ -69,7 +88,8 @@ void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte 
             }
             i += 1
         }
-        
+    }
+    if side == 1 {
         //UP SIDE
 
         new_row1 = get_row_from_screeny(screeny)
@@ -89,7 +109,7 @@ void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte 
             i += 1
         }
     }
-    else {
+    if side == 2{
         //it is expected that the vertical
         //collision checks are done first
         
@@ -110,7 +130,8 @@ void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte 
             }
             i += 1
         }
-        
+    }
+    if side == 3 {
         //LEFT SIDE
         new_column1 = get_column_from_screenx(screenx)
         new_row1 = get_row_from_screeny(screeny)
@@ -159,7 +180,13 @@ inline void check_obj_collis_and_update_loc(pointer.Phys_Obj obj_ptr) {
 void obj_collis_horiz(pointer.Phys_Obj obj_ptr) {
     update_obj_x_speed(obj_ptr)
 
-    check_background_collis_horiz(obj_ptr->pos.x, obj_ptr->pos.y, obj_ptr->pos.width, obj_ptr->pos.height)
+    if obj_ptr->xvel > 0 {
+        check_background_collis_right(obj_ptr->pos.x, obj_ptr->pos.y, obj_ptr->pos.width, obj_ptr->pos.height)
+    }
+    else if obj_ptr->xvel < 0 {
+        check_background_collis_left(obj_ptr->pos.x, obj_ptr->pos.y, obj_ptr->pos.width, obj_ptr->pos.height)
+    }
+    
     if collis_flag {
         obj_ptr->xvel = 0
     }
@@ -184,7 +211,13 @@ void obj_collis_horiz(pointer.Phys_Obj obj_ptr) {
 void obj_collis_vert(pointer.Phys_Obj obj_ptr) {
     update_obj_y_speed(obj_ptr)
     
-    check_background_collis_vert(obj_ptr->pos.x, obj_ptr->pos.y, obj_ptr->pos.width, obj_ptr->pos.height)
+    if obj_ptr->yvel > 0 {
+        check_background_collis_down(obj_ptr->pos.x, obj_ptr->pos.y, obj_ptr->pos.width, obj_ptr->pos.height)
+    }
+    else if obj_ptr->yvel < 0 {
+        check_background_collis_up(obj_ptr->pos.x, obj_ptr->pos.y, obj_ptr->pos.width, obj_ptr->pos.height)
+    }
+    
     if collis_flag{
         obj_ptr->yvel = 0
     }
