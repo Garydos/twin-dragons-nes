@@ -10,7 +10,7 @@ struct Sprite { //NES hardware sprite layout
                     // to ensure sprites flicker properly.
 }
 
-array oam_buffer [256] @$400 // sprite buffer
+array oam_buffer [256] @$200 // sprite buffer
 
 const byte left_stack_lim = $04
 const byte right_stack_lim = $FF

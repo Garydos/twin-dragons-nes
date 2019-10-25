@@ -47,7 +47,7 @@ void main() {
     init_scroll_vars()
     init_enemy_heap()
     init_spawner_flags()
-    // spawn_enemy(0, $80,$80,0)
+    spawn_enemy(0, $80,$80,0)
     // spawn_enemy(0, $70,$80,0)
     // spawn_enemy(0, $85,$A0,0)
     // spawn_enemy(0, $75,$A0,0)
