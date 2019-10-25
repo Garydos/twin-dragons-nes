@@ -43,7 +43,6 @@ void add_sprite(Sprite spr) {
             add_to_left_stack(spr)
         }
     }
-    even_on_left_stack = not(even_on_left_stack)
 }
 
 inline void add_to_left_stack(Sprite spr) {
@@ -67,6 +66,7 @@ inline void add_to_right_stack(Sprite spr) {
 void clear_stacks() {
     clear_left_stack()
     clear_right_stack()
+    even_on_left_stack = not(even_on_left_stack)
 }
 
 inline void clear_left_stack() {
