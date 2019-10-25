@@ -26,8 +26,8 @@ volatile bool new_frame
 
 volatile word previous_column
 
-const array(word) spawn_column_locations = [$0020, $0040] //column that the spawn triggers on, MUST BE SORTED LOW TO HIGH
-const array(word) spawn_screen_locations = [$F0B0, $F0C0] //location the new object is spawned at (lo = y, hi = x)
+const array(word) spawn_column_locations = [$0018, $0040] //column that the spawn triggers on, MUST BE SORTED LOW TO HIGH
+const array(word) spawn_screen_locations = [$FAB0, $FAC0] //location the new object is spawned at (lo = y, hi = x)
 const byte num_spawn_locations = 2
 //the indices for this array correspond to the indices for each
 //spawn location in spawn_column_locations
@@ -71,7 +71,7 @@ void main() {
     ppu_set_scroll(0,0)
     ppu_wait_vblank()
     ppu_ctrl = %10010000   // enable NMI, sprites from Pattern Table 0, background from Pattern Table 1
-    ppu_mask = %00011100   // enable sprites, enable background, no clipping on left side
+    ppu_mask = %00011000   // enable sprites, enable background, no clipping on left side
 
     new_frame = false
     while(true) {
@@ -94,7 +94,7 @@ void nmi() {
     ppu_set_scroll(0,0)
     ppu_ctrl = %00010000 // no need to or the nametable for this one,
                          // as the status bar should always be at the first nametable
-    ppu_mask = %00011100
+    ppu_mask = %00011000
     
     //need to do this because of weird sprite glitches, that I assume happen
     //because the sprite manager is interrupted and doesn't reenter properly
@@ -130,7 +130,7 @@ void nmi() {
     //the screen with the correct scroll values
     ppu_set_scroll(xscroll,0)
     ppu_ctrl = %10010000 | nametable
-    ppu_mask = %00011100
+    ppu_mask = %00011000
     
     new_frame = false
 }

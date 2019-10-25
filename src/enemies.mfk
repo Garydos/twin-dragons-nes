@@ -140,7 +140,7 @@ inline void handle_enemy_logic(pointer.Enemy enemy_ptr) {
 }
 
 inline void handle_boomba_logic(pointer.Enemy enemy_ptr) {
-    enemy_ptr->xvel = 4
+    enemy_ptr->xvel = -2
 }
 
 inline void prepare_enemy_scroll(sbyte scroll_speed_signed) {
