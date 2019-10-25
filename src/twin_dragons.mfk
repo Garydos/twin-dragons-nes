@@ -205,13 +205,16 @@ inline void game_logic() {
 inline void spawn_enemies() {
     byte index
     
-    set_next_column()
-    index = binary_search_word(pointer.word(spawn_column_locations), num_spawn_locations, next_column)
-    if binary_search_success && next_column != previous_column {
-        if current_enemy_count < max_enemies && spawner_flags[index] == 0 {
-            spawn_enemy(0,spawn_screen_locations[index].hi,spawn_screen_locations[index].lo, index)
-            spawner_flags[index] = 1
+    if next_column != previous_column {
+        set_next_column()
+        index = binary_search_word(pointer.word(spawn_column_locations), num_spawn_locations, next_column)
+        if binary_search_success {
+            if current_enemy_count < max_enemies && spawner_flags[index] == 0 {
+                spawn_enemy(0,spawn_screen_locations[index].hi,spawn_screen_locations[index].lo, index)
+                spawner_flags[index] = 1
+            }
         }
+        binary_search_success = false
     }
 
     previous_column = next_column
