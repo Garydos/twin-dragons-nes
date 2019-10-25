@@ -1,7 +1,7 @@
 const byte max_enemies = 8
 
 array(Enemy) enemy_heap [max_enemies] @$200
-array(Enemy_Aux) enemy_aux_heap [max_enemies] align(32)
+array(Enemy_Aux) enemy_aux_heap [max_enemies] @$280
 //Enemies will grab an available index number for enemy_heap from
 //available_enemy_heap_spots when they're spawned
 array available_enemy_heap_spots [max_enemies] align(16)
@@ -46,7 +46,7 @@ inline void return_enemy_heap_spot(byte spot) {
     current_enemy_count -= 1
 }
 
-void spawn_enemy(byte type, byte x, byte y) {
+void spawn_enemy(byte type, byte x, byte y, byte spawner_index) {
     //spawn enemy of type type at position (x,y)
     byte heap_spot
     
@@ -61,6 +61,7 @@ void spawn_enemy(byte type, byte x, byte y) {
     enemy_heap[heap_spot].yaccel = 0
     enemy_heap[heap_spot].id = heap_spot
     enemy_heap[heap_spot].enemy_type = type
+    enemy_aux_heap[heap_spot].spawner = spawner_index
 
     if type == 0 {
         init_boomba(heap_spot)

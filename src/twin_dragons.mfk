@@ -31,7 +31,7 @@ const array(word) spawn_screen_locations = [$F0B0] //location the new object is 
 const byte num_spawn_locations = 1
 //the indices for this array correspond to the indices for each
 //spawn location in spawn_column_locations
-array respawn_flag [32]
+array spawner_flags [32]
 
 bool binary_search_success
 
@@ -46,6 +46,7 @@ void main() {
     reset_scroll_flags()
     init_scroll_vars()
     init_enemy_heap()
+    init_spawner_flags()
     // spawn_enemy(0, $80,$80)
     // spawn_enemy(0, $70,$80)
     // spawn_enemy(0, $85,$A0)
@@ -142,6 +143,14 @@ void load_screen(byte screen_num) {
     draw_full_screen(screen_num)
 }
 
+void init_spawner_flags() {
+    byte i
+    
+    for i,0,until,32 {
+        spawner_flags[i] = 0
+    }
+}
+
 byte binary_search_word(pointer.word arr, byte n, word search) {
     byte i
     byte k
@@ -199,7 +208,10 @@ inline void spawn_enemies() {
     set_next_column()
     index = binary_search_word(pointer.word(spawn_column_locations), num_spawn_locations, next_column)
     if binary_search_success && next_column != previous_column {
-        spawn_enemy(0,spawn_screen_locations[index].hi,spawn_screen_locations[index].lo)
+        if current_enemy_count < max_enemies && spawner_flags[index] == 0 {
+            spawn_enemy(0,spawn_screen_locations[index].hi,spawn_screen_locations[index].lo, index)
+            spawner_flags[index] = 1
+        }
     }
 
     previous_column = next_column
