@@ -198,7 +198,7 @@ inline void game_logic() {
     snap_player_pos_limits()
     //get the old sprites off the screen
     clear_stacks()
-    handle_player_anim(pointer.Anim(player1.anim.addr), player1.pos.x,player1.pos.y)
+    handle_player_anim(pointer.Anim(player1.anim.addr), player1.pos.x,player1.pos.y, player1.mirroring)
     handle_enemy_anims()
 }
 
@@ -277,7 +277,7 @@ inline void handle_player_dash() {
 
 inline void handle_player_x_input() {
     if input_dx > 0 {
-        player1.anim.mirroring = true
+        player1.mirroring = true
         switch_player1_anim(WALK_ANIM, false)
         if player1.pos.x < right_screen_limit {
             playerx_apply_accel()
@@ -285,7 +285,7 @@ inline void handle_player_x_input() {
         }
     }
     else if input_dx < 0 {
-        player1.anim.mirroring = false
+        player1.mirroring = false
         switch_player1_anim(WALK_ANIM, false)
         if player1.pos.x > left_screen_limit {
             playerx_apply_accel()

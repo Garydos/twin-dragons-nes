@@ -18,7 +18,8 @@ struct Phys_Obj {
     sbyte xvel,
     sbyte yvel,
     byte xaccel,
-    byte yaccel
+    byte yaccel,
+    byte on_slope
 }
 
 struct Player {
@@ -29,11 +30,13 @@ struct Player {
     sbyte yvel,
     byte xaccel,
     byte yaccel,
+    byte on_slope,
     byte xspeed,
     bool on_ground,
     bool jumping,
     bool can_jump,
-    Anim anim
+    Anim anim,
+    bool mirroring  //is the frame mirrored or not?
 }
 //velocities are added to playerx_frac and playery_frac, so they should be treated as
 //fractional parts (i.e. playerxvel = 4 means playerx will increase by 1, playerxvel = 8
@@ -47,6 +50,7 @@ struct Enemy {
     sbyte yvel,
     byte xaccel,
     byte yaccel,
+    byte on_slope,
     byte id,
     byte enemy_type,
     Anim anim
@@ -54,8 +58,8 @@ struct Enemy {
 
 //These structs contain other variables different enemies need
 struct Enemy_Aux {
+    byte mirroring,
     byte spawner, //reference number for spawner, used to respawn
-    byte aux0,
     byte aux1,
     byte aux2
 }
@@ -63,6 +67,5 @@ struct Enemy_Aux {
 struct Anim {
     byte anim_num,  //current animation number
     byte anim_frame, //current frame of current animation
-    byte frame_timer, //amount of game frames left to show current animation frame
-    bool mirroring  //is the frame mirrored or not?
+    byte frame_timer //amount of game frames left to show current animation frame
 }

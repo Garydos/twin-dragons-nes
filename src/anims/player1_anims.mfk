@@ -14,7 +14,7 @@ void switch_player1_anim(Player1_Anims anim, bool force) {
 }
 
 //Update the current animation
-void handle_player_anim(pointer.Anim player_anim, byte x, byte y) {
+void handle_player_anim(pointer.Anim player_anim, byte x, byte y, bool mirroring) {
     pointer anim_ptr
     
     if player_anim->anim_num == IDLE_ANIM {
@@ -24,10 +24,10 @@ void handle_player_anim(pointer.Anim player_anim, byte x, byte y) {
         anim_ptr = player_walk_anim.addr
     }
     
-    handle_anim(anim_ptr, player_anim, x, y)
+    handle_anim(anim_ptr, player_anim, x, y, mirroring)
 }
 
-inline void handle_anim(pointer anim_ptr, pointer.Anim anim, byte x, byte y) {
+inline void handle_anim(pointer anim_ptr, pointer.Anim anim, byte x, byte y, bool mirroring) {
     bool loop
     byte max_frame
     
@@ -50,7 +50,7 @@ inline void handle_anim(pointer anim_ptr, pointer.Anim anim, byte x, byte y) {
         anim->frame_timer = 0
     }
 
-    draw_player_frame(anim_ptr[anim->anim_frame << 1], x,y, anim->mirroring)
+    draw_player_frame(anim_ptr[anim->anim_frame << 1], x,y, mirroring)
     
     anim->frame_timer += 1
     if anim->frame_timer == anim_ptr[(anim->anim_frame << 1)+1]{

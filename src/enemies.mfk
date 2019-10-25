@@ -1,7 +1,7 @@
 const byte max_enemies = 8
 
 array(Enemy) enemy_heap [max_enemies] @$400
-array(Enemy_Aux) enemy_aux_heap [max_enemies] align(64)
+array(Enemy_Aux) enemy_aux_heap [max_enemies] align(32)
 //Enemies will grab an available index number for enemy_heap from
 //available_enemy_heap_spots when they're spawned
 array available_enemy_heap_spots [max_enemies] align(16)
@@ -74,7 +74,7 @@ inline void init_boomba(byte heap_spot) {
     enemy_heap[heap_spot].anim.anim_num = 1
     enemy_heap[heap_spot].anim.anim_frame = 0
     enemy_heap[heap_spot].anim.frame_timer = 0
-    enemy_heap[heap_spot].anim.mirroring = false
+    enemy_aux_heap[heap_spot].mirroring = 0
 }
 
 inline void cap_phys_obj_vel(pointer.Phys_Obj obj_ptr) {
@@ -118,7 +118,14 @@ inline void handle_enemy_anims() {
 }
 
 inline void handle_boomba_anims(pointer.Enemy enemy_ptr) {
-    handle_player_anim(pointer.Anim(enemy_ptr->anim.addr), enemy_ptr->pos.x, enemy_ptr->pos.y)
+    bool mirroring
+    if enemy_aux_heap[enemy_ptr->id].mirroring != 0 {
+        mirroring = true
+    }
+    else {
+        mirroring = false
+    }
+    handle_player_anim(pointer.Anim(enemy_ptr->anim.addr), enemy_ptr->pos.x, enemy_ptr->pos.y, mirroring)
 }
 
 inline void handle_enemy_phys(pointer.Enemy enemy_ptr) {
