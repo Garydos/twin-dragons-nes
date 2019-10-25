@@ -153,6 +153,17 @@ void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte 
 }
 
 inline void check_player_collis_and_update_loc(pointer.Player player_ptr) {
+    if player_ptr->on_slope != 0 {
+        update_obj_speed_on_slope(pointer.Phys_Obj(player_ptr))
+        return
+    }
+    if player_ptr->on_slope == 1 {
+        //negative slope
+    }
+    else if player_ptr->on_slope == 2 {
+        //positive slope
+    }
+    
     //do vertical collision checking
     obj_collis_vert(pointer.Phys_Obj(player_ptr))
     
@@ -242,6 +253,52 @@ void obj_collis_vert(pointer.Phys_Obj obj_ptr) {
         //is in a tile, then align it to the tile (by and'ing by 8),
         //then jump to the next tile (that is not collidable hopefully,
         //as long as the velocity didn't exceed 8 pixels per frame).
+    }
+}
+
+void update_obj_speed_on_slope(pointer.Phys_Obj obj_ptr) {
+    if obj_ptr->xvel < 0{
+        obj_ptr->xvel = flip_sign(obj_ptr->xvel) //obj_ptr->xvel *= -1
+        obj_ptr->pos.x -= obj_ptr->xvel >> 2
+        if obj_ptr->on_slope == 1 {
+            obj_ptr->pos.y -= obj_ptr->xvel >> 2
+        }
+        else {
+            obj_ptr->pos.y += obj_ptr->xvel >> 2
+        }
+        obj_ptr->xfrac -= obj_ptr->xvel & %00000011
+        if obj_ptr->xfrac > 3 {
+            obj_ptr->xfrac += 4 // 4 because 4 + -1 = 3, 4 + -2 = 2, 4 + -3 = 1, 4 + -4 = 0
+                              // so basically, (max fractional part value) + 1
+            obj_ptr->pos.x -= 1
+            if obj_ptr->on_slope == 1 {
+                obj_ptr->pos.y -= 1
+            }
+            else {
+                obj_ptr->pos.y += 1
+            }
+        }
+        obj_ptr->xvel = flip_sign(obj_ptr->xvel) //obj_ptr->xvel *= -1
+    }
+    else {
+        obj_ptr->pos.x += obj_ptr->xvel >> 2
+        if obj_ptr->on_slope == 1 {
+            obj_ptr->pos.y += obj_ptr->xvel >> 2
+        }
+        else {
+            obj_ptr->pos.y -= obj_ptr->xvel >> 2
+        }
+        obj_ptr->xfrac += obj_ptr->xvel & %00000011
+        if obj_ptr->xfrac > 3 {
+            obj_ptr->xfrac -= 3
+            obj_ptr->pos.x += 1
+            if obj_ptr->on_slope == 1 {
+                obj_ptr->pos.y += 1
+            }
+            else {
+                obj_ptr->pos.y -= 1
+            }
+        }
     }
 }
 

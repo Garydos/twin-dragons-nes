@@ -550,7 +550,9 @@ const array metatiles = [
             $24,		$24,		$24,		$24, //		$03, floor flower tile
             $24,		$24,		$24,		$24, //		$04, floor grass tile
             $24,		$24,		$24,		$24, //		$05, bushes tile A
-            $24,		$24,		$24,		$24 //		$06, single-tile platform
+            $24,		$24,		$24,		$24, //		$06, single-tile platform
+            $24,        $0A,        $09,        $0B, //     $07, positive slope
+            $0C,        $0E,        $24,        $0F  //     $08, negative slope
 ]
 
 
