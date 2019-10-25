@@ -5,6 +5,9 @@ bool up_collis_flag
 bool right_collis_flag
 bool left_collis_flag
 
+//slope flag
+byte on_slope
+
 const byte player_max_xvel = 10
 const byte player_max_xvel_neg = -10
 const byte player_x_friction = 8
@@ -26,6 +29,18 @@ bool is_collidable(byte tile) {
         return true
     }
     return false
+}
+
+inline void slope_check(byte tile) {
+    if tile == $0A || tile == $09 {
+        on_slope = 2
+    }
+    else if tile == $0C || tile == $0f {
+        on_slope = 1
+    }
+    else {
+        on_slope = 0
+    }
 }
 
 inline void check_background_collis_down(byte screenx, byte screeny, byte spritewidth, byte spriteheight) {
@@ -124,12 +139,14 @@ void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte 
         while i <= limit{
             current_tile = get_tile(new_column1, new_row1+i)
             if is_collidable(current_tile) {
+                slope_check(current_tile)
                 collis_flag = true
                 right_collis_flag = true
                 return
             }
             i += 1
         }
+        on_slope = 0
     }
     if side == 3 {
         //LEFT SIDE
@@ -143,12 +160,14 @@ void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte 
         while i <= limit{
             current_tile = get_tile(new_column1, new_row1+i)
             if is_collidable(current_tile) {
+                slope_check(current_tile)
                 collis_flag = true
                 left_collis_flag = true
                 return
             }
             i += 1
         }
+        on_slope = 0
     }
 }
 
@@ -173,6 +192,7 @@ inline void check_player_collis_and_update_loc(pointer.Player player_ptr) {
     obj_collis_horiz(pointer.Phys_Obj(player_ptr))
     
     player_ptr->on_ground = down_collis_flag
+    player_ptr->on_slope = on_slope
     reset_collis_flags()
 }
 
