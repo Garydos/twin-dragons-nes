@@ -27,7 +27,7 @@ volatile bool new_frame
 volatile word previous_column
 
 const array(word) spawn_column_locations = [$0020, $0040] //column that the spawn triggers on, MUST BE SORTED LOW TO HIGH
-const array(word) spawn_screen_locations = [$F0B0, $F0B0] //location the new object is spawned at (lo = y, hi = x)
+const array(word) spawn_screen_locations = [$F0B0, $F0C0] //location the new object is spawned at (lo = y, hi = x)
 const byte num_spawn_locations = 2
 //the indices for this array correspond to the indices for each
 //spawn location in spawn_column_locations
@@ -114,7 +114,7 @@ void nmi() {
     }
     
     //update the music
-    // FamiToneUpdate()
+    FamiToneUpdate()
     
     //start checking for a sprite0 hit
     //so that we know the status bar is done drawing
