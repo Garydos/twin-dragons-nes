@@ -171,6 +171,34 @@ void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte 
     }
 }
 
+inline void check_slope_pos(pointer.Phys_Obj obj_ptr) {
+    byte column
+    byte row
+    byte current_tile
+
+    column = get_column_from_screenx(obj_ptr->pos.x + obj_ptr->pos.width + 1)
+    row = get_row_from_screeny(obj_ptr->pos.y + obj_ptr->pos.height)
+    current_tile = get_tile(column, row)
+    
+    if not((current_tile == $0A) || (current_tile == $09)) {
+        obj_ptr->on_slope = 0
+    }
+}
+
+inline void check_slope_neg(pointer.Phys_Obj obj_ptr) {
+    byte column
+    byte row
+    byte current_tile
+
+    column = get_column_from_screenx(obj_ptr->pos.x - 1)
+    row = get_row_from_screeny(obj_ptr->pos.y + obj_ptr->pos.height)
+    current_tile = get_tile(column, row)
+    
+    if not((current_tile == $0C) || (current_tile == $0F)) {
+        obj_ptr->on_slope = 0
+    }
+}
+
 inline void check_still_on_slope(pointer.Phys_Obj obj_ptr) {
     if obj_ptr->yvel < 0 {
         //jumping means we're no longer on the slope
@@ -179,9 +207,11 @@ inline void check_still_on_slope(pointer.Phys_Obj obj_ptr) {
     
     if obj_ptr->on_slope == 1 {
         //negative slope
+        check_slope_neg(obj_ptr)
     }
     else if obj_ptr->on_slope == 2 {
         //positive slope
+        check_slope_pos(obj_ptr)
     }
 }
 
