@@ -341,14 +341,15 @@ inline byte get_tile(byte column, byte row) {
     //here, column refers to the 8 pixel wide
     //screen columns, not the 16 pixel wide
     //metatile columns
-    byte metatile_column_num
+    word metatile_column_num
     byte metatile_row_num
     byte tile
     pointer metatiles_column
     pointer metatile_ptr
     
     //get the metatile row and column numbers
-    metatile_column_num = column >> 1
+    metatile_column_num = screen_column_to_level_column(column)
+    metatile_column_num >>= 1
     metatile_row_num = row >> 1
     
     //get the metatile column data pointer
