@@ -282,14 +282,37 @@ inline void check_player_collis_and_update_loc(pointer.Player player_ptr) {
 }
 
 inline void check_obj_collis_and_update_loc(pointer.Phys_Obj obj_ptr) {
+    on_slope = 0
+    check_still_on_slope(obj_ptr)
+    
+    if obj_ptr->on_slope != 0 {
+        update_obj_speed_on_slope(obj_ptr)
+        reset_collis_flags()
+        return
+    }
+    
     //do vertical collision checking
-    obj_collis_vert(obj_ptr)
-    
-    collis_flag = false
-    
-    //do horizontal collision checking
-    obj_collis_horiz(obj_ptr)
+    obj_collis_vert(pointer.Phys_Obj(obj_ptr))
 
+    obj_ptr->on_slope = on_slope
+    if obj_ptr->on_slope != 0 {
+        //stick to the bottom of the appropriate part of the tile
+        if on_slope == 2 {
+            obj_ptr->pos.y +=  7-((((obj_ptr->pos.x + (xscroll & %00000111)) + obj_ptr->pos.width) & %00000111))
+        }
+        if on_slope == 1 {
+            obj_ptr->pos.y += (((obj_ptr->pos.x + (xscroll & %00000111)) & %00000111))
+        }
+        update_obj_speed_on_slope(obj_ptr)
+        reset_collis_flags()
+        return
+    }
+    collis_flag = false
+
+    //do horizontal collision checking
+    obj_collis_horiz(pointer.Phys_Obj(obj_ptr))
+    
+    obj_ptr->on_slope = on_slope
     reset_collis_flags()
 }
 
