@@ -391,6 +391,10 @@ void obj_collis_vert(pointer.Phys_Obj obj_ptr) {
 void update_obj_speed_on_slope(pointer.Phys_Obj obj_ptr) {
     if obj_ptr->xvel < 0{
         obj_ptr->xvel = flip_sign(obj_ptr->xvel) //obj_ptr->xvel *= -1
+        if obj_ptr->xvel > 8 {
+            //speedcap for slopes
+            obj_ptr->xvel = 8
+        }
         obj_ptr->pos.x -= obj_ptr->xvel >> 2
         if obj_ptr->on_slope == 1 {
             obj_ptr->pos.y -= obj_ptr->xvel >> 2
@@ -413,6 +417,10 @@ void update_obj_speed_on_slope(pointer.Phys_Obj obj_ptr) {
         obj_ptr->xvel = flip_sign(obj_ptr->xvel) //obj_ptr->xvel *= -1
     }
     else {
+        if obj_ptr->xvel > 8 {
+            //speedcap for slopes
+            obj_ptr->xvel = 8
+        }
         obj_ptr->pos.x += obj_ptr->xvel >> 2
         if obj_ptr->on_slope == 1 {
             obj_ptr->pos.y += obj_ptr->xvel >> 2
