@@ -171,16 +171,26 @@ void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte 
     }
 }
 
+inline void check_still_on_slope(pointer.Phys_Obj obj_ptr) {
+    if obj_ptr->yvel < 0 {
+        //jumping means we're no longer on the slope
+        obj_ptr->on_slope = 0
+    }
+    
+    if obj_ptr->on_slope == 1 {
+        //negative slope
+    }
+    else if obj_ptr->on_slope == 2 {
+        //positive slope
+    }
+}
+
 inline void check_player_collis_and_update_loc(pointer.Player player_ptr) {
+    check_still_on_slope(pointer.Phys_Obj(player_ptr))
+    
     if player_ptr->on_slope != 0 {
         update_obj_speed_on_slope(pointer.Phys_Obj(player_ptr))
         return
-    }
-    if player_ptr->on_slope == 1 {
-        //negative slope
-    }
-    else if player_ptr->on_slope == 2 {
-        //positive slope
     }
     
     //do vertical collision checking
