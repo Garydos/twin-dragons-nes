@@ -320,6 +320,7 @@ inline void handle_player_y_input() {
         playery_apply_gravity()
         if player1.on_ground {
             player1.can_jump = true
+            player1.jumping = false
         }
     }
 }

@@ -97,12 +97,14 @@ void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte 
         while i <= limit{
             current_tile = get_tile(new_column1+i, new_row1)
             if is_collidable(current_tile) {
+                slope_check(current_tile)
                 collis_flag = true
                 down_collis_flag = true
                 return
             }
             i += 1
         }
+        on_slope = 0
     }
     if side == 1 {
         //UP SIDE
@@ -232,8 +234,11 @@ inline void check_player_collis_and_update_loc(pointer.Player player_ptr) {
     check_still_on_slope(pointer.Phys_Obj(player_ptr))
     
     if player_ptr->on_slope != 0 {
+        player_ptr->yvel = 0
+        player_ptr->yaccel = 0
         update_obj_speed_on_slope(pointer.Phys_Obj(player_ptr))
-        player_ptr->on_ground = true
+        player_ptr->jumping = false
+        player_ptr->can_jump = false
         reset_collis_flags()
         return
     }
@@ -242,12 +247,16 @@ inline void check_player_collis_and_update_loc(pointer.Player player_ptr) {
     obj_collis_vert(pointer.Phys_Obj(player_ptr))
     
     collis_flag = false
-    
+
     //do horizontal collision checking
     obj_collis_horiz(pointer.Phys_Obj(player_ptr))
     
     player_ptr->on_ground = down_collis_flag
     player_ptr->on_slope = on_slope
+    if on_slope != 0 {
+        player_ptr->jumping = false
+        player_ptr->can_jump = false
+    }
     reset_collis_flags()
 }
 
@@ -286,11 +295,17 @@ void obj_collis_horiz(pointer.Phys_Obj obj_ptr) {
         //and then seeing where things went wrong) to find a way to programatically correct those errors.  So yeah,
         //not entirely sure why this math works but it has something to with the fact that scrolling messes up tile
         //and sprite alignment.  ¯\_(ツ)_/¯
+        if on_slope != 0 {
+            obj_ptr->pos.x += 7 - ((obj_ptr->pos.y + obj_ptr->pos.height) & %00000111)
+        }
     }
     //do the same for a negative velocities
     else if left_collis_flag {
         obj_ptr->xfrac = 0
         obj_ptr->pos.x = (obj_ptr->pos.x & %11111000) - (xscroll & %00000111) + 8
+        if on_slope != 0 {
+            obj_ptr->pos.x -= 7 - ((obj_ptr->pos.y + obj_ptr->pos.height) & %00000111)
+        }
     }
 }
 
