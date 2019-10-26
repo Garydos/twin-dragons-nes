@@ -192,6 +192,9 @@ inline void check_slope_pos(pointer.Phys_Obj obj_ptr) {
     
     if not((current_tile == $0A) || (current_tile == $09)) {
         obj_ptr->on_slope = 0
+        //fixes clipping issues when exiting slopes
+        obj_ptr->pos.y -= 1
+        obj_ptr->yfrac = $03
     }
 }
 
@@ -213,6 +216,9 @@ inline void check_slope_neg(pointer.Phys_Obj obj_ptr) {
     
     if not((current_tile == $0C) || (current_tile == $0F)) {
         obj_ptr->on_slope = 0
+        //fixes clipping issues when exiting slopes
+        obj_ptr->pos.y -= 1
+        obj_ptr->yfrac = $03
     }
 }
 
