@@ -215,11 +215,6 @@ inline void check_slope_neg(pointer.Phys_Obj obj_ptr) {
 }
 
 inline void check_still_on_slope(pointer.Phys_Obj obj_ptr) {
-    if obj_ptr->yvel < 0 {
-        //jumping means we're no longer on the slope
-        obj_ptr->on_slope = 0
-    }
-    
     if obj_ptr->on_slope == 1 {
         //negative slope
         check_slope_neg(obj_ptr)
@@ -230,33 +225,48 @@ inline void check_still_on_slope(pointer.Phys_Obj obj_ptr) {
     }
 }
 
+bool true_macro() {
+    //compiler bug: sometimes assigning literal bool values
+    //doesn't work, so use this function instead
+    return true
+}
+
 inline void check_player_collis_and_update_loc(pointer.Player player_ptr) {
+    on_slope = 0
     check_still_on_slope(pointer.Phys_Obj(player_ptr))
     
     if player_ptr->on_slope != 0 {
-        player_ptr->yvel = 0
-        player_ptr->yaccel = 0
-        update_obj_speed_on_slope(pointer.Phys_Obj(player_ptr))
-        player_ptr->jumping = false
-        player_ptr->can_jump = false
-        reset_collis_flags()
-        return
+        if player_ptr->jumping {
+            player_ptr->on_slope = 0
+        }
+        else {
+            update_obj_speed_on_slope(pointer.Phys_Obj(player_ptr))
+            player_ptr->on_ground = true_macro()
+            reset_collis_flags()
+            return
+        }
     }
     
     //do vertical collision checking
     obj_collis_vert(pointer.Phys_Obj(player_ptr))
+    player_ptr->on_ground = down_collis_flag
     
+    player_ptr->on_slope = on_slope
+    if player_ptr->on_slope != 0 {
+        //stick to the bottom of the appropriate part of the tile
+        // if on_slope == 2 {
+            // player_ptr->pos.y +=  7-(((player_ptr->pos.x + player_ptr->pos.width) & %00000111))
+        // }
+        update_obj_speed_on_slope(pointer.Phys_Obj(player_ptr))
+        reset_collis_flags()
+        return
+    }
     collis_flag = false
 
     //do horizontal collision checking
     obj_collis_horiz(pointer.Phys_Obj(player_ptr))
     
-    player_ptr->on_ground = down_collis_flag
     player_ptr->on_slope = on_slope
-    if on_slope != 0 {
-        player_ptr->jumping = false
-        player_ptr->can_jump = false
-    }
     reset_collis_flags()
 }
 
@@ -283,6 +293,10 @@ void obj_collis_horiz(pointer.Phys_Obj obj_ptr) {
     }
     
     if collis_flag {
+        if obj_ptr->yvel < 0 && on_slope != 0 {
+            //if we're going up and clip through a slope, that's fine
+            return
+        }
         obj_ptr->xvel = 0
     }
     
