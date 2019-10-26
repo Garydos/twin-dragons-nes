@@ -98,9 +98,11 @@ void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte 
             current_tile = get_tile(new_column1+i, new_row1)
             if is_collidable(current_tile) {
                 slope_check(current_tile)
-                collis_flag = true
-                down_collis_flag = true
-                return
+                if on_slope == 0 || (on_slope == 1 && i == 0) || (on_slope == 2 && i == limit) {
+                    collis_flag = true
+                    down_collis_flag = true
+                    return
+                }
             }
             i += 1
         }
@@ -254,9 +256,12 @@ inline void check_player_collis_and_update_loc(pointer.Player player_ptr) {
     player_ptr->on_slope = on_slope
     if player_ptr->on_slope != 0 {
         //stick to the bottom of the appropriate part of the tile
-        // if on_slope == 2 {
-            // player_ptr->pos.y +=  7-(((player_ptr->pos.x + player_ptr->pos.width) & %00000111))
-        // }
+        if on_slope == 2 {
+            player_ptr->pos.y +=  7-((((player_ptr->pos.x + (xscroll & %00000111)) + player_ptr->pos.width) & %00000111))
+        }
+        if on_slope == 1 {
+            player_ptr->pos.y += (((player_ptr->pos.x + (xscroll & %00000111)) & %00000111))
+        }
         update_obj_speed_on_slope(pointer.Phys_Obj(player_ptr))
         reset_collis_flags()
         return
