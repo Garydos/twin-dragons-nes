@@ -221,7 +221,8 @@ inline void right_metatile_scroll() {
 inline word screen_column_to_level_column(byte screen_column) {
     word new_column
     
-    new_column = current_screen << 5 //leftmost column of current screen
+    new_column = current_screen 
+    new_column <<= 5 //leftmost column of current screen
     new_column += screen_column
     return new_column
 }
