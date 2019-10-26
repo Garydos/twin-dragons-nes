@@ -176,8 +176,14 @@ inline void check_slope_pos(pointer.Phys_Obj obj_ptr) {
     byte row
     byte current_tile
 
-    column = get_column_from_screenx(obj_ptr->pos.x + obj_ptr->pos.width + 1)
-    row = get_row_from_screeny(obj_ptr->pos.y + obj_ptr->pos.height)
+    if obj_ptr->xvel < 0 {
+        column = get_column_from_screenx(obj_ptr->pos.x + obj_ptr->pos.width)
+        row = get_row_from_screeny(obj_ptr->pos.y + obj_ptr->pos.height + 1)
+    }
+    else {
+        column = get_column_from_screenx(obj_ptr->pos.x + obj_ptr->pos.width + 1)
+        row = get_row_from_screeny(obj_ptr->pos.y + obj_ptr->pos.height)
+    }
     current_tile = get_tile(column, row)
     
     if not((current_tile == $0A) || (current_tile == $09)) {
@@ -190,8 +196,15 @@ inline void check_slope_neg(pointer.Phys_Obj obj_ptr) {
     byte row
     byte current_tile
 
-    column = get_column_from_screenx(obj_ptr->pos.x - 1)
-    row = get_row_from_screeny(obj_ptr->pos.y + obj_ptr->pos.height)
+
+    if obj_ptr->xvel > 0 {
+        column = get_column_from_screenx(obj_ptr->pos.x)
+        row = get_row_from_screeny(obj_ptr->pos.y + obj_ptr->pos.height + 1)
+    }
+    else {
+        column = get_column_from_screenx(obj_ptr->pos.x - 1)
+        row = get_row_from_screeny(obj_ptr->pos.y + obj_ptr->pos.height)
+    }
     current_tile = get_tile(column, row)
     
     if not((current_tile == $0C) || (current_tile == $0F)) {
@@ -220,6 +233,8 @@ inline void check_player_collis_and_update_loc(pointer.Player player_ptr) {
     
     if player_ptr->on_slope != 0 {
         update_obj_speed_on_slope(pointer.Phys_Obj(player_ptr))
+        player_ptr->on_ground = true
+        reset_collis_flags()
         return
     }
     
