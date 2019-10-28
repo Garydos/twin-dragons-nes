@@ -57,8 +57,6 @@ void spawn_enemy(byte type, byte x, byte y, byte spawner_index) {
     enemy_heap[heap_spot].yfrac = 0
     enemy_heap[heap_spot].xvel = 0
     enemy_heap[heap_spot].yvel = 0
-    enemy_heap[heap_spot].xaccel = 0
-    enemy_heap[heap_spot].yaccel = 0
     enemy_heap[heap_spot].id = heap_spot
     enemy_heap[heap_spot].enemy_type = type
     enemy_aux_heap[heap_spot].spawner = spawner_index
@@ -74,11 +72,13 @@ inline void init_boomba(byte heap_spot) {
     enemy_heap[heap_spot].anim.anim_num = 1
     enemy_heap[heap_spot].anim.anim_frame = 0
     enemy_heap[heap_spot].anim.frame_timer = 0
-    enemy_aux_heap[heap_spot].mirroring = 0
+    enemy_heap[heap_spot].mirroring = false
     //use aux0 as a timer for the jump
     enemy_aux_heap[heap_spot].aux0 = 0
     //use aux1 as a jump flag
     enemy_aux_heap[heap_spot].aux1 = 0
+    //use aux2 as yaccel
+    enemy_aux_heap[heap_spot].aux2 = 0
 }
 
 inline void cap_phys_obj_vel(pointer.Phys_Obj obj_ptr) {
@@ -103,8 +103,7 @@ inline void cap_phys_obj_vel(pointer.Phys_Obj obj_ptr) {
 }
 
 inline void phys_obj_apply_gravity(pointer.Phys_Obj obj_ptr) {
-    obj_ptr->yaccel = player_gravity_accel
-    obj_ptr->yvel += obj_ptr->yaccel
+    obj_ptr->yvel += player_gravity_accel
 }
 
 Sprite test_sprite
@@ -122,14 +121,7 @@ inline void handle_enemy_anims() {
 }
 
 inline void handle_boomba_anims(pointer.Enemy enemy_ptr) {
-    bool mirroring
-    if enemy_aux_heap[enemy_ptr->id].mirroring != 0 {
-        mirroring = true
-    }
-    else {
-        mirroring = false
-    }
-    handle_player_anim(pointer.Anim(enemy_ptr->anim.addr), enemy_ptr->pos.x, enemy_ptr->pos.y, mirroring)
+    handle_player_anim(pointer.Anim(enemy_ptr->anim.addr), enemy_ptr->pos.x, enemy_ptr->pos.y, enemy_ptr->mirroring)
 }
 
 inline void handle_enemy_phys(pointer.Enemy enemy_ptr) {
@@ -150,40 +142,60 @@ inline void handle_enemy_logic(pointer.Enemy enemy_ptr) {
 }
 
 inline void handle_boomba_logic(pointer.Enemy enemy_ptr) {
-    if enemy_aux_heap[enemy_ptr->id].aux1 == 1 {
+    byte yaccel
+    byte jumping
+    byte jump_timer
+    
+    jump_timer = enemy_aux_heap[enemy_ptr->id].aux0
+    jumping = enemy_aux_heap[enemy_ptr->id].aux1
+    yaccel = enemy_aux_heap[enemy_ptr->id].aux2
+    
+    if jumping == 1 {
         //we're currently jumping
-        if enemy_ptr->yaccel < 24 {
-            enemy_ptr->yaccel += 2
-            enemy_ptr->yvel -= (enemy_ptr->yaccel >> 2)
+        if yaccel < 24 && enemy_ptr->yvel != 0 {
+            yaccel += 2
+            enemy_ptr->yvel -= (yaccel >> 2)
         }
         else {
-            enemy_aux_heap[enemy_ptr->id].aux1 = 0
+            jumping = 0
             phys_obj_apply_gravity(pointer.Phys_Obj(enemy_ptr))
         }
         
         if enemy_ptr->yvel == 0 {
             //we've hit the ground, and are
             //no longer jumping
-            enemy_aux_heap[enemy_ptr->id].aux1 = 0
+            jumping = 0
         }
     }
     else {
         phys_obj_apply_gravity(pointer.Phys_Obj(enemy_ptr))
     }
-
-    if enemy_aux_heap[enemy_ptr->id].aux0 == 0 && enemy_aux_heap[enemy_ptr->id].aux1 == 0{
-        enemy_aux_heap[enemy_ptr->id].aux1 = 1
-        enemy_ptr->on_slope = 0
-        enemy_ptr->yaccel = 2
-        enemy_ptr->yvel = 0
-    }
     
-    if enemy_aux_heap[enemy_ptr->id].aux0 < ($80-1) {
-        enemy_aux_heap[enemy_ptr->id].aux0 += 1
+    if not(enemy_ptr->on_ground) {
+        enemy_ptr->xvel = -2
     }
     else {
-        enemy_aux_heap[enemy_ptr->id].aux0 = 0
+        enemy_ptr->xvel = 0
     }
+
+    if jump_timer == 0 && jumping == 0{
+        jumping = 1
+        yaccel = 2
+        enemy_ptr->on_slope = 0
+        enemy_ptr->on_ground = false_macro()
+        enemy_ptr->yvel = -1
+    }
+    
+    if jump_timer < ($80-1) {
+        jump_timer += 1
+    }
+    else {
+        jump_timer = 0
+    }
+    
+    enemy_aux_heap[enemy_ptr->id].aux0 = jump_timer
+    enemy_aux_heap[enemy_ptr->id].aux1 = jumping
+    enemy_aux_heap[enemy_ptr->id].aux2 = yaccel
 }
 
 inline void prepare_enemy_scroll(sbyte scroll_speed_signed) {

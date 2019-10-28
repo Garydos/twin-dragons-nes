@@ -233,12 +233,6 @@ inline void check_still_on_slope(pointer.Phys_Obj obj_ptr) {
     }
 }
 
-bool true_macro() {
-    //compiler bug: sometimes assigning literal bool values
-    //doesn't work, so use this function instead
-    return true
-}
-
 inline void check_player_collis_and_update_loc(pointer.Player player_ptr) {
     on_slope = 0
     check_still_on_slope(pointer.Phys_Obj(player_ptr))
@@ -287,12 +281,15 @@ inline void check_obj_collis_and_update_loc(pointer.Phys_Obj obj_ptr) {
     
     if obj_ptr->on_slope != 0 {
         update_obj_speed_on_slope(obj_ptr)
+        obj_ptr->on_ground = true_macro()
         reset_collis_flags()
         return
     }
     
     //do vertical collision checking
     obj_collis_vert(pointer.Phys_Obj(obj_ptr))
+    obj_ptr->on_ground = down_collis_flag
+
 
     obj_ptr->on_slope = on_slope
     if obj_ptr->on_slope != 0 {

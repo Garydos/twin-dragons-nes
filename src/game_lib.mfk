@@ -1,6 +1,18 @@
 //This file is for game specific functions/defintions that are used
 //accross files
 
+bool true_macro() {
+    //compiler bug: sometimes assigning literal bool values
+    //doesn't work, so use this function instead
+    return true
+}
+
+bool false_macro() {
+    //compiler bug: sometimes assigning literal bool values
+    //doesn't work, so use this function instead
+    return false
+}
+
 struct Box {
     byte x,
     byte y,
@@ -17,9 +29,8 @@ struct Phys_Obj {
     byte yfrac, //fractional part of player's y coordinate, can range from 0-3 (first 2 bits)
     sbyte xvel,
     sbyte yvel,
-    sbyte xaccel,
-    sbyte yaccel,
-    byte on_slope
+    byte on_slope,
+    bool on_ground
 }
 
 struct Player {
@@ -28,11 +39,11 @@ struct Player {
     byte yfrac, //fractional part of player's y coordinate, can range from 0-3 (first 2 bits)
     sbyte xvel,
     sbyte yvel,
+    byte on_slope,
+    bool on_ground,
     sbyte xaccel,
     sbyte yaccel,
-    byte on_slope,
     byte xspeed,
-    bool on_ground,
     bool jumping,
     bool can_jump,
     Anim anim,
@@ -48,20 +59,20 @@ struct Enemy {
     byte yfrac, //fractional part of player's y coordinate, can range from 0-3 (first 2 bits)
     sbyte xvel,
     sbyte yvel,
-    sbyte xaccel,
-    sbyte yaccel,
     byte on_slope,
+    bool on_ground,
     byte id,
     byte enemy_type,
-    Anim anim
+    Anim anim,
+    bool mirroring
 }
 
 //These structs contain other variables different enemies need
 struct Enemy_Aux {
-    byte mirroring,
     byte spawner, //reference number for spawner, used to respawn
     byte aux0,
-    byte aux1
+    byte aux1,
+    byte aux2
 }
 
 struct Anim {
