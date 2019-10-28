@@ -152,7 +152,7 @@ inline void handle_boomba_logic(pointer.Enemy enemy_ptr) {
     
     if jumping == 1 {
         //we're currently jumping
-        if yaccel < 24 && enemy_ptr->yvel != 0 {
+        if yaccel < 18 && enemy_ptr->yvel != 0 {
             yaccel += 2
             enemy_ptr->yvel -= (yaccel >> 2)
         }
@@ -172,13 +172,14 @@ inline void handle_boomba_logic(pointer.Enemy enemy_ptr) {
     }
     
     if not(enemy_ptr->on_ground) {
-        enemy_ptr->xvel = -2
+        enemy_ptr->xvel = -4
     }
     else {
         enemy_ptr->xvel = 0
     }
 
-    if jump_timer == 0 && jumping == 0{
+    if jump_timer >= $40 && jumping == 0{
+        jump_timer = 0
         jumping = 1
         yaccel = 2
         enemy_ptr->on_slope = 0
@@ -186,11 +187,8 @@ inline void handle_boomba_logic(pointer.Enemy enemy_ptr) {
         enemy_ptr->yvel = -1
     }
     
-    if jump_timer < ($80-1) {
+    if jump_timer < $40 {
         jump_timer += 1
-    }
-    else {
-        jump_timer = 0
     }
     
     enemy_aux_heap[enemy_ptr->id].aux0 = jump_timer
