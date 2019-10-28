@@ -75,6 +75,10 @@ inline void init_boomba(byte heap_spot) {
     enemy_heap[heap_spot].anim.anim_frame = 0
     enemy_heap[heap_spot].anim.frame_timer = 0
     enemy_aux_heap[heap_spot].mirroring = 0
+    //use aux0 as a timer for the jump
+    enemy_aux_heap[heap_spot].aux0 = 0
+    //use aux1 as a jump flag
+    enemy_aux_heap[heap_spot].aux1 = 0
 }
 
 inline void cap_phys_obj_vel(pointer.Phys_Obj obj_ptr) {
@@ -135,7 +139,6 @@ inline void handle_enemy_phys(pointer.Enemy enemy_ptr) {
 }
 
 inline void handle_boomba_phys(pointer.Enemy enemy_ptr) {
-    phys_obj_apply_gravity(pointer.Phys_Obj(enemy_ptr))
     cap_phys_obj_vel(pointer.Phys_Obj(enemy_ptr))
     check_obj_collis_and_update_loc(pointer.Phys_Obj(enemy_ptr))
 }
@@ -147,7 +150,40 @@ inline void handle_enemy_logic(pointer.Enemy enemy_ptr) {
 }
 
 inline void handle_boomba_logic(pointer.Enemy enemy_ptr) {
-    enemy_ptr->xvel = -2
+    if enemy_aux_heap[enemy_ptr->id].aux1 == 1 {
+        //we're currently jumping
+        if enemy_ptr->yaccel < 24 {
+            enemy_ptr->yaccel += 2
+            enemy_ptr->yvel -= (enemy_ptr->yaccel >> 2)
+        }
+        else {
+            enemy_aux_heap[enemy_ptr->id].aux1 = 0
+            phys_obj_apply_gravity(pointer.Phys_Obj(enemy_ptr))
+        }
+        
+        if enemy_ptr->yvel == 0 {
+            //we've hit the ground, and are
+            //no longer jumping
+            enemy_aux_heap[enemy_ptr->id].aux1 = 0
+        }
+    }
+    else {
+        phys_obj_apply_gravity(pointer.Phys_Obj(enemy_ptr))
+    }
+
+    if enemy_aux_heap[enemy_ptr->id].aux0 == 0 && enemy_aux_heap[enemy_ptr->id].aux1 == 0{
+        enemy_aux_heap[enemy_ptr->id].aux1 = 1
+        enemy_ptr->on_slope = 0
+        enemy_ptr->yaccel = 2
+        enemy_ptr->yvel = 0
+    }
+    
+    if enemy_aux_heap[enemy_ptr->id].aux0 < ($80-1) {
+        enemy_aux_heap[enemy_ptr->id].aux0 += 1
+    }
+    else {
+        enemy_aux_heap[enemy_ptr->id].aux0 = 0
+    }
 }
 
 inline void prepare_enemy_scroll(sbyte scroll_speed_signed) {
