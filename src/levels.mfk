@@ -1,3 +1,5 @@
+import level1
+
 void load_level(byte level_num) {
 }
 
@@ -124,4 +126,4 @@ const array pallete = [
 //the unused bytes are contiguous, you'd just have to change the loops in the draw_column functions)
 const array screen_metatiles = file("levels/level1.bin")
 
-const array attrs = file("graphics/attrib.bin")
+const array attrs = file("levels/level1attrs.bin")
