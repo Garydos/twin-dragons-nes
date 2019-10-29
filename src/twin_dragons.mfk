@@ -11,6 +11,7 @@ import metatile_draw
 import metatile_scroll
 import physics
 import sprite_manager
+import anims
 import players
 import enemies
 import music
@@ -506,8 +507,6 @@ void draw_status_bar() {
     ppu_write_data($26) //$26 = lives icon
     ppu_write_data($27) //$26 = multiply icon
     ppu_write_data($03) //$03 = 3
-    
-    
 }
 
 void clear_status_bar() {
