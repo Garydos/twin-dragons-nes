@@ -215,3 +215,28 @@ void update_enemies() {
         handle_enemy_phys(enemy_ptr)
     }
 }
+
+void snap_enemy_limits() {
+    byte i
+    pointer.Enemy enemy_ptr
+    
+    for i,0,until,current_enemy_count {
+        enemy_ptr = pointer.Enemy(enemy_heap[current_enemies[i]].addr)
+        
+        //snap the enemy back to the playable area of the screen
+        //TODO: change this so that they despawn instead
+        if enemy_ptr->pos.x > right_screen_limit {
+            enemy_ptr->pos.x = right_screen_limit
+        }
+        if enemy_ptr->pos.x < left_screen_limit {
+            enemy_ptr->pos.x = left_screen_limit
+        }
+        if enemy_ptr->pos.y > down_screen_limit {
+            enemy_ptr->pos.y = down_screen_limit
+            enemy_ptr->on_ground = true
+        }
+        if enemy_ptr->pos.y < up_screen_limit {
+            enemy_ptr->pos.y = up_screen_limit
+        }
+    }
+}

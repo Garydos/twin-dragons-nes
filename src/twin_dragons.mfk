@@ -194,7 +194,6 @@ inline void game_logic() {
     apply_player_frict()
     update_enemies()
     prepare_scrolling()
-    snap_player_pos_limits()
     //get the old sprites off the screen
     clear_stacks()
     handle_player_anim(pointer.Anim(player1.anim.addr), player1.pos.x,player1.pos.y, player1.mirroring)
@@ -404,10 +403,16 @@ inline void prepare_scrolling() {
         scrolling_left = false
         scrolling_right = false
     }
+    snap_player_pos_limits()
+    snap_other_pos_limits()
 }
 
 inline void prepare_other_scrolling(sbyte scroll_speed_signed) {
     prepare_enemy_scroll(scroll_speed_signed)
+}
+
+inline void snap_other_pos_limits() {
+    snap_enemy_limits()
 }
 
 inline void snap_player_pos_limits() {
