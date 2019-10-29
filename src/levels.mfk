@@ -30,7 +30,6 @@ void load_level(byte level_num) {
     leftmost_column <<= 5
     rightmost_column = leftmost_column
     rightmost_column += 32
-    //TODO:
     for i,0,until,num_spawn_locations {
         colnum = spawn_column_locations[i]
         if colnum >= leftmost_column && colnum < rightmost_column {
