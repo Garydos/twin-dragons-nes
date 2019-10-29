@@ -1,0 +1,242 @@
+volatile byte nametable //current nametable
+volatile byte draw_nametable //the nametable we want to draw on
+volatile byte draw_seam_column //screen column at the draw/scroll seam
+volatile word next_column      //level column to be drawn to next
+volatile byte current_screen   //screen to load next
+byte max_screen       //final screen number
+volatile byte xscroll          //screen x scroll value
+volatile byte prev_xscroll     //previous xcroll value
+bool scrolling_right
+bool scrolling_left
+volatile byte previous_scroll //0 = scrolling right, 1 = scrolling left
+const byte scroll_right_boundary = $88
+const byte scroll_left_boundary = $68
+
+//How many pixels before a new attribute table column
+//is needed should we load them?  This is necessary because loading
+//an attribute column and a tile column at the same time takes too
+//much time for the nmi.
+//Note: this should be changed to be greater than or equal to the max
+//x velocity of the player (in pixels)
+const byte attr_draw_offset = 8
+
+void reset_scroll_flags() {
+    scrolling_right = false
+    scrolling_left = false
+    changed_column = false
+    changed_meta_column = false
+    changed_attr_column = false
+    changed_screen = false
+}
+
+void init_scroll_vars() {
+    xscroll = 0
+    nametable = 0
+    draw_seam_column = 0
+    draw_counter = 0
+    previous_scroll = 0
+}
+
+macro void set_next_column() {
+    //takes the draw_seam_column
+    //and current_screen values and converts
+    //them to the proper column number
+    //for lookup in the level map, and stores
+    //the result in next_column
+    next_column = current_screen << 5
+    next_column += draw_seam_column
+}
+
+inline void update_scroll_left() {
+    prev_xscroll = xscroll
+    xscroll -= scroll_speed
+    
+    passed_column_boundary(xscroll, prev_xscroll)
+    passed_meta_column_boundary(xscroll, prev_xscroll)
+    
+    if xscroll > prev_xscroll {
+        //we overflowed to a new screen
+        current_screen -= 1
+        if current_screen > max_screen {
+            current_screen = 3
+        }
+        nametable ^= %00000001
+    }
+    if changed_column {
+        draw_seam_column = xscroll >> 3
+    }
+    
+    //check if we need to load a new attribute column
+    //by factoring in the attribute load offset
+    xscroll -= attr_draw_offset
+    prev_xscroll -= attr_draw_offset
+    
+    if xscroll > prev_xscroll {
+        changed_screen = true
+        draw_nametable = nametable ^ %00000001
+    }
+    else {
+        changed_screen = false
+        draw_nametable = nametable
+    }
+
+    passed_attr_column_boundary(xscroll, prev_xscroll)
+    
+    xscroll += attr_draw_offset
+    prev_xscroll += attr_draw_offset
+}
+
+inline void update_scroll_right() {
+    prev_xscroll = xscroll
+    xscroll += scroll_speed
+    
+    passed_column_boundary(xscroll, prev_xscroll)
+    passed_meta_column_boundary(xscroll, prev_xscroll)
+    
+    if xscroll < prev_xscroll {
+        //we overflowed to a new screen
+        current_screen += 1
+        if current_screen > max_screen {
+            current_screen = 0
+        }
+        nametable ^= %00000001
+        changed_screen = true
+    }
+    else {
+        changed_screen = false
+    }
+    if changed_column {
+        //we've passed a column boundary, update our current column
+        draw_seam_column = xscroll >> 3
+    }
+    
+    //check if we need to load a new attribute column
+    //by factoring in the attribute load offset
+    xscroll += attr_draw_offset
+    prev_xscroll += attr_draw_offset
+    
+    if xscroll < prev_xscroll {
+        changed_screen = true
+        draw_nametable = nametable
+    }
+    else {
+        changed_screen = false
+        draw_nametable = nametable ^ %00000001
+    }
+
+    passed_attr_column_boundary(xscroll, prev_xscroll)
+    
+    xscroll -= attr_draw_offset
+    prev_xscroll -= attr_draw_offset
+}
+
+macro void passed_column_boundary(byte xscroll_new, byte xscroll_old) {
+    //compares the two, and then sets changed_column appropriately
+    if (xscroll_new & %11111000) != (xscroll_old & %11111000) {
+        changed_column = true
+    }
+    else {
+        changed_column = false
+    }
+}
+
+macro void passed_meta_column_boundary(byte xscroll_new, byte xscroll_old) {
+    //compares the two, and then sets changed_meta_column appropriately
+    if (xscroll_new & %11110000) != (xscroll_old & %11110000) {
+        changed_meta_column = true
+    }
+    else {
+        changed_meta_column = false
+    }
+}
+
+macro void passed_attr_column_boundary(byte xscroll_new, byte xscroll_old) {
+    //compares the two, and then sets changed_meta_column appropriately
+    if (xscroll_new & %11100000) != (xscroll_old & %11100000) {
+        changed_attr_column = true
+    }
+    else {
+        changed_attr_column = false
+    }
+}
+
+
+inline void left_metatile_scroll() {
+    if draw_counter == 0 && changed_attr_column{
+        // about to enter a 32 pixel boundary, so
+        // draw the attributes
+        set_next_column()
+        next_column >>= 2
+        next_column -= 1
+        
+        if changed_screen {
+            //we've overflowed onto a new screen, so draw on the right nametable
+            load_attr_column($07,draw_nametable,next_column)
+        }
+        else {
+            load_attr_column((xscroll>>5) - 1,draw_nametable,next_column)
+            //we subtract 1 from the 1st and 3rd arguments because we're loading
+            //in attribute tables 1 step ahead in order to keep up with scrolling
+        }
+    }
+    else if changed_column || draw_counter > 0 {
+        // on a 16 pixel boundary, so
+        // load the appropriate tiles
+        set_next_column()
+        next_column >>= 1
+
+        draw_column_with_counter((xscroll>>4),draw_nametable,next_column)
+    }
+}
+
+inline void right_metatile_scroll() {
+    // use an else-if here
+    // so that we don't load attrs and tiles
+    // on the same frame, as that would take
+    // too much time and bleed into screen rendering
+    if draw_counter == 0 && changed_attr_column {
+        // about to enter a 32 pixel boundary, so
+        // draw the attributes
+        set_next_column()
+        next_column += $20
+        
+        next_column >>= 2
+        next_column += 1
+        
+        load_attr_column((xscroll+attr_draw_offset)>>5,draw_nametable,next_column)
+        //add 1 to 3rd argument because we are loading the column that is one ahead
+        //of our loading seam
+    }
+    else if changed_meta_column || draw_counter > 0 {
+        // on a 16 pixel boundary, so
+        // load the appropriate tiles
+        set_next_column()
+        next_column += $20
+        next_column >>= 1
+        
+        draw_column_with_counter(xscroll>>4,draw_nametable,next_column)
+    }
+}
+
+inline word screen_column_to_level_column(byte screen_column) {
+    word new_column
+    
+    new_column = current_screen 
+    new_column <<= 5 //leftmost column of current screen
+    new_column += screen_column
+    return new_column
+}
+
+inline byte get_column_from_screenx(byte screenx) {
+    word new_column_offset //must be a word because (xscroll+newplayerx) can overflow
+    
+    new_column_offset = xscroll
+    new_column_offset += screenx
+    new_column_offset >>= 3
+    
+    return new_column_offset.lo
+}
+
+inline byte get_row_from_screeny(byte screeny) {
+    return screeny >> 3
+}

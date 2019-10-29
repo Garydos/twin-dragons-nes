@@ -1,0 +1,310 @@
+const byte right_screen_limit = $EF
+const byte left_screen_limit = $08
+const byte up_screen_limit = $20
+const byte down_screen_limit = $D0
+volatile byte scroll_speed
+
+//flag that indicates if the new frame is ready
+volatile bool new_frame
+
+volatile word previous_column
+
+const array(word) spawn_column_locations = [$0018, $0040] //column that the spawn triggers on, MUST BE SORTED LOW TO HIGH
+const array(word) spawn_screen_locations = [$FAB0, $FAC0] //location the new object is spawned at (lo = y, hi = x)
+const byte num_spawn_locations = 2
+//the indices for this array correspond to the indices for each
+//spawn location in spawn_column_locations
+array spawner_flags [32]
+
+volatile bool binary_search_success
+
+
+void init_spawner_flags() {
+    byte i
+    
+    for i,0,until,32 {
+        spawner_flags[i] = 0
+    }
+}
+
+byte binary_search_word(pointer.word arr, byte n, word search) {
+    byte i
+    byte k
+    word temp
+    
+    i = 0
+    while i < n {
+        k = (i + n) >> 1
+        temp = arr[k]
+        if temp < search {
+            i = k + 1
+        }
+        else if temp > search {
+            n = k - 1
+            if n > k {
+                //we overflowed, stop
+                i = n
+            }
+        }
+        else {
+            binary_search_success = true
+            return k
+        }
+    }
+    if i == n {
+        temp = arr[i]
+        if temp == search {
+            binary_search_success = true
+            return i
+        }
+    }
+    binary_search_success = false
+    return $FF
+}
+
+inline void game_logic() {
+    //game logic goes here
+    spawn_enemies()
+    handle_player_input()
+    cap_player_vel()
+    check_player_collis_and_update_loc(pointer.Player(player1.addr))
+    apply_player_frict()
+    update_enemies()
+    prepare_scrolling()
+    //get the old sprites off the screen
+    clear_stacks()
+    handle_player_anim(pointer.Anim(player1.anim.addr), player1.pos.x,player1.pos.y, player1.mirroring)
+    handle_enemy_anims()
+}
+
+inline void spawn_enemies() {
+    byte index
+    
+    if next_column != previous_column {
+        set_next_column()
+        index = binary_search_word(pointer.word(spawn_column_locations), num_spawn_locations, next_column)
+        if binary_search_success {
+            if current_enemy_count < max_enemies && spawner_flags[index] == 0 {
+                spawn_enemy(0,spawn_screen_locations[index].hi,spawn_screen_locations[index].lo, index)
+                spawner_flags[index] = 1
+            }
+        }
+        binary_search_success = false
+    }
+
+    previous_column = next_column
+}
+
+inline void handle_scrolling() {
+    //either scrolling right or have a column to finish drawing
+    if scrolling_right || (previous_scroll == 0 && draw_counter > 0) {
+        
+        //update the scroll variable
+        if scrolling_right{
+            update_scroll_right()
+        }
+        
+        right_metatile_scroll()
+        
+        previous_scroll = 0
+    }
+    //either scrolling left or have a column to finish drawing
+    else if scrolling_left || (previous_scroll == 1 && draw_counter > 0) {
+        //left scroll logic
+        
+        if scrolling_left {
+            update_scroll_left()
+        }
+        
+        left_metatile_scroll()
+    
+        previous_scroll = 1
+    }
+}
+
+macro void playerx_apply_accel() {
+    if (player1.xaccel >> 2) < player1.xspeed {
+        //if we're less than the maximum acceleration,
+        //then continually add acceleration
+        player1.xaccel += 1
+    }
+    else {
+        //if we're equal to or grater than the maximum
+        //acceleration, then clamp it to the max
+        player1.xaccel = player1.xspeed << 2
+    }
+}
+
+macro void playery_apply_gravity() {
+    player1.yaccel = player_gravity_accel
+    player1.yvel += player1.yaccel
+    player1.jumping = false
+}
+
+inline void handle_player_dash() {
+    if input_b != 0 {
+        player1.xspeed = 7
+    }
+    else {
+        player1.xspeed = 5
+    }
+}
+
+inline void handle_player_x_input() {
+    if input_dx > 0 {
+        player1.mirroring = true
+        switch_player1_anim(WALK_ANIM, false)
+        if player1.pos.x < right_screen_limit {
+            playerx_apply_accel()
+            player1.xvel += (player1.xaccel >> 2)
+        }
+    }
+    else if input_dx < 0 {
+        player1.mirroring = false
+        switch_player1_anim(WALK_ANIM, false)
+        if player1.pos.x > left_screen_limit {
+            playerx_apply_accel()
+            player1.xvel -= (player1.xaccel >> 2)
+        }
+    }
+    else {
+        scrolling_left = false
+        scrolling_right = false
+        player1.xaccel = 0
+        switch_player1_anim(IDLE_ANIM, true)
+    }
+}
+
+inline void handle_player_y_input() {
+    if input_a != 0 {
+        if player1.can_jump {
+            player1.yvel = 0
+            player1.yaccel = 8
+            player1.jumping = true
+            player1.can_jump = false
+        }
+        if player1.yaccel < 24 && player1.jumping {
+            player1.yaccel += 2
+            player1.yvel -= (player1.yaccel >> 2)
+        }
+        else {
+            playery_apply_gravity()
+        }
+    }
+    else {
+        playery_apply_gravity()
+        if player1.on_ground {
+            player1.can_jump = true
+            player1.jumping = false
+        }
+    }
+}
+
+inline void handle_player_input() {
+    read_joy1()
+    
+    handle_player_dash()
+    handle_player_x_input()
+    handle_player_y_input()
+}
+
+inline void cap_player_vel() {
+    //cap velocity
+    if player1.xvel >= player_max_xvel {
+        player1.xvel = player_max_xvel
+        player1.xfrac = 0
+    }
+    if player1.xvel <= player_max_xvel_neg {
+        player1.xvel = player_max_xvel_neg
+        player1.xfrac = 0
+    }    
+    
+    if player1.yvel >= player_max_yvel {
+        player1.yvel = player_max_yvel
+        player1.yfrac = 0
+    }
+    if player1.yvel <= player_max_yvel_neg {
+        player1.yvel = player_max_yvel_neg
+        player1.yfrac = 0
+    }
+}
+
+inline void apply_player_frict() {
+    //apply friction
+    if player1.xvel < 0 {
+        player1.xvel += player_x_friction
+        if player1.xvel > 0 {
+            player1.xvel = 0
+        }
+    }
+    else if player1.xvel > 0 {
+        player1.xvel -= player_x_friction
+        if player1.xvel < 0 {
+            player1.xvel = 0
+        }
+    }
+}
+
+inline void prepare_scrolling() {
+    //prepare the scrolling info for the next frame
+    //based on the player's movements
+    if player1.pos.x > scroll_right_boundary && not(current_screen == max_screen && xscroll == 0) {
+        //update the position of the screen sprites
+        scroll_speed = player1.pos.x - scroll_right_boundary
+        //fix scroll_speed so that we never overshoot the right scroll limit
+        if current_screen == (max_screen-1) && (scroll_speed + xscroll) < xscroll {
+            scroll_speed = ($FF - xscroll) + 1
+        }
+        player1.pos.x -= scroll_speed
+        scroll_speed = flip_sign(scroll_speed)
+        prepare_other_scrolling(scroll_speed)
+        scroll_speed = flip_sign(scroll_speed)
+        //scroll the screen as well
+        scrolling_right = true
+        scrolling_left = false
+        }
+    else if player1.pos.x < scroll_left_boundary && not(current_screen == 0 && xscroll == 0) {
+        //update the position of the screen sprites
+        scroll_speed = scroll_left_boundary - player1.pos.x
+        if current_screen == 0 && (xscroll - scroll_speed) > xscroll {
+            scroll_speed = xscroll
+        }
+        //set screen scroll left limit
+        player1.pos.x += scroll_speed
+        prepare_other_scrolling(scroll_speed)
+        //scroll the screen as well
+        scrolling_right = false
+        scrolling_left = true
+    }
+    else {
+        scrolling_left = false
+        scrolling_right = false
+    }
+    snap_player_pos_limits()
+    snap_other_pos_limits()
+}
+
+inline void prepare_other_scrolling(sbyte scroll_speed_signed) {
+    prepare_enemy_scroll(scroll_speed_signed)
+}
+
+inline void snap_other_pos_limits() {
+    snap_enemy_limits()
+}
+
+inline void snap_player_pos_limits() {
+    //snap the player back to the playable area of the screen
+    if player1.pos.x > right_screen_limit {
+        player1.pos.x = right_screen_limit
+    }
+    if player1.pos.x < left_screen_limit {
+        player1.pos.x = left_screen_limit
+    }
+    if player1.pos.y > down_screen_limit {
+        player1.pos.y = down_screen_limit
+        player1.on_ground = true
+    }
+    if player1.pos.y < up_screen_limit {
+        player1.pos.y = up_screen_limit
+    }
+}

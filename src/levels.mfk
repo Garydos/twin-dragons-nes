@@ -1,0 +1,127 @@
+void load_level(byte level_num) {
+}
+
+void load_screen(byte screen_num) {
+    current_screen = screen_num
+    draw_full_screen(screen_num)
+}
+
+void draw_status_bar() {
+    //draw the status bar accross both nametables
+    byte i
+    
+    //set ppu address increment to 1 so we can draw the left and right borders
+    //(allows us to draw to the nametable in vertical strips rather than horizontal)
+    ppu_ctrl = %00000000
+    read_ppu_status()
+    
+    //write to first nametable
+    ppu_set_addr(ppu_nametable0+$40)
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($FF) //$11 = 'H'
+    ppu_write_data($0E) //$0E = 'E'
+    ppu_write_data($0A) //$0A = 'A'
+    ppu_write_data($15) //$15 = 'L'
+    ppu_write_data($1D) //$1D = 'T'
+    ppu_write_data($11) //$11 = 'H'
+    ppu_write_data($25) //$25 = colon
+    ppu_write_data($34) //$34 = full box
+    ppu_write_data($34) //$34 = full box
+    ppu_write_data($35) //$35 = empty box
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($26) //$26 = lives icon
+    ppu_write_data($27) //$26 = multiply icon
+    ppu_write_data($03) //$03 = 3
+    
+    //write to second nametable
+    ppu_set_addr(ppu_nametable1+$40)
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($11) //$11 = 'H'
+    ppu_write_data($0E) //$0E = 'E'
+    ppu_write_data($0A) //$0A = 'A'
+    ppu_write_data($15) //$15 = 'L'
+    ppu_write_data($1D) //$1D = 'T'
+    ppu_write_data($11) //$11 = 'H'
+    ppu_write_data($25) //$25 = colon
+    ppu_write_data($34) //$34 = full box
+    ppu_write_data($34) //$34 = full box
+    ppu_write_data($35) //$35 = empty box
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($24) //$24 = sky tile
+    ppu_write_data($26) //$26 = lives icon
+    ppu_write_data($27) //$26 = multiply icon
+    ppu_write_data($03) //$03 = 3
+}
+
+void clear_status_bar() {
+    //clear the status bar to all sky tiles
+    byte i
+    
+    //set ppu address increment to 1 so we can draw the left and right borders
+    //(allows us to draw to the nametable in vertical strips rather than horizontal)
+    ppu_ctrl = %00000000
+    read_ppu_status()
+    
+    ppu_set_addr(ppu_nametable0)
+    for i,0,until,$80 {
+        ppu_write_data($24) //$24 = sky tile
+    }
+    
+    ppu_set_addr(ppu_nametable1)
+    for i,0,until,$80 {
+        ppu_write_data($24) //$24 = sky tile
+    }
+}
+
+void load_palletes() {
+    byte i
+    read_ppu_status() // read PPU status to reset the high/low latch
+    ppu_set_addr(ppu_pallete_ram) // point the PPU to palette ram
+    for i,0,until,$20 {
+        ppu_write_data(pallete[i])
+    }
+}
+
+const array pallete = [
+  $21,$17,$18,$29,$21,$38,$18,$2A,$21,$39,$3A,$3B,$21,$3D,$3E,$0F, //nametable palettes
+  $21,$09,$29,$36,$21,$10,$2D,$0F,$21,$00,$0F,$36,$21,$02,$38,$3C  //sprite palettes, first byte is the background color
+]
+
+
+//contains 4 screens worth of metatiles
+//each metatile column is 16 bytes long
+//each metatile column contains 3 bytes of wasted space, two at the top, and one at end
+//(this is a holdover from one of my older projects, you could rearange it so that all
+//the unused bytes are contiguous, you'd just have to change the loops in the draw_column functions)
+const array screen_metatiles = file("levels/level1.bin")
+
+const array attrs = file("graphics/attrib.bin")
