@@ -43,7 +43,8 @@ macro void set_next_column() {
     //them to the proper column number
     //for lookup in the level map, and stores
     //the result in next_column
-    next_column = current_screen << 5
+    next_column = current_screen 
+    next_column <<= 5
     next_column += draw_seam_column
 }
 

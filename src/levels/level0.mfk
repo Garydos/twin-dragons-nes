@@ -4,7 +4,7 @@ inline void load_level0() {
     // FamiToneMusicPlay($00)
     
     memcpy(spawn_column_locations, level0_spawn_column_locations, level0_num_spawn_locations * 2)
-    memcpy(spawn_screen_locations, level0_spawn_screen_locations, level0_num_spawn_locations * 2)
+    memcpy(spawn_screen_locations, level0_spawn_screen_locations, level0_num_spawn_locations)
     num_spawn_locations = level0_num_spawn_locations
     current_level_tiles = level0_metatiles
     current_level_attrs = level0_attrs
@@ -15,10 +15,8 @@ inline void load_level0() {
 }
 
 const byte level0_max_screen = 3
-//column that the spawn triggers on, MUST BE SORTED LOW TO HIGH
 const array(word) level0_spawn_column_locations = [$0018, $0040]
-//location the new object is spawned at (lo = y, hi = x)
-const array(word) level0_spawn_screen_locations = [$FAB0, $FAC0]
+const array level0_spawn_screen_locations = [$B0, $C0]
 const byte level0_num_spawn_locations = 2
 const array level0_metatiles = file("data/level0metatiles.bin")
 const array level0_attrs = file("data/level0attrs.bin")

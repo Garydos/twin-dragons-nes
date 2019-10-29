@@ -1,19 +1,34 @@
 import level0
 
-//column that the spawn triggers on, MUST BE SORTED LOW TO HIGH
+//level column that the spawn triggers on, MUST BE SORTED LOW TO HIGH
 array(word) spawn_column_locations [32] align(64)
-//location the new object is spawned at (lo = y, hi = x)
-array(word) spawn_screen_locations [32] align(64)
+//y-location (pixel row) the new object is spawned at
+array spawn_screen_locations [32] align(32)
 //the indices for this array correspond to the indices for each
 //spawn location in spawn_column_locations
 array spawner_flags [32] align(32)
 //maximum spawn locations for this level
 byte num_spawn_locations
+//x-coordinate for enemies spawned while scrolling
+const byte spawn_x_loc = $FA
 
 void load_level(byte level_num) {
+    byte i
+    word leftmost_column
+    word rightmost_column
+    
     if level_num == 0 {
         load_level0()
     }
+    
+    //load any enemies that spawn on the first screen
+    leftmost_column = current_screen 
+    leftmost_column <<= 5
+    rightmost_column = leftmost_column
+    rightmost_column += 32
+    // for i,0,until,num_spawn_locations {
+        // TODO
+    // }
 }
 
 void load_screen(byte screen_num) {

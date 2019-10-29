@@ -40,7 +40,7 @@ inline void spawn_enemies() {
         index = binary_search_word(pointer.word(spawn_column_locations), num_spawn_locations, next_column)
         if binary_search_success {
             if current_enemy_count < max_enemies && spawner_flags[index] == 0 {
-                spawn_enemy(0,spawn_screen_locations[index].hi,spawn_screen_locations[index].lo, index)
+                spawn_enemy(0,spawn_x_loc,spawn_screen_locations[index], index)
                 spawner_flags[index] = 1
             }
         }
