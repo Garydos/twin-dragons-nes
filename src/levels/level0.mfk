@@ -9,7 +9,7 @@ inline void load_level0() {
     current_level_tiles = level0_metatiles
     current_level_attrs = level0_attrs
     max_screen = level0_max_screen
-    load_screen(3)
+    load_screen(0)
     
     init_player1($78, $60)
 }
