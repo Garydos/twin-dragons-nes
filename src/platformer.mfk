@@ -34,13 +34,25 @@ inline void game_logic() {
 
 inline void spawn_enemies() {
     byte index
+    byte xloc
     
+    set_next_column()
+    if scrolling_right {
+        next_column += 32 //align it to the right of the screen
+        xloc = spawn_x_loc_right
+    }
+    else {
+        next_column += 4 //align it to just off the left side of the screen
+        //we have to add by 4 because of the clipping on the left side of the screen,
+        //we don't want to spawn enemies to the left of it
+        xloc = spawn_x_loc_left
+    }
     if next_column != previous_column {
-        set_next_column()
         index = binary_search_word(pointer.word(spawn_column_locations), num_spawn_locations, next_column)
         if binary_search_success {
+            
             if current_enemy_count < max_enemies && spawner_flags[index] == 0 {
-                spawn_enemy(0,spawn_x_loc,spawn_screen_locations[index], index)
+                spawn_enemy(spawn_info[index].hi,xloc,spawn_info[index].lo, index)
                 spawner_flags[index] = 1
             }
         }

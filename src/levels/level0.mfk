@@ -4,19 +4,19 @@ inline void load_level0() {
     // FamiToneMusicPlay($00)
     
     memcpy(spawn_column_locations, level0_spawn_column_locations, level0_num_spawn_locations * 2)
-    memcpy(spawn_screen_locations, level0_spawn_screen_locations, level0_num_spawn_locations)
+    memcpy(spawn_info, level0_spawn_info, level0_num_spawn_locations * 2)
     num_spawn_locations = level0_num_spawn_locations
     current_level_tiles = level0_metatiles
     current_level_attrs = level0_attrs
     max_screen = level0_max_screen
-    load_screen(0)
+    load_screen(3)
     
     init_player1($78, $60)
 }
 
 const byte level0_max_screen = 3
-const array(word) level0_spawn_column_locations = [$0018, $0040]
-const array level0_spawn_screen_locations = [$B0, $C0]
+const array(word) level0_spawn_column_locations = [$0030, $0040]
+const array(word) level0_spawn_info = [$00B0, $00B0]
 const byte level0_num_spawn_locations = 2
 const array level0_metatiles = file("data/level0metatiles.bin")
 const array level0_attrs = file("data/level0attrs.bin")

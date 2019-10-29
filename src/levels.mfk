@@ -2,20 +2,24 @@ import level0
 
 //level column that the spawn triggers on, MUST BE SORTED LOW TO HIGH
 array(word) spawn_column_locations [32] align(64)
-//y-location (pixel row) the new object is spawned at
-array spawn_screen_locations [32] align(32)
+//y-location (pixel row) the new object is spawned at, and it's type
+//hi-byte is the type, lo-byte is the y-coordinate
+array(word) spawn_info [32] align(64)
 //the indices for this array correspond to the indices for each
 //spawn location in spawn_column_locations
 array spawner_flags [32] align(32)
 //maximum spawn locations for this level
 byte num_spawn_locations
 //x-coordinate for enemies spawned while scrolling
-const byte spawn_x_loc = $FA
+const byte spawn_x_loc_right = $FA
+const byte spawn_x_loc_left = $08
 
 void load_level(byte level_num) {
     byte i
     word leftmost_column
     word rightmost_column
+    word colnum
+    word xloc
     
     if level_num == 0 {
         load_level0()
@@ -26,9 +30,16 @@ void load_level(byte level_num) {
     leftmost_column <<= 5
     rightmost_column = leftmost_column
     rightmost_column += 32
-    // for i,0,until,num_spawn_locations {
-        // TODO
-    // }
+    //TODO:
+    for i,0,until,num_spawn_locations {
+        colnum = spawn_column_locations[i]
+        if colnum >= leftmost_column && colnum < rightmost_column {
+            xloc = colnum
+            xloc -= leftmost_column
+            xloc <<= 3
+            spawn_enemy(spawn_info[i].hi,xloc.lo,spawn_info[i].lo, i)
+        }
+    }
 }
 
 void load_screen(byte screen_num) {
