@@ -1,6 +1,19 @@
-import level1
+import level0
+
+//column that the spawn triggers on, MUST BE SORTED LOW TO HIGH
+array(word) spawn_column_locations [32] align(64)
+//location the new object is spawned at (lo = y, hi = x)
+array(word) spawn_screen_locations [32] align(64)
+//the indices for this array correspond to the indices for each
+//spawn location in spawn_column_locations
+array spawner_flags [32] align(32)
+//maximum spawn locations for this level
+byte num_spawn_locations
 
 void load_level(byte level_num) {
+    if level_num == 0 {
+        load_level0()
+    }
 }
 
 void load_screen(byte screen_num) {
@@ -104,26 +117,18 @@ void clear_status_bar() {
     }
 }
 
-void load_palletes() {
+void load_palletes(byte pallete_num) {
     byte i
     read_ppu_status() // read PPU status to reset the high/low latch
     ppu_set_addr(ppu_pallete_ram) // point the PPU to palette ram
-    for i,0,until,$20 {
-        ppu_write_data(pallete[i])
+    if pallete_num == 0 {
+        for i,0,until,$20 {
+            ppu_write_data(pallete0[i])
+        }
     }
 }
 
-const array pallete = [
+const array pallete0 = [
   $21,$17,$18,$29,$21,$38,$18,$2A,$21,$39,$3A,$3B,$21,$3D,$3E,$0F, //nametable palettes
   $21,$09,$29,$36,$21,$10,$2D,$0F,$21,$00,$0F,$36,$21,$02,$38,$3C  //sprite palettes, first byte is the background color
 ]
-
-
-//contains 4 screens worth of metatiles
-//each metatile column is 16 bytes long
-//each metatile column contains 3 bytes of wasted space, two at the top, and one at end
-//(this is a holdover from one of my older projects, you could rearange it so that all
-//the unused bytes are contiguous, you'd just have to change the loops in the draw_column functions)
-const array screen_metatiles = file("levels/level1.bin")
-
-const array attrs = file("levels/level1attrs.bin")

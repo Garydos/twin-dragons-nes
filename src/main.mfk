@@ -21,7 +21,7 @@ import platformer
 void main() {
     init_sprites()
     init_sprite_manager()
-    load_palletes()
+    load_palletes(0)
     clear_status_bar()
     draw_status_bar()
     prepare_sprite0()
@@ -30,26 +30,8 @@ void main() {
     init_scroll_vars()
     init_enemy_heap()
     init_spawner_flags()
-    // spawn_enemy(0, $80,$80,0)
-    // spawn_enemy(0, $70,$80,0)
-    // spawn_enemy(0, $85,$A0,0)
-    // spawn_enemy(0, $75,$A0,0)
-    // spawn_enemy(0, $90,$A0,0)
-    // spawn_enemy(0, $A0,$A0,0)
-    // spawn_enemy(0, $B0,$A0,0)
-    // spawn_enemy(0, $C0,$A0,0)
     
-    //set up the music
-    FamiToneInit($01, nesthing_ost.addr)
-    FamiToneMusicPlay($00)
-    
-    current_level_tiles = screen_metatiles
-    current_level_attrs = attrs
-    max_screen = 3 // 4 screens
-    
-    load_screen(0)
-    
-    init_player1($78, $60)
+    load_level(0)
     
     ppu_set_scroll(0,0)
     ppu_wait_vblank()
