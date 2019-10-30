@@ -154,6 +154,6 @@ void load_palletes(byte pallete_num) {
 }
 
 const array pallete0 = [
-  $21,$19,$0C,$28,$21,$14,$25,$27,$21,$39,$3A,$3B,$21,$3D,$3E,$0F, //nametable palettes
+  $21,$17,$18,$29,$21,$38,$18,$2A,$21,$39,$3A,$3B,$21,$3D,$3E,$0F, //nametable palettes
   $21,$09,$29,$36,$21,$06,$26,$30,$21,$01,$2C,$3C,$21,$02,$38,$3C  //sprite palettes, first byte is the background color
 ]
