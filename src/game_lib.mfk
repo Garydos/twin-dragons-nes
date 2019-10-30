@@ -98,7 +98,8 @@ struct Player {
     bool jumping,
     bool can_jump,
     Anim anim,
-    bool mirroring  //is the frame mirrored or not?
+    bool mirroring,  //is the frame mirrored or not?
+    byte health
 }
 //velocities are added to playerx_frac and playery_frac, so they should be treated as
 //fractional parts (i.e. playerxvel = 4 means playerx will increase by 1, playerxvel = 8

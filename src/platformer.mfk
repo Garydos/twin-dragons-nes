@@ -327,3 +327,7 @@ inline void snap_player_pos_limits() {
         player1.pos.y = up_screen_limit
     }
 }
+
+void player_hit(byte amount) {
+    player1.health -= amount
+}
