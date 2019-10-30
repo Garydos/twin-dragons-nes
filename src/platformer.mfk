@@ -15,7 +15,6 @@ const byte player_height = 16 //height in pixels
 Player player1
 
 void init_player1(byte x, byte y) {
-    //player1 //doesn't compile without this pointless expression statement, don't remove
     player1.pos.x = x
     player1.pos.y = y
     player1.pos.width = player_width
