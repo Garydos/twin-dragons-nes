@@ -51,12 +51,23 @@ inline void game_logic() {
     cap_player_vel()
     check_player_collis_and_update_loc(pointer.Player(player1.addr))
     apply_player_frict()
+    update_player_timers()
     update_enemies()
     prepare_scrolling()
     //get the old sprites off the screen
     clear_stacks()
     handle_player_anim(pointer.Anim(player1.anim.addr), player1.pos.x,player1.pos.y, player1.mirroring)
     handle_enemy_anims()
+}
+
+inline void update_player_timers() {
+    if player1.invincible {
+        player1.invincibility_timer += 1
+        if player1.invincibility_timer >= $40 {
+            player1.invincibility_timer = 0
+            player1.invincible = false
+        }
+    }
 }
 
 inline void spawn_enemies() {
@@ -329,5 +340,9 @@ inline void snap_player_pos_limits() {
 }
 
 void player_hit(byte amount) {
-    player1.health -= amount
+    if not(player1.invincible) {
+        player1.health -= amount
+        player1.invincible = true
+        player1.invincibility_timer = 0
+    }
 }
