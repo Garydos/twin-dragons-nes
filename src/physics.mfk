@@ -492,8 +492,9 @@ void update_obj_y_speed(pointer.Phys_Obj obj_ptr) {
     }
 }
 
-bool box_collis_check(Box rect1, Box rect2) {
-    if (rect1.x < (rect2.x + rect2.width)) && ((rect1.x + rect1.width) > rect2.x) && (rect1.y < (rect2.y + rect2.height)) && ((rect1.y + rect1.height) > rect2.y) {
+bool box_collis_check(byte x1, byte y2, byte width1, byte height1, byte x2, byte y2, byte width2, byte height2) {
+    //check if two boxes are overlaping
+    if (x1 < (x2 + width2)) && ((x1 + width1) > x2) && (y1 < (y2 + height2)) && ((y1 + height1) > y2) {
         return true
     }
     return false

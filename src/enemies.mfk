@@ -20,7 +20,7 @@ void init_enemy_heap() {
     current_enemy_count = 0
 }
 
-inline byte get_enemy_heap_spot() {
+byte get_enemy_heap_spot() {
     byte spot
     
     enemy_heap_spots_top -= 1
@@ -30,7 +30,7 @@ inline byte get_enemy_heap_spot() {
     return spot
 }
 
-inline void return_enemy_heap_spot(byte spot) {
+void return_enemy_heap_spot(byte spot) {
     byte i
     
     available_enemy_heap_spots[enemy_heap_spots_top] = spot
@@ -81,7 +81,7 @@ inline void init_boomba(byte heap_spot) {
     enemy_aux_heap[heap_spot].aux2 = 0
 }
 
-inline void cap_phys_obj_vel(pointer.Phys_Obj obj_ptr) {
+void cap_phys_obj_vel(pointer.Phys_Obj obj_ptr) {
     //cap velocity
     if obj_ptr->xvel >= player_max_xvel {
         obj_ptr->xvel = player_max_xvel
@@ -106,8 +106,7 @@ inline void phys_obj_apply_gravity(pointer.Phys_Obj obj_ptr) {
     obj_ptr->yvel += player_gravity_accel
 }
 
-Sprite test_sprite
-inline void handle_enemy_anims() {
+void handle_enemy_anims() {
     byte i
     pointer.Enemy enemy_ptr
     
@@ -124,7 +123,7 @@ inline void handle_boomba_anims(pointer.Enemy enemy_ptr) {
     handle_player_anim(pointer.Anim(enemy_ptr->anim.addr), enemy_ptr->pos.x, enemy_ptr->pos.y, enemy_ptr->mirroring)
 }
 
-inline void handle_enemy_phys(pointer.Enemy enemy_ptr) {
+void handle_enemy_phys(pointer.Enemy enemy_ptr) {
     if enemy_ptr->enemy_type == 0 {
         handle_boomba_phys(enemy_ptr)
     }
@@ -135,16 +134,29 @@ inline void handle_boomba_phys(pointer.Enemy enemy_ptr) {
     check_obj_collis_and_update_loc(pointer.Phys_Obj(enemy_ptr))
 }
 
-inline void handle_enemy_logic(pointer.Enemy enemy_ptr) {
+void handle_enemy_logic(pointer.Enemy enemy_ptr) {
+    if enemy_ptr->enemy_type & %10000000 != 0 {
+        //Death flag is on, so handle the death animation
+        if enemy_ptr->enemy_type == 0 {
+            handle_boomba_death_logic(enemy_ptr)
+        }
+    }
     if enemy_ptr->enemy_type == 0 {
         handle_boomba_logic(enemy_ptr)
     }
+}
+
+inline void handle_boomba_death_logic(pointer.Enemy enemy_ptr) {
+    //for now just dissapear
+    return_enemy_heap_spot(enemy_ptr->id)
 }
 
 inline void handle_boomba_logic(pointer.Enemy enemy_ptr) {
     byte yaccel
     byte jumping
     byte jump_timer
+    
+    
     
     jump_timer = enemy_aux_heap[enemy_ptr->id].aux0
     jumping = enemy_aux_heap[enemy_ptr->id].aux1
@@ -238,5 +250,15 @@ void snap_enemy_limits() {
         if enemy_ptr->pos.y < up_screen_limit {
             enemy_ptr->pos.y = up_screen_limit
         }
+    }
+}
+
+void kill_boomba(pointer.Enemy enemy_ptr) {
+    enemy_ptr->enemy_type = flip_sign(enemy_ptr->enemy_type)
+}
+
+void hit_enemy(pointer.Enemy enemy_ptr) {
+    if enemy_ptr->type == 0 {
+        kill_boomba(enemy_ptr)
     }
 }
