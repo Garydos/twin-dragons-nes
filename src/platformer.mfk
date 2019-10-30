@@ -33,6 +33,10 @@ void init_player1(byte x, byte y) {
     player1.anim.anim_num = byte(IDLE_ANIM)
     player1.anim.frame_timer = 0
     player1.mirroring = true
+    player1.controllable = true
+    player1.health = 3
+    player1.invincible = false
+    player1.invincibility_timer = 0
 }
 
 void init_spawner_flags() {
@@ -205,9 +209,37 @@ inline void handle_player_y_input() {
 inline void handle_player_input() {
     read_joy1()
     
-    handle_player_dash_and_attack()
-    handle_player_x_input()
-    handle_player_y_input()
+    if player1.controllable {
+        handle_player_dash_and_attack()
+        handle_player_x_input()
+        handle_player_y_input()
+    }
+    else {
+        if player1.on_ground && player1.yvel == 0{
+            player1.xvel = 0
+            player1.xaccel = 0
+            player1.controllable = true
+        }
+        else {
+            if player1.xaccel < 0 {
+                if player1.xvel > player_max_xvel_neg {
+                    player1.xvel += player1.xaccel
+                }
+                else {
+                    player1.xvel = player_max_xvel_neg
+                }
+            }
+            else {
+                if player1.xvel < player_max_xvel {
+                    player1.xvel += player1.xaccel
+                }
+                else {
+                    player1.xvel = player_max_xvel
+                }
+            }
+            playery_apply_gravity()
+        }
+    }
 }
 
 inline void cap_player_vel() {
@@ -338,10 +370,18 @@ inline void snap_player_pos_limits() {
     }
 }
 
-void player_hit(byte amount) {
+void player_hit(byte amount, byte xcoord) {
     if not(player1.invincible) {
         player1.health -= amount
         player1.invincible = true
         player1.invincibility_timer = 0
+        player1.controllable = false
+        if xcoord < player1.pos.x {
+            player1.xaccel = 8
+        }
+        else {
+            player1.xaccel = -8
+        }
+        player1.yvel = -20
     }
 }

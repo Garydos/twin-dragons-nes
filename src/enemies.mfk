@@ -164,7 +164,7 @@ void handle_enemy_logic(pointer.Enemy enemy_ptr) {
 
 void hurt_player(pointer.Enemy enemy_ptr) {
     if box_collis_check(player1.pos.x,player1.pos.y,player1.pos.width,player1.pos.height,enemy_ptr->pos.x,enemy_ptr->pos.y,enemy_ptr->pos.width,enemy_ptr->pos.height) {
-        player_hit(1)
+        player_hit(1,enemy_ptr->pos.x)
     }
 }
 
