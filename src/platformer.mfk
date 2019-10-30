@@ -9,6 +9,33 @@ volatile bool new_frame
 
 volatile word previous_column
 
+const byte player_width = 16 //width in pixels
+const byte player_height = 16 //height in pixels
+
+Player player1
+
+void init_player1(byte x, byte y) {
+    //player1 //doesn't compile without this pointless expression statement, don't remove
+    player1.pos.x = x
+    player1.pos.y = y
+    player1.pos.width = player_width
+    player1.pos.height = player_height
+    player1.xfrac = 0
+    player1.yfrac = 0
+    player1.xvel = 0
+    player1.yvel = 0
+    player1.xaccel = 0
+    player1.yaccel = 0
+    player1.xspeed = 8
+    player1.on_ground = false
+    player1.jumping = false
+    player1.can_jump = true
+    player1.anim.anim_frame = 0
+    player1.anim.anim_num = byte(IDLE_ANIM)
+    player1.anim.frame_timer = 0
+    player1.mirroring = true
+}
+
 void init_spawner_flags() {
     byte i
     
@@ -47,14 +74,11 @@ inline void spawn_enemies() {
         //we don't want to spawn enemies to the left of it
         xloc = spawn_x_loc_left
     }
-    if next_column != previous_column {
+    if next_column != previous_column && current_enemy_count < max_enemies {
         index = binary_search_word(pointer.word(spawn_column_locations), num_spawn_locations, next_column)
-        if binary_search_success {
-            
-            if current_enemy_count < max_enemies && spawner_flags[index] == 0 {
-                spawn_enemy(spawn_info[index].hi,xloc,spawn_info[index].lo, index)
-                spawner_flags[index] = 1
-            }
+        if binary_search_success && spawner_flags[index] == 0 {
+            spawn_enemy(spawn_info[index].hi,xloc,spawn_info[index].lo, index)
+            spawner_flags[index] = 1
         }
         binary_search_success = false
     }
@@ -108,9 +132,10 @@ macro void playery_apply_gravity() {
     player1.jumping = false
 }
 
-inline void handle_player_dash() {
+inline void handle_player_dash_and_attack() {
     if input_b != 0 {
         player1.xspeed = 7
+        player_attack()
     }
     else {
         player1.xspeed = 5
@@ -170,7 +195,7 @@ inline void handle_player_y_input() {
 inline void handle_player_input() {
     read_joy1()
     
-    handle_player_dash()
+    handle_player_dash_and_attack()
     handle_player_x_input()
     handle_player_y_input()
 }
@@ -208,6 +233,33 @@ inline void apply_player_frict() {
         player1.xvel -= player_x_friction
         if player1.xvel < 0 {
             player1.xvel = 0
+        }
+    }
+}
+
+void player_attack() {
+    byte i
+    byte x
+    byte y
+    byte width
+    byte height
+    pointer.Enemy enemy_ptr
+    
+    width = 8
+    height = 8
+    y = player1.pos.y
+    if player1.mirroring {
+        x = player1.pos.x + player1.pos.width
+    }
+    else {
+        x = player1.pos.x - width
+    }
+    
+    for i,0,until,current_enemy_count {
+        enemy_ptr = pointer.Enemy(enemy_heap[current_enemies[i]].addr)
+        
+        if box_collis_check(x,y,width,height,enemy_ptr->pos.x,enemy_ptr->pos.y,enemy_ptr->pos.width,enemy_ptr->pos.height) {
+            hit_enemy(enemy_ptr)
         }
     }
 }

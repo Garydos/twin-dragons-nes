@@ -2,7 +2,7 @@
 
 //use the dpad to move the player around
 //use a to jump
-//use b to dash
+//use b to dash and attack
 
 import nes_joy
 import nes_lib
@@ -12,7 +12,6 @@ import scrolling
 import physics
 import sprite_manager
 import anims
-import players
 import enemies
 import music
 import levels

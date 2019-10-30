@@ -113,7 +113,7 @@ struct Enemy {
     byte on_slope,
     bool on_ground,
     byte id,
-    sbyte enemy_type,
+    byte enemy_type,
     Anim anim,
     bool mirroring
 }
