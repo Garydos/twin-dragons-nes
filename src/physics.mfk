@@ -25,17 +25,17 @@ inline void reset_collis_flags() {
 }
 
 bool is_collidable(byte tile) {
-    if tile != $24 {
+    if tile >= $C0 && tile < $FF {
         return true
     }
     return false
 }
 
 inline void slope_check(byte tile) {
-    if tile == $8A || tile == $89 {
+    if tile == $CA || tile == $C9 {
         on_slope = 2
     }
-    else if tile == $8C || tile == $8F {
+    else if tile == $CC || tile == $CF {
         on_slope = 1
     }
     else {
@@ -200,7 +200,7 @@ inline void check_slope_pos(pointer.Phys_Obj obj_ptr) {
     }
     current_tile = get_tile(column, row)
     
-    if not((current_tile == $8A) || (current_tile == $89)) {
+    if not((current_tile == $CA) || (current_tile == $C9)) {
         obj_ptr->on_slope = 0
         //fixes clipping issues when exiting slopes
         obj_ptr->pos.y -= 1
@@ -224,7 +224,7 @@ inline void check_slope_neg(pointer.Phys_Obj obj_ptr) {
     }
     current_tile = get_tile(column, row)
     
-    if not((current_tile == $8C) || (current_tile == $8F)) {
+    if not((current_tile == $CC) || (current_tile == $CF)) {
         obj_ptr->on_slope = 0
         //fixes clipping issues when exiting slopes
         obj_ptr->pos.y -= 1
