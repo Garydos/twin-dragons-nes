@@ -60,16 +60,7 @@ inline void game_logic() {
     //get the old sprites off the screen
     clear_stacks()
     handle_player_anim(pointer.Anim(player1.anim.addr), player1.pos.x,player1.pos.y, player1.mirroring)
-    handle_enemy_anims()        
-    //update the scroll variable
-    if scrolling_right{
-        update_scroll_right()
-        previous_scroll = 0
-    }
-    if scrolling_left {
-        update_scroll_left()
-        previous_scroll = 1
-    }
+    handle_enemy_anims()
 }
 
 inline void update_player_timers() {
@@ -112,11 +103,27 @@ inline void spawn_enemies() {
 inline void handle_scrolling() {
     //either scrolling right or have a column to finish drawing
     if scrolling_right || (previous_scroll == 0 && draw_counter > 0) {
+        
+        //update the scroll variable
+        if scrolling_right{
+            update_scroll_right()
+        }
+        
         right_metatile_scroll()
+        
+        previous_scroll = 0
     }
     //either scrolling left or have a column to finish drawing
     else if scrolling_left || (previous_scroll == 1 && draw_counter > 0) {
+        //left scroll logic
+        
+        if scrolling_left {
+            update_scroll_left()
+        }
+        
         left_metatile_scroll()
+    
+        previous_scroll = 1
     }
 }
 
