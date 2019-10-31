@@ -380,7 +380,7 @@ const array metatiles = [
 			//top-left	bot-left	top-right	bot-right
             $24,		$24,		$24,		$24, // 		$00, should always be
                                                      //        all background
-            $00,		$03,		$01,		$02, // 		$01, basic top ground tile
+            $00,		$02,		$01,		$03, // 		$01, basic top ground tile
             $04,		$06,		$05,		$07, //		$02, all ground tile
             $24,		$24,		$24,		$24, //		$03, floor flower tile
             $24,		$24,		$24,		$24, //		$04, floor grass tile
