@@ -102,8 +102,8 @@ void prepare_sprite0() {
     //move sprite0 to overlap with bottom edge
     //of the status bar in preparation for splitting
     //the screen
-    oam_buffer[0] = $16
+    oam_buffer[0] = $1E
     oam_buffer[1] = $FF
-    oam_buffer[2] = $00
-    oam_buffer[3] = $08
+    oam_buffer[2] = $03
+    oam_buffer[3] = $38
 }

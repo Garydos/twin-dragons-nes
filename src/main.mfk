@@ -53,12 +53,15 @@ void nmi() {
         //to set the scroll before the screen starts drawing
         handle_scrolling()
     }
+    
+    
+    
     //set scroll to 0 for now so that the status bar
     //stays still
     ppu_set_scroll(0,0)
     ppu_ctrl = %00010000 // no need to or the nametable for this one,
                          // as the status bar should always be at the first nametable
-    ppu_mask = %00011000
+    ppu_mask = %00011110
     
     //Transfer the sprites to the screen through DMA
     
