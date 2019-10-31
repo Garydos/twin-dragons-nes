@@ -37,7 +37,7 @@ void main() {
     ppu_ctrl = %10010000   // enable NMI, sprites from Pattern Table 0, background from Pattern Table 1
     ppu_mask = %00011000   // enable sprites, enable background, no clipping on left side
 
-    new_frame = true
+    new_frame = false
     while(true) {
         while new_frame == true {
             //wait for the new frame to be drawn
