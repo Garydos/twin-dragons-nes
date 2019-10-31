@@ -99,7 +99,9 @@ void clear_status_bar() {
     }
     //health
     ppu_set_addr(ppu_attrtable0+1)
-    ppu_write_data(%01010101)
+    ppu_write_data(%10101010)
+    ppu_set_addr(ppu_attrtable1+1)
+    ppu_write_data(%10101010)
 }
 
 void load_palletes(byte pallete_num) {
@@ -114,6 +116,6 @@ void load_palletes(byte pallete_num) {
 }
 
 const array pallete0 = [
-  $21,$17,$18,$29,$21,$38,$18,$2A,$21,$39,$3A,$3B,$21,$29,$0F,$36, //nametable palettes
+  $21,$17,$18,$29,$21,$38,$18,$2A,$21,$15,$05,$27,$21,$29,$0F,$36, //nametable palettes
   $21,$09,$29,$36,$21,$06,$26,$30,$21,$01,$2C,$3C,$21,$02,$0F,$18  //sprite palettes, first byte is the background color
 ]
