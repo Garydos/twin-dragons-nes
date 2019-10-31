@@ -19,4 +19,4 @@ const array(word) level0_spawn_column_locations = [$0030, $0040]
 const array(word) level0_spawn_info = [$00B0, $00B0]
 const byte level0_num_spawn_locations = 2
 const array level0_metatiles = file("data/test.meta")
-const array level0_attrs = file("data/level0attrs.bin")
+const array level0_attrs = file("data/test.attrs")
