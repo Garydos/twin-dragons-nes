@@ -32,10 +32,10 @@ bool is_collidable(byte tile) {
 }
 
 inline void slope_check(byte tile) {
-    if tile == $0A || tile == $09 {
+    if tile == $8A || tile == $89 {
         on_slope = 2
     }
-    else if tile == $0C || tile == $0f {
+    else if tile == $8C || tile == $8F {
         on_slope = 1
     }
     else {
@@ -200,7 +200,7 @@ inline void check_slope_pos(pointer.Phys_Obj obj_ptr) {
     }
     current_tile = get_tile(column, row)
     
-    if not((current_tile == $0A) || (current_tile == $09)) {
+    if not((current_tile == $8A) || (current_tile == $89)) {
         obj_ptr->on_slope = 0
         //fixes clipping issues when exiting slopes
         obj_ptr->pos.y -= 1
@@ -224,7 +224,7 @@ inline void check_slope_neg(pointer.Phys_Obj obj_ptr) {
     }
     current_tile = get_tile(column, row)
     
-    if not((current_tile == $0C) || (current_tile == $0F)) {
+    if not((current_tile == $8C) || (current_tile == $8F)) {
         obj_ptr->on_slope = 0
         //fixes clipping issues when exiting slopes
         obj_ptr->pos.y -= 1

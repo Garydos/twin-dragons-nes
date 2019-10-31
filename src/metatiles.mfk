@@ -375,17 +375,29 @@ inline byte get_tile(byte column, byte row) {
 }
 
 //define each metatile
+//corresponds to metatiles in metatiles.png
 const array metatiles = [
 			//Tile positions:
 			//top-left	bot-left	top-right	bot-right
-            $24,		$24,		$24,		$24, // 		$00, should always be
-                                                     //        all background
-            $00,		$02,		$01,		$03, // 		$01, basic top ground tile
-            $04,		$06,		$05,		$07, //		$02, all ground tile
-            $24,		$24,		$24,		$24, //		$03, floor flower tile
-            $24,		$24,		$24,		$24, //		$04, floor grass tile
-            $24,		$24,		$24,		$24, //		$05, bushes tile A
-            $24,		$24,		$24,		$24, //		$06, single-tile platform
-            $24,        $0A,        $09,        $0B, //     $07, positive slope
-            $0C,        $0E,        $24,        $0F  //     $08, negative slope
+            $24,		$24,		$24,		$24,
+            $00,        $02,        $01,        $03,
+            $04,        $06,        $05,        $07,
+            $08,        $0A,        $09,        $0B,
+            $0C,        $0E,        $0D,        $0F,
+            $10,        $12,        $11,        $13,
+            $14,        $16,        $15,        $17,
+            $18,        $1A,        $19,        $1B,
+            $1C,        $1E,        $1D,        $1F,
+            $80,        $82,        $81,        $83,
+            $84,        $86,        $85,        $87,
+            $24,        $8A,        $89,        $8B,
+            $8C,        $8E,        $24,        $8F,
+            $90,        $92,        $91,        $93,
+            $94,        $96,        $95,        $97,
+            $98,        $9A,        $99,        $9B,
+            $9C,        $9E,        $9D,        $9F,
+            $A0,        $A2,        $A1,        $A3,
+            $24,        $A6,        $24,        $A7,
+            $24,        $24,        $24,        $AB
+            
 ]
