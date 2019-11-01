@@ -27,7 +27,7 @@ void init_player1(byte x, byte y) {
     player1.yvel = 0
     player1.xaccel = 0
     player1.yaccel = 0
-    player1.xspeed = 7
+    player1.xspeed = 6
     player1.on_ground = false
     player1.jumping = false
     player1.can_jump = true

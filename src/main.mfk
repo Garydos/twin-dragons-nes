@@ -2,7 +2,7 @@
 
 //use the dpad to move the player around
 //use a to jump
-//use b to dash and attack
+//use b to attack
 
 import nes_joy
 import nes_lib
