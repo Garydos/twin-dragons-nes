@@ -3,20 +3,20 @@ inline void load_level0() {
     // FamiToneInit($01, nesthing_ost.addr)
     // FamiToneMusicPlay($00)
     
-    memcpy(spawn_column_locations, level0_spawn_column_locations, level0_num_spawn_locations * 2)
-    memcpy(spawn_info, level0_spawn_info, level0_num_spawn_locations * 2)
-    num_spawn_locations = level0_num_spawn_locations
+    memcpy(spawn_column_locations, level0_spawn_column_locations, level0_num_spawn_locations[0] * 2)
+    memcpy(spawn_info, level0_spawn_info, level0_num_spawn_locations[0] * 2)
+    num_spawn_locations = level0_num_spawn_locations[0]
     current_level_tiles = level0_metatiles
     current_level_attrs = level0_attrs
-    max_screen = level0_max_screen
+    max_screen = level0_max_screen[0]
     load_screen(0)
     
     init_player1($78, $60)
 }
 
-const byte level0_max_screen = 3
-const array(word) level0_spawn_column_locations = [$0030, $0040]
-const array(word) level0_spawn_info = [$00B0, $00B0]
-const byte level0_num_spawn_locations = 2
+const array level0_max_screen = file("data/test.max_screen")
+const array(word) level0_spawn_column_locations = file("data/test.enemies")
+const array(word) level0_spawn_info = file("data/test.enemies_info")
+const array level0_num_spawn_locations = file("data/test.enemy_spawn_num")
 const array level0_metatiles = file("data/test.meta")
 const array level0_attrs = file("data/test.attrs")
