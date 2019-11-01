@@ -66,7 +66,34 @@ void draw_status_bar() {
     ppu_set_addr(ppu_nametable0+$65)
     ppu_write_data($65)
     ppu_write_data($65)
-    ppu_write_data($64)
+    ppu_write_data($65)
+}
+
+void draw_health_p1() {
+    ppu_ctrl = %00000000
+    read_ppu_status()
+    ppu_set_addr(ppu_nametable0+$65)
+    
+    if player1.health > 0 {
+        ppu_write_data($65)
+    }
+    else {
+        ppu_write_data($64)
+    }
+    
+    if player1.health > 1 {
+        ppu_write_data($65)
+    }
+    else {
+        ppu_write_data($64)
+    }
+    
+    if player1.health > 2 {
+        ppu_write_data($65)
+    }
+    else {
+        ppu_write_data($64)
+    }
 }
 
 void clear_status_bar() {

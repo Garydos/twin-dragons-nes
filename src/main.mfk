@@ -54,7 +54,7 @@ void nmi() {
         handle_scrolling()
     }
     
-    
+    draw_health_p1()
     
     //set scroll to 0 for now so that the status bar
     //stays still
