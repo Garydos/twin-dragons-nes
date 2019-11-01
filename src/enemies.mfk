@@ -289,6 +289,7 @@ void snap_enemy_limits() {
 }
 
 inline void hit_boomba(pointer.Enemy enemy_ptr) {
+    //set the death flag bit in enemy_type
     enemy_ptr->enemy_type |= %10000000
     enemy_aux_heap[enemy_ptr->id].aux0 = 0
 }

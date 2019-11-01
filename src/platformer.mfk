@@ -39,6 +39,7 @@ void init_player1(byte x, byte y) {
     player1.health = 3
     player1.invincible = false
     player1.invincibility_timer = 0
+    player1.attack_timer = 0
 }
 
 void init_spawner_flags() {
@@ -161,10 +162,19 @@ macro void playery_apply_gravity() {
 inline void handle_player_dash_and_attack() {
     if input_b != 0 {
         player1.xspeed = 7
-        player_attack()
-        switch_anim(pointer.Anim(player1.anim.addr), 2, true)
+        if player1.attack_timer < $20 {
+            player_attack()
+            switch_anim(pointer.Anim(player1.anim.addr), 2, true)
+        }
+        player1.attack_timer += 1
+        if player1.attack_timer > $20 {
+            player1.attack_timer = $20
+        }
     }
     else {
+        if player1.attack_timer > 0 {
+            player1.attack_timer = 0
+        }
         player1.xspeed = 5
     }
 }
