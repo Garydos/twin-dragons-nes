@@ -5,12 +5,12 @@ enum Player1_Anims {
 }
 
 //Switch the animation if necessary
-void switch_player1_anim(Player1_Anims anim, bool force) {
-    if force || (anim != player1.anim.anim_num) {
-        player1.anim.anim_frame = 0
-        player1.anim.frame_timer = 0
+void switch_anim(pointer.Anim anim, byte anim_num, bool force) {
+    if force || (anim_num != anim->anim_num) {
+        anim->anim_frame = 0
+        anim->frame_timer = 0
     }
-    player1.anim.anim_num = byte(anim)
+    anim->anim_num = anim_num
 }
 
 //Update the current animation

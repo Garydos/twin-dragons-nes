@@ -171,7 +171,7 @@ inline void handle_player_dash_and_attack() {
 inline void handle_player_x_input() {
     if input_dx > 0 {
         player1.mirroring = true
-        switch_player1_anim(WALK_ANIM, false)
+        switch_anim(pointer.Anim(player1.anim.addr),1, false)
         if player1.pos.x < right_screen_limit {
             playerx_apply_accel()
             player1.xvel += (player1.xaccel >> 2)
@@ -179,7 +179,7 @@ inline void handle_player_x_input() {
     }
     else if input_dx < 0 {
         player1.mirroring = false
-        switch_player1_anim(WALK_ANIM, false)
+        switch_anim(pointer.Anim(player1.anim.addr),1, false)
         if player1.pos.x > left_screen_limit {
             playerx_apply_accel()
             player1.xvel -= (player1.xaccel >> 2)
@@ -189,7 +189,7 @@ inline void handle_player_x_input() {
         scrolling_left = false
         scrolling_right = false
         player1.xaccel = 0
-        switch_player1_anim(IDLE_ANIM, true)
+        switch_anim(pointer.Anim(player1.anim.addr),0, true)
     }
 }
 
@@ -384,21 +384,21 @@ inline void snap_player_pos_limits() {
 
 void player_hit(byte amount, byte xcoord) {
     if not(player1.invincible) {
-        player1.health -= amount
-        if player1.health < 0 {
-            player1.health = 0
-        }
         if player1.health != 0 {
             player1.invincible = true
             player1.invincibility_timer = 0
             player1.controllable = false
+            if xcoord < player1.pos.x {
+                player1.xaccel = 8
+            }
+            else {
+                player1.xaccel = -8
+            }
+            player1.yvel = -20
         }
-        if xcoord < player1.pos.x {
-            player1.xaccel = 8
+        player1.health -= amount
+        if player1.health < 0 {
+            player1.health = 0
         }
-        else {
-            player1.xaccel = -8
-        }
-        player1.yvel = -20
     }
 }
