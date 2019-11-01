@@ -27,7 +27,7 @@ void init_player1(byte x, byte y) {
     player1.yvel = 0
     player1.xaccel = 0
     player1.yaccel = 0
-    player1.xspeed = 8
+    player1.xspeed = 7
     player1.on_ground = false
     player1.jumping = false
     player1.can_jump = true
@@ -161,21 +161,21 @@ macro void playery_apply_gravity() {
 
 inline void handle_player_dash_and_attack() {
     if input_b != 0 {
-        player1.xspeed = 7
-        if player1.attack_timer < $20 {
+        // player1.xspeed = 7
+        if player1.attack_timer < $18 {
             player_attack()
             switch_anim(pointer.Anim(player1.anim.addr), 2, true)
         }
         player1.attack_timer += 1
-        if player1.attack_timer > $20 {
-            player1.attack_timer = $20
+        if player1.attack_timer > $18 {
+            player1.attack_timer = $18
         }
     }
     else {
         if player1.attack_timer > 0 {
             player1.attack_timer = 0
         }
-        player1.xspeed = 5
+        // player1.xspeed = 5
     }
 }
 
