@@ -99,7 +99,7 @@ struct Player {
     bool can_jump,
     Anim anim,
     bool mirroring,  //is the frame mirrored or not?
-    byte health,
+    sbyte health,
     bool invincible,
     byte invincibility_timer,
     bool controllable

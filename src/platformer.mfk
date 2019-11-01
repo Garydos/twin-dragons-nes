@@ -3,6 +3,8 @@ const byte left_screen_limit = $08
 const byte up_screen_limit = $20
 const byte down_screen_limit = $D0
 volatile byte scroll_speed
+volatile bool reset_level
+volatile byte current_level
 
 //flag that indicates if the new frame is ready
 volatile bool new_frame
@@ -47,9 +49,19 @@ void init_spawner_flags() {
     }
 }
 
-inline void game_logic() {
+void game_logic() {
     //game logic goes here
+    reset_level = false
     spawn_enemies()
+    if player1.health == 0 {
+        player1.invincible = false_macro()
+        player1.controllable = false_macro()
+        player1.invincibility_timer += 1
+        if player1.invincibility_timer >= $A0 {
+            reset_level = true
+            return
+        }
+    }
     handle_player_input()
     cap_player_vel()
     check_player_collis_and_update_loc(pointer.Player(player1.addr))
@@ -64,7 +76,7 @@ inline void game_logic() {
 }
 
 inline void update_player_timers() {
-    if player1.invincible {
+    if player1.invincible && player1.health > 0 {
         player1.invincibility_timer += 1
         if player1.invincibility_timer >= $40 {
             player1.invincibility_timer = 0
@@ -206,9 +218,9 @@ inline void handle_player_y_input() {
     }
 }
 
-inline void handle_player_input() {
+void handle_player_input() {
     read_joy1()
-    
+
     if player1.controllable {
         handle_player_dash_and_attack()
         handle_player_x_input()
@@ -373,9 +385,14 @@ inline void snap_player_pos_limits() {
 void player_hit(byte amount, byte xcoord) {
     if not(player1.invincible) {
         player1.health -= amount
-        player1.invincible = true
-        player1.invincibility_timer = 0
-        player1.controllable = false
+        if player1.health < 0 {
+            player1.health = 0
+        }
+        if player1.health != 0 {
+            player1.invincible = true
+            player1.invincibility_timer = 0
+            player1.controllable = false
+        }
         if xcoord < player1.pos.x {
             player1.xaccel = 8
         }
