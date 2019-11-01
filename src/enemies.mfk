@@ -129,7 +129,7 @@ void handle_enemy_anims() {
     for i,0,until,current_enemy_count {
         enemy_ptr = pointer.Enemy(enemy_heap[current_enemies[i]].addr)
         
-        if enemy_ptr->enemy_type == 0 {
+        if enemy_ptr->enemy_type == 0 || enemy_ptr->enemy_type == 128{
             handle_boomba_anims(enemy_ptr)
         }
     }
@@ -140,7 +140,7 @@ inline void handle_boomba_anims(pointer.Enemy enemy_ptr) {
 }
 
 void handle_enemy_phys(pointer.Enemy enemy_ptr) {
-    if enemy_ptr->enemy_type == 0 {
+    if enemy_ptr->enemy_type == 0 || enemy_ptr->enemy_type == 128{
         handle_boomba_phys(enemy_ptr)
     }
 }
@@ -169,8 +169,14 @@ void hurt_player(pointer.Enemy enemy_ptr) {
 }
 
 inline void handle_boomba_death_logic(pointer.Enemy enemy_ptr) {
-    //for now just dissapear
-    add_to_enemy_remove_queue(enemy_ptr->id)
+    enemy_ptr->xvel = 0
+    switch_anim(pointer.Anim(enemy_ptr->anim.addr), 6, true)
+    //aux2 = death timer
+    enemy_aux_heap[enemy_ptr->id].aux0 += 1
+    if enemy_aux_heap[enemy_ptr->id].aux0 >= $20 {
+        add_to_enemy_remove_queue(enemy_ptr->id)
+    }
+    phys_obj_apply_gravity(pointer.Phys_Obj(enemy_ptr))
 }
 
 inline void handle_boomba_logic(pointer.Enemy enemy_ptr) {
@@ -249,7 +255,9 @@ void update_enemies() {
         
         handle_enemy_logic(enemy_ptr)
         handle_enemy_phys(enemy_ptr)
-        hurt_player(enemy_ptr)
+        if enemy_ptr->enemy_type & %10000000 == 0 {
+            hurt_player(enemy_ptr)
+        }
     }
     
     clear_enemy_remove_queue()
@@ -282,6 +290,7 @@ void snap_enemy_limits() {
 
 inline void hit_boomba(pointer.Enemy enemy_ptr) {
     enemy_ptr->enemy_type |= %10000000
+    enemy_aux_heap[enemy_ptr->id].aux0 = 0
 }
 
 void hit_enemy(pointer.Enemy enemy_ptr) {
