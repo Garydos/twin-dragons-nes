@@ -32,7 +32,7 @@ void init_player1(byte x, byte y) {
     player1.jumping = false
     player1.can_jump = true
     player1.anim.anim_frame = 0
-    player1.anim.anim_num = byte(IDLE_ANIM)
+    player1.anim.anim_num = 0
     player1.anim.frame_timer = 0
     player1.mirroring = true
     player1.controllable = true
@@ -162,6 +162,7 @@ inline void handle_player_dash_and_attack() {
     if input_b != 0 {
         player1.xspeed = 7
         player_attack()
+        switch_anim(pointer.Anim(player1.anim.addr), 2, true)
     }
     else {
         player1.xspeed = 5
@@ -222,9 +223,9 @@ void handle_player_input() {
     read_joy1()
 
     if player1.controllable {
-        handle_player_dash_and_attack()
         handle_player_x_input()
         handle_player_y_input()
+        handle_player_dash_and_attack()
     }
     else {
         if player1.on_ground && player1.yvel == 0{
@@ -400,5 +401,6 @@ void player_hit(byte amount, byte xcoord) {
         if player1.health < 0 {
             player1.health = 0
         }
+        switch_anim(pointer.Anim(player1.anim.addr), 3, true)
     }
 }

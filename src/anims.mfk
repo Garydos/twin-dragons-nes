@@ -1,9 +1,3 @@
-//List of all available animations
-enum Player1_Anims {
-    IDLE_ANIM,
-    WALK_ANIM
-}
-
 //Switch the animation if necessary
 void switch_anim(pointer.Anim anim, byte anim_num, bool force) {
     if force || (anim_num != anim->anim_num) {
@@ -17,11 +11,26 @@ void switch_anim(pointer.Anim anim, byte anim_num, bool force) {
 void handle_player_anim(pointer.Anim player_anim, byte x, byte y, bool mirroring) {
     pointer anim_ptr
     
-    if player_anim->anim_num == IDLE_ANIM {
+    if player_anim->anim_num == 0 {
         anim_ptr = player_idle_anim.addr
     }
-    else if player_anim->anim_num == WALK_ANIM {
+    else if player_anim->anim_num == 1 {
         anim_ptr = player_walk_anim.addr
+    }
+    else if player_anim->anim_num == 2 {
+        anim_ptr = player_breath_anim.addr
+    }
+    else if player_anim->anim_num == 3 {
+        anim_ptr = player_hurt_anim.addr
+    }
+    else if player_anim->anim_num == 4 {
+        anim_ptr = boomba_idle_anim.addr
+    }
+    else if player_anim->anim_num == 5 {
+        anim_ptr = boomba_ready_anim.addr
+    }
+    else if player_anim->anim_num == 6 {
+        anim_ptr = boomba_death_anim.addr
     }
     
     handle_anim(anim_ptr, player_anim, x, y, mirroring)
@@ -62,7 +71,7 @@ inline void handle_anim(pointer anim_ptr, pointer.Anim anim, byte x, byte y, boo
 //Draw the current frame of the current animation
 inline void draw_player_frame(byte frame_num, byte x, byte y, bool mirroring) {
     if frame_num == 0 {
-        sprite_draw_frame(player_idle_frame0.addr, x,y, mirroring)
+        sprite_draw_frame(player_idle_frame.addr, x,y, mirroring)
     }
     else if frame_num == 1 {
         sprite_draw_frame(player_walk_frame0.addr, x,y,mirroring)
@@ -75,6 +84,21 @@ inline void draw_player_frame(byte frame_num, byte x, byte y, bool mirroring) {
     }
     else if frame_num == 4 {
         sprite_draw_frame(player_walk_frame3.addr, x,y,mirroring)
+    }
+    else if frame_num == 5 {
+        sprite_draw_frame(player_breath_frame.addr, x,y,mirroring)
+    }
+    else if frame_num == 6 {
+        sprite_draw_frame(player_hurt_frame.addr, x,y,mirroring)
+    }
+    else if frame_num == 7 {
+        sprite_draw_frame(boomba_idle_frame.addr, x,y,mirroring)
+    }
+    else if frame_num == 8 {
+        sprite_draw_frame(boomba_ready_frame.addr, x,y,mirroring)
+    }
+    else if frame_num == 9 {
+        sprite_draw_frame(boomba_death_frame.addr, x,y,mirroring)
     }
 }
 
@@ -131,10 +155,20 @@ void sprite_draw_frame(pointer frame_info, byte x, byte y, bool mirroring) {
 //Animation Info
 const array player_idle_anim = [0,0, 0,0]
 const array player_walk_anim = [1,3, 1,8, 2,8, 3,8, 4,8]
+const array player_breath_anim = [0,0, 5,0]
+const array player_hurt_anim = [0,0, 6,0]
+const array boomba_idle_anim = [0,0, 7,0]
+const array boomba_ready_anim = [0,0, 8,0]
+const array boomba_death_anim = [0,0, 9,0]
 
 //Frame Info
-const array player_idle_frame0 = [1,8,5, 0,0,0,-4,  0,1,0,4,  8,2,0,0,  8,3,0,8,  -3,$10,0,4]
+const array player_idle_frame = [1,8,5, 0,0,0,-4,  0,1,0,4,  8,2,0,0,  8,3,0,8,  -3,$10,0,4]
 const array player_walk_frame0 = [1,8,5, 0,4,0,-3,  0,5,0,5,  8,6,0,0,  8,7,0,8,  -3,$11,0,4]
 const array player_walk_frame1 = [1,8,5, 0,4,0,-3,  0,5,0,5,  8,$0E,0,0,  8,$0F,0,8,  -3,$11,0,4]
 const array player_walk_frame2 = [1,8,5, 0,4,0,-3,  0,5,0,5,  8,$0C,0,0,  8,$0D,0,8,  -3,$11,0,4]
 const array player_walk_frame3 = [1,8,5, 0,4,0,-3,  0,5,0,5,  8,8,0,0,  8,9,0,8,  -3,$11,0,4]
+const array player_breath_frame = [1,8,6, 0,$0A,0,-3,  0,$0B,0,5,  8,8,0,0,  8,9,0,8,  -3,$11,0,4, 2,$14,0,-8]
+const array player_hurt_frame = [1,8,5, 0,$2E,0,-3,  0,$2F,0,5,  8,$0E,0,0,  8,$0F,0,8,  -3,$11,0,4]
+const array boomba_idle_frame = [1,8,4, 0,$24,0,0,  0,$25,0,8,  8,$26,0,0,  8,$27,0,8]
+const array boomba_ready_frame = [1,8,4, 0,$20,0,0,  0,$21,0,8,  8,$22,0,0,  8,$23,0,8]
+const array boomba_death_frame = [1,8,2, 0,$2C,0,0,  0,$2D,0,8]

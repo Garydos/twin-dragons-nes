@@ -84,8 +84,8 @@ void spawn_enemy(byte type, byte x, byte y, byte spawner_index) {
 
 inline void init_boomba(byte heap_spot) {
     enemy_heap[heap_spot].pos.width = 16
-    enemy_heap[heap_spot].pos.height = 16
-    enemy_heap[heap_spot].anim.anim_num = 1
+    enemy_heap[heap_spot].pos.height = 12
+    enemy_heap[heap_spot].anim.anim_num = 4
     enemy_heap[heap_spot].anim.anim_frame = 0
     enemy_heap[heap_spot].anim.frame_timer = 0
     enemy_heap[heap_spot].mirroring = false
@@ -217,10 +217,14 @@ inline void handle_boomba_logic(pointer.Enemy enemy_ptr) {
         enemy_ptr->on_slope = 0
         enemy_ptr->on_ground = false_macro()
         enemy_ptr->yvel = -1
+        switch_anim(pointer.Anim(enemy_ptr->anim.addr), 4, true)
     }
     
     if jump_timer < $40 {
         jump_timer += 1
+        if jump_timer > $30 {
+            switch_anim(pointer.Anim(enemy_ptr->anim.addr), 5, true)
+        }
     }
     
     enemy_aux_heap[enemy_ptr->id].aux0 = jump_timer
