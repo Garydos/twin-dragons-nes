@@ -7,8 +7,14 @@ void switch_anim(pointer.Anim anim, byte anim_num, bool force) {
     anim->anim_num = anim_num
 }
 
+void handle_player_anim(pointer.Player player) {
+    if not(player->invincible) || (player->invincibility_timer %% 2 == 0) {
+        handle_current_anim(pointer.Anim(player->anim.addr), player->pos.x,player->pos.y, player->mirroring)
+    }
+}
+
 //Update the current animation
-void handle_player_anim(pointer.Anim player_anim, byte x, byte y, bool mirroring) {
+void handle_current_anim(pointer.Anim player_anim, byte x, byte y, bool mirroring) {
     pointer anim_ptr
     
     if player_anim->anim_num == 0 {

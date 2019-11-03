@@ -136,7 +136,7 @@ void handle_enemy_anims() {
 }
 
 inline void handle_boomba_anims(pointer.Enemy enemy_ptr) {
-    handle_player_anim(pointer.Anim(enemy_ptr->anim.addr), enemy_ptr->pos.x, enemy_ptr->pos.y, enemy_ptr->mirroring)
+    handle_current_anim(pointer.Anim(enemy_ptr->anim.addr), enemy_ptr->pos.x, enemy_ptr->pos.y, enemy_ptr->mirroring)
 }
 
 void handle_enemy_phys(pointer.Enemy enemy_ptr) {

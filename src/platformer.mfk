@@ -72,7 +72,7 @@ void game_logic() {
     prepare_scrolling()
     //get the old sprites off the screen
     clear_stacks()
-    handle_player_anim(pointer.Anim(player1.anim.addr), player1.pos.x,player1.pos.y, player1.mirroring)
+    handle_player_anim(pointer.Player(player1.addr))
     handle_enemy_anims()
 }
 
