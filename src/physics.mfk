@@ -250,7 +250,7 @@ inline void check_still_on_slope(pointer.Phys_Obj obj_ptr) {
     }
 }
 
-inline void check_player_collis_and_update_loc(pointer.Player player_ptr) {
+void check_player_collis_and_update_loc(pointer.Player player_ptr) {
     on_slope = 0
     check_still_on_slope(pointer.Phys_Obj(player_ptr))
     
@@ -285,18 +285,30 @@ inline void check_player_collis_and_update_loc(pointer.Player player_ptr) {
     }
     collis_flag = false
 
-    //do horizontal collision checking
-    obj_collis_horiz(pointer.Phys_Obj(player_ptr))
-    
-    player_ptr->on_slope = on_slope
+    if player1.pos.y >= $ef {
+        if player1.health > 0 {
+            player1.health = 0
+            player1.invincibility_timer = 0
+            player1.xvel = 0
+            player1.yvel = 0
+        }
+        player1.on_ground = true
+        return
+    }
     if hit_spike != 0 {
         player_hit(3, player_ptr->pos.x + 1)
     }
     
+
+    //do horizontal collision checking
+    obj_collis_horiz(pointer.Phys_Obj(player_ptr))
+    
+    player_ptr->on_slope = on_slope
+    
     reset_collis_flags()
 }
 
-inline void check_obj_collis_and_update_loc(pointer.Phys_Obj obj_ptr) {
+void check_obj_collis_and_update_loc(pointer.Phys_Obj obj_ptr) {
     on_slope = 0
     check_still_on_slope(obj_ptr)
     
