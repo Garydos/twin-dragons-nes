@@ -384,8 +384,12 @@ inline void snap_player_pos_limits() {
     if player1.pos.x < left_screen_limit {
         player1.pos.x = left_screen_limit
     }
-    if player1.pos.y > down_screen_limit {
-        player1.pos.y = down_screen_limit
+    if player1.pos.y >= $ef {
+        player1.pos.y = $ef
+        if player1.health != 0 {
+            player1.health = 0
+            player1.invincibility_timer = 0
+        }
         player1.on_ground = true
     }
     if player1.pos.y < up_screen_limit {

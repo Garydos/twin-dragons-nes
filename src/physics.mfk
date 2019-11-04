@@ -7,6 +7,8 @@ bool left_collis_flag
 
 //slope flag
 byte on_slope
+//spike flag
+byte hit_spike
 
 const byte player_max_xvel = 10
 const byte player_max_xvel_neg = -10
@@ -22,10 +24,15 @@ inline void reset_collis_flags() {
     down_collis_flag = false
     left_collis_flag = false
     right_collis_flag = false
+    hit_spike = 0
 }
 
 bool is_collidable(byte tile) {
     if tile >= $C0 && tile < $FF {
+        if tile == $F0 || tile == $F1 || tile == $F2 || tile == $F3 || 
+            tile == $D4 || tile == $D5 || tile == $D6 || tile == $D7 {
+            hit_spike = 1
+        }
         return true
     }
     return false
@@ -282,6 +289,10 @@ inline void check_player_collis_and_update_loc(pointer.Player player_ptr) {
     obj_collis_horiz(pointer.Phys_Obj(player_ptr))
     
     player_ptr->on_slope = on_slope
+    if hit_spike != 0 {
+        player_hit(3, player_ptr->pos.x + 1)
+    }
+    
     reset_collis_flags()
 }
 
