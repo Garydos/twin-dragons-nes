@@ -285,14 +285,14 @@ void check_player_collis_and_update_loc(pointer.Player player_ptr) {
     }
     collis_flag = false
 
-    if player1.pos.y >= $ef {
-        if player1.health > 0 {
-            player1.health = 0
-            player1.invincibility_timer = 0
-            player1.xvel = 0
-            player1.yvel = 0
+    if player_ptr->pos.y >= $ef {
+        if player_ptr->health > 0 {
+            player_ptr->health = 0
+            player_ptr->invincibility_timer = 0
+            player_ptr->xvel = 0
+            player_ptr->yvel = 0
         }
-        player1.on_ground = true
+        player_ptr->on_ground = true
         return
     }
     if hit_spike != 0 {
