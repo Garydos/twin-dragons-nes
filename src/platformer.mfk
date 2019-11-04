@@ -386,9 +386,11 @@ inline void snap_player_pos_limits() {
     }
     if player1.pos.y >= $ef {
         player1.pos.y = $ef
-        if player1.health != 0 {
+        if player1.health > 0 {
             player1.health = 0
             player1.invincibility_timer = 0
+            player1.xvel = 0
+            player1.yvel = 0
         }
         player1.on_ground = true
     }
