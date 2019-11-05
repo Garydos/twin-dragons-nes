@@ -40,7 +40,7 @@ void main() {
     ppu_set_scroll(0,0)
     ppu_wait_vblank()
     ppu_ctrl = %10010000   // enable NMI, sprites from Pattern Table 0, background from Pattern Table 1
-    ppu_mask = %00011000   // enable sprites, enable background, no clipping on left side
+    ppu_mask = %00011110   // enable sprites, enable background, no clipping on left side
 
     new_frame = false
     while(true) {
@@ -50,13 +50,13 @@ void main() {
         game_logic()
         if reset_level {
             ppu_ctrl = %00000000   // enable NMI, sprites from Pattern Table 0, background from Pattern Table 1
-            ppu_mask = %00000000   // enable sprites, enable background, no clipping on left side
+            ppu_mask = %00000110   // enable sprites, enable background, no clipping on left side
             init_game()
             load_level(current_level)
             ppu_set_scroll(0,0)
             ppu_wait_vblank()
             ppu_ctrl = %10010000   // enable NMI, sprites from Pattern Table 0, background from Pattern Table 1
-            ppu_mask = %00011000   // enable sprites, enable background, no clipping on left side
+            ppu_mask = %00011110   // enable sprites, enable background, no clipping on left side
 
         }
         new_frame = true
@@ -110,7 +110,7 @@ void nmi() {
     //the screen with the correct scroll values
     ppu_set_scroll(xscroll,0)
     ppu_ctrl = %10010000 | nametable
-    ppu_mask = %00011000
+    ppu_mask = %00011110
     
     if new_frame {
         new_frame = false
