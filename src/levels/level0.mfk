@@ -15,8 +15,8 @@ inline void load_level0() {
 }
 
 const array level0_max_screen = file("data/test.max_screen")
-const array(word) level0_spawn_column_locations = file("data/test.enemies")
-const array(word) level0_spawn_info = file("data/test.enemies_info")
+const array level0_spawn_column_locations = file("data/test.enemies")
+const array level0_spawn_info = file("data/test.enemies_info")
 const array level0_num_spawn_locations = file("data/test.enemy_spawn_num")
 const array level0_metatiles = file("data/test.meta")
 const array level0_attrs = file("data/test.attrs")
