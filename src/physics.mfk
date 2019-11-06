@@ -9,6 +9,8 @@ bool left_collis_flag
 byte on_slope
 //spike flag
 byte hit_spike
+//goal flag
+byte touched_goal
 
 const byte player_max_xvel = 10
 const byte player_max_xvel_neg = -10

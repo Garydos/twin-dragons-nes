@@ -47,6 +47,12 @@ void main() {
         while new_frame == true {
             //wait for the new frame to be drawn
         }
+        if touched_goal != 0 {
+            
+        }
+        else {
+            touched_goal = 0
+        }
         game_logic()
         if reset_level {
             ppu_ctrl = %00000000   // enable NMI, sprites from Pattern Table 0, background from Pattern Table 1
