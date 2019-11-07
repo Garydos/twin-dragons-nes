@@ -23,9 +23,13 @@ void init_enemy_heap() {
     enemy_remove_count = 0
 }
 
-void add_to_enemy_remove_queue(byte id) {
+void add_to_enemy_remove_queue(byte id, byte spawner_flag) {
+    //Pass a spawner_flag value of $FF to not respawn this enemy
     enemy_remove_queue[enemy_remove_count] = id
     enemy_remove_count += 1
+    if spawner_flag != $FF {
+        spawner_flags[spawner_flag] = 0
+    }
 }
 
 void clear_enemy_remove_queue() {
@@ -174,7 +178,7 @@ inline void handle_boomba_death_logic(pointer.Enemy enemy_ptr) {
     //aux2 = death timer
     enemy_aux_heap[enemy_ptr->id].aux0 += 1
     if enemy_aux_heap[enemy_ptr->id].aux0 >= $20 {
-        add_to_enemy_remove_queue(enemy_ptr->id)
+        add_to_enemy_remove_queue(enemy_ptr->id, enemy_aux_heap[enemy_ptr->id].spawner)
     }
     phys_obj_apply_gravity(pointer.Phys_Obj(enemy_ptr))
 }
@@ -270,20 +274,18 @@ void snap_enemy_limits() {
     for i,0,until,current_enemy_count {
         enemy_ptr = pointer.Enemy(enemy_heap[current_enemies[i]].addr)
         
-        //snap the enemy back to the playable area of the screen
-        //TODO: change this so that they despawn instead
         if enemy_ptr->pos.x > right_screen_limit {
-            enemy_ptr->pos.x = right_screen_limit
+            add_to_enemy_remove_queue(enemy_ptr->id, enemy_aux_heap[enemy_ptr->id].spawner)
         }
-        if enemy_ptr->pos.x < left_screen_limit {
-            enemy_ptr->pos.x = left_screen_limit
+        else if enemy_ptr->pos.x < left_screen_limit {
+            add_to_enemy_remove_queue(enemy_ptr->id, enemy_aux_heap[enemy_ptr->id].spawner)
         }
-        if enemy_ptr->pos.y > down_screen_limit {
-            enemy_ptr->pos.y = down_screen_limit
+        else if enemy_ptr->pos.y > down_screen_limit {
+            add_to_enemy_remove_queue(enemy_ptr->id, enemy_aux_heap[enemy_ptr->id].spawner)
             enemy_ptr->on_ground = true
         }
-        if enemy_ptr->pos.y < up_screen_limit {
-            enemy_ptr->pos.y = up_screen_limit
+        else if enemy_ptr->pos.y < up_screen_limit {
+            add_to_enemy_remove_queue(enemy_ptr->id, enemy_aux_heap[enemy_ptr->id].spawner)
         }
     }
 }

@@ -11,8 +11,8 @@ array spawner_flags [32] align(32)
 //maximum spawn locations for this level
 byte num_spawn_locations
 //x-coordinate for enemies spawned while scrolling
-const byte spawn_x_loc_right = $FA
-const byte spawn_x_loc_left = $08
+const byte spawn_x_loc_right = $F0
+const byte spawn_x_loc_left = $10
 
 void load_level(byte level_num) {
     byte i
