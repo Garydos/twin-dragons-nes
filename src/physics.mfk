@@ -38,6 +38,10 @@ bool is_collidable(byte tile) {
         return true
     }
     if tile >= $68 && tile <= $6B && current_screen == max_screen {
+        //bug: if you don't have the "&& current_screen == max_screen" part of the
+        //if statement then you can touch the goal early.  Not sure why this happens, but when
+        //collision checking is eventually switched to loading screen metatiles into ram and
+        //checking those locations, it'll probably be fixed.
         touched_goal = 1
     }
     return false
