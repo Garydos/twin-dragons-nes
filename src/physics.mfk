@@ -37,6 +37,9 @@ bool is_collidable(byte tile) {
         }
         return true
     }
+    if tile >= $68 && tile <= $6B && current_screen == max_screen {
+        touched_goal = 1
+    }
     return false
 }
 

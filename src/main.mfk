@@ -48,22 +48,33 @@ void main() {
             //wait for the new frame to be drawn
         }
         if touched_goal != 0 {
-            
+            scrolling_right = false
+            scrolling_left = false
+            new_frame = false
+            win_timer += 1
+            if win_timer >= $80 {
+                ppu_ctrl = %00000000   // enable NMI, sprites from Pattern Table 0, background from Pattern Table 1
+                ppu_mask = %00000110   // enable sprites, enable background, no clipping on left side
+                init_game()
+                load_level(next_level)
+                ppu_set_scroll(0,0)
+                ppu_wait_vblank()
+                ppu_ctrl = %10010000   // enable NMI, sprites from Pattern Table 0, background from Pattern Table 1
+                ppu_mask = %00011110   // enable sprites, enable background, no clipping on left side
+            }
         }
         else {
-            touched_goal = 0
-        }
-        game_logic()
-        if reset_level {
-            ppu_ctrl = %00000000   // enable NMI, sprites from Pattern Table 0, background from Pattern Table 1
-            ppu_mask = %00000110   // enable sprites, enable background, no clipping on left side
-            init_game()
-            load_level(current_level)
-            ppu_set_scroll(0,0)
-            ppu_wait_vblank()
-            ppu_ctrl = %10010000   // enable NMI, sprites from Pattern Table 0, background from Pattern Table 1
-            ppu_mask = %00011110   // enable sprites, enable background, no clipping on left side
-
+            game_logic()
+            if reset_level {
+                ppu_ctrl = %00000000   // enable NMI, sprites from Pattern Table 0, background from Pattern Table 1
+                ppu_mask = %00000110   // enable sprites, enable background, no clipping on left side
+                init_game()
+                load_level(current_level)
+                ppu_set_scroll(0,0)
+                ppu_wait_vblank()
+                ppu_ctrl = %10010000   // enable NMI, sprites from Pattern Table 0, background from Pattern Table 1
+                ppu_mask = %00011110   // enable sprites, enable background, no clipping on left side
+            }
         }
         new_frame = true
     }
