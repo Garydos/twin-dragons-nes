@@ -1,12 +1,17 @@
+//counter for draw routines
 volatile byte draw_counter
 //flags for drawing
 volatile bool changed_column
 volatile bool changed_meta_column
 volatile bool changed_attr_column
 volatile bool changed_screen
-
+//metatiles and attributes for current level
 pointer current_level_tiles
 pointer current_level_attrs
+//pointers to the right and left screen metatiles
+//from the current level to be loaded next.
+pointer right_draw_tiles
+pointer left_draw_tiles
 
 void load_attr_column(byte screen_column, byte nametable, word attrs_column) {
     byte i

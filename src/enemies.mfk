@@ -1,3 +1,5 @@
+import boomba
+
 const byte max_enemies = 8
 
 array(Enemy) enemy_heap [max_enemies] @$400
@@ -86,21 +88,6 @@ void spawn_enemy(byte type, byte x, byte y, byte spawner_index) {
     }
 }
 
-inline void init_boomba(byte heap_spot) {
-    enemy_heap[heap_spot].pos.width = 16
-    enemy_heap[heap_spot].pos.height = 12
-    enemy_heap[heap_spot].anim.anim_num = 4
-    enemy_heap[heap_spot].anim.anim_frame = 0
-    enemy_heap[heap_spot].anim.frame_timer = 0
-    enemy_heap[heap_spot].mirroring = false
-    //use aux0 as a timer for the jump
-    enemy_aux_heap[heap_spot].aux0 = 0
-    //use aux1 as a jump flag
-    enemy_aux_heap[heap_spot].aux1 = 0
-    //use aux2 as yaccel
-    enemy_aux_heap[heap_spot].aux2 = 0
-}
-
 void cap_phys_obj_vel(pointer.Phys_Obj obj_ptr) {
     //cap velocity
     if obj_ptr->xvel >= player_max_xvel {
@@ -139,19 +126,10 @@ void handle_enemy_anims() {
     }
 }
 
-inline void handle_boomba_anims(pointer.Enemy enemy_ptr) {
-    handle_current_anim(pointer.Anim(enemy_ptr->anim.addr), enemy_ptr->pos.x, enemy_ptr->pos.y, enemy_ptr->mirroring)
-}
-
 void handle_enemy_phys(pointer.Enemy enemy_ptr) {
     if enemy_ptr->enemy_type == 0 || enemy_ptr->enemy_type == 128{
         handle_boomba_phys(enemy_ptr)
     }
-}
-
-inline void handle_boomba_phys(pointer.Enemy enemy_ptr) {
-    cap_phys_obj_vel(pointer.Phys_Obj(enemy_ptr))
-    check_obj_collis_and_update_loc(pointer.Phys_Obj(enemy_ptr))
 }
 
 void handle_enemy_logic(pointer.Enemy enemy_ptr) {
@@ -170,76 +148,6 @@ void hurt_player(pointer.Enemy enemy_ptr) {
     if box_collis_check(player1.pos.x,player1.pos.y,player1.pos.width,player1.pos.height,enemy_ptr->pos.x,enemy_ptr->pos.y,enemy_ptr->pos.width,enemy_ptr->pos.height) {
         player_hit(1,enemy_ptr->pos.x)
     }
-}
-
-inline void handle_boomba_death_logic(pointer.Enemy enemy_ptr) {
-    enemy_ptr->xvel = 0
-    switch_anim(pointer.Anim(enemy_ptr->anim.addr), 6, true)
-    //aux2 = death timer
-    enemy_aux_heap[enemy_ptr->id].aux0 += 1
-    if enemy_aux_heap[enemy_ptr->id].aux0 >= $20 {
-        add_to_enemy_remove_queue(enemy_ptr->id, enemy_aux_heap[enemy_ptr->id].spawner)
-    }
-    phys_obj_apply_gravity(pointer.Phys_Obj(enemy_ptr))
-}
-
-inline void handle_boomba_logic(pointer.Enemy enemy_ptr) {
-    byte yaccel
-    byte jumping
-    byte jump_timer
-    
-    jump_timer = enemy_aux_heap[enemy_ptr->id].aux0
-    jumping = enemy_aux_heap[enemy_ptr->id].aux1
-    yaccel = enemy_aux_heap[enemy_ptr->id].aux2
-    
-    if jumping == 1 {
-        //we're currently jumping
-        if yaccel < 18 && enemy_ptr->yvel != 0 {
-            yaccel += 2
-            enemy_ptr->yvel -= (yaccel >> 2)
-        }
-        else {
-            jumping = 0
-            phys_obj_apply_gravity(pointer.Phys_Obj(enemy_ptr))
-        }
-        
-        if enemy_ptr->yvel == 0 {
-            //we've hit the ground, and are
-            //no longer jumping
-            jumping = 0
-        }
-    }
-    else {
-        phys_obj_apply_gravity(pointer.Phys_Obj(enemy_ptr))
-    }
-    
-    if not(enemy_ptr->on_ground) {
-        enemy_ptr->xvel = -4
-    }
-    else {
-        enemy_ptr->xvel = 0
-    }
-
-    if jump_timer >= $40 && jumping == 0{
-        jump_timer = 0
-        jumping = 1
-        yaccel = 2
-        enemy_ptr->on_slope = 0
-        enemy_ptr->on_ground = false_macro()
-        enemy_ptr->yvel = -1
-        switch_anim(pointer.Anim(enemy_ptr->anim.addr), 4, true)
-    }
-    
-    if jump_timer < $40 {
-        jump_timer += 1
-        if jump_timer > $30 {
-            switch_anim(pointer.Anim(enemy_ptr->anim.addr), 5, true)
-        }
-    }
-    
-    enemy_aux_heap[enemy_ptr->id].aux0 = jump_timer
-    enemy_aux_heap[enemy_ptr->id].aux1 = jumping
-    enemy_aux_heap[enemy_ptr->id].aux2 = yaccel
 }
 
 inline void prepare_enemy_scroll(sbyte scroll_speed_signed) {
@@ -288,12 +196,6 @@ void snap_enemy_limits() {
             add_to_enemy_remove_queue(enemy_ptr->id, enemy_aux_heap[enemy_ptr->id].spawner)
         }
     }
-}
-
-inline void hit_boomba(pointer.Enemy enemy_ptr) {
-    //set the death flag bit in enemy_type
-    enemy_ptr->enemy_type |= %10000000
-    enemy_aux_heap[enemy_ptr->id].aux0 = 0
 }
 
 void hit_enemy(pointer.Enemy enemy_ptr) {
