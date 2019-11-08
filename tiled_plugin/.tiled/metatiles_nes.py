@@ -25,6 +25,7 @@ tile_attrs = {
     19:2,
     20:2,
     21:2,
+    22:1,
     255:1
 }
 
@@ -58,6 +59,7 @@ class Example(Plugin):
     @classmethod
     def write(cls, tileMap, fileName):
         attrs = [0 for i in range(8 * (tileMap.width() // 2))]
+        size = 0 #amount of bytes in Metatiles file
         #Metatiles
         with open(fileName, 'wb') as fileHandle:
             for i in range(tileMap.layerCount()):
@@ -67,7 +69,12 @@ class Example(Plugin):
                         for y in range(tileLayer.height()):
                             set_attr(tileLayer.cellAt(x, y).tile().id(), y, x, attrs)
                             fileHandle.write(bytes([tileLayer.cellAt(x, y).tile().id()]))
+                            size += 1
                         fileHandle.write(bytes([255]))
+                        size += 1
+        #Size
+        with open(fileName.rsplit(".",maxsplit=1)[0] + ".width", 'wb') as fileHandle:
+            fileHandle.write(size.to_bytes(2, byteorder='little'))
         #Attributes
         with open(fileName.rsplit(".",maxsplit=1)[0] + ".attrs", 'wb') as fileHandle:
             fileHandle.write(bytes(attrs))
