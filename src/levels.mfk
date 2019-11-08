@@ -27,6 +27,7 @@ void load_level(byte level_num) {
     
     touched_goal = 0
     win_timer = 0
+    current_level = level_num
     
     //load any enemies that spawn on the first screen
     leftmost_column = current_screen 

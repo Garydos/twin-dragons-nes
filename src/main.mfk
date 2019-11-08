@@ -21,7 +21,6 @@ void init_game() {
     init_sprites()
     init_sprite_manager()
     ppu_oam_dma_write(oam_buffer.addr.hi)
-    load_palletes(0)
     clear_status_bar()
     draw_status_bar()
     prepare_sprite0()
@@ -44,16 +43,8 @@ void init_game_and_load_level(byte level) {
 }
 
 void main() {
-    init_game()
-    load_level(0)
-    current_level = 0
-    
-    ppu_set_scroll(0,0)
-    ppu_wait_vblank()
-    ppu_ctrl = %10010000   // enable NMI, sprites from Pattern Table 0, background from Pattern Table 1
-    ppu_mask = %00011110   // enable sprites, enable background, no clipping on left side
-
-    new_frame = false
+    init_game_and_load_level(0)
+    new_frame = true
     while(true) {
         while new_frame == true {
             //wait for the new frame to be drawn

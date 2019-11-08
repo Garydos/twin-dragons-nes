@@ -9,6 +9,7 @@ inline void load_level0() {
     current_level_tiles = level0_metatiles
     current_level_attrs = level0_attrs
     max_screen = level0_max_screen[0]
+    load_palletes(0)
     load_screen(0)
     next_level = 0
     
