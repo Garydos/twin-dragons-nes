@@ -6,15 +6,21 @@ volatile bool changed_meta_column
 volatile bool changed_attr_column
 volatile bool changed_screen
 //metatiles and attributes for current level
-pointer current_level_tiles
-pointer current_level_attrs
+volatile pointer current_level_tiles
+volatile pointer current_level_tiles_end
+volatile pointer current_level_attrs
 //pointers to the right and left screen metatiles
 //from the current level to be loaded next.
-pointer right_draw_tiles
-pointer left_draw_tiles
+volatile pointer right_draw_tiles
+volatile pointer left_draw_tiles
 
 macro void increment_draw_ptr(pointer draw_tiles) {
-    draw_tiles += $10
+    if draw_tiles < current_level_tiles || draw_tiles > current_level_tiles_end {
+        draw_tiles += 1
+    }
+    else {
+        draw_tiles += $10
+    }
 }
 
 macro void increment_draw_ptr_by_screen(pointer draw_tiles) {
@@ -25,7 +31,12 @@ macro void increment_draw_ptr_by_screen(pointer draw_tiles) {
 }
 
 macro void decrement_draw_ptr(pointer draw_tiles) {
-    draw_tiles -= $10
+    if draw_tiles < current_level_tiles_end || draw_tiles > current_level_tiles {
+        draw_tiles -= $10
+    }
+    else {
+        draw_tiles -= 1
+    }
 }
 
 macro void decrement_draw_ptr_by_screen(pointer draw_tiles) {

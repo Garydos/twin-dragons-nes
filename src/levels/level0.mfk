@@ -7,6 +7,9 @@ inline void load_level0() {
     memcpy(spawn_info, level0_spawn_info, level0_num_spawn_locations[0] * 2)
     num_spawn_locations = level0_num_spawn_locations[0]
     current_level_tiles = level0_metatiles
+    current_level_tiles_end.hi = level0_width[1]
+    current_level_tiles_end.lo = level0_width[0]
+    current_level_tiles_end += current_level_tiles
     current_level_attrs = level0_attrs
     max_screen = level0_max_screen[0]
     load_palletes(0)
@@ -22,3 +25,4 @@ const array level0_spawn_info = file("data/test.enemies_info")
 const array level0_num_spawn_locations = file("data/test.enemy_spawn_num")
 const array level0_metatiles = file("data/test.meta")
 const array level0_attrs = file("data/test.attrs")
+const array level0_width = file("data/test.width")

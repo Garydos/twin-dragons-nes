@@ -72,8 +72,6 @@ void set_draw_pointers(byte screen_num) {
         //get right_draw_tiles to the right end of the screen
         //(16 columns forward)
         increment_draw_ptr_by_screen(right_draw_tiles)
-        //next column to draw would be to offscreen to the right, so point to that
-        // increment_draw_ptr(right_draw_tiles)
     }
     else {
         //get right_draw_tiles to the right end of the screen
