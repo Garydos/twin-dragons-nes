@@ -12,6 +12,38 @@ pointer current_level_attrs
 //from the current level to be loaded next.
 pointer right_draw_tiles
 pointer left_draw_tiles
+//these bytes keep track of how many columns
+//off the map the draw tile pointers have gone
+//(i.e. if you start on the first screen the left_draw_tiles
+//pointer will be off the screen by 2 columns since once you start
+//scrolling the left_draw_tiles pointer should always be two columns
+//to the left of the screen.  This makes it so that once you leave
+//the first screen, left_draw_tiles will be in its proper place, and
+//vice versa for right_draw_tiles when you reach the final screen.
+byte right_draw_tiles_offlevel_col
+byte left_draw_tiles_offlevel_col
+
+macro void increment_draw_ptr(pointer draw_tiles) {
+    draw_tiles += $10
+}
+
+macro void increment_draw_ptr_by_screen(pointer draw_tiles) {
+    byte k
+    for k,0,until,$10 {
+        increment_draw_ptr(draw_tiles)
+    }
+}
+
+macro void decrement_draw_ptr(pointer draw_tiles) {
+    draw_tiles -= $10
+}
+
+macro void decrement_draw_ptr_by_screen(pointer draw_tiles) {
+    byte k
+    for k,0,until,$10 {
+        decrement_draw_ptr(draw_tiles)
+    }
+}
 
 void load_attr_column(byte screen_column, byte nametable, word attrs_column) {
     byte i

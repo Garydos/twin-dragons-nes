@@ -13,7 +13,6 @@ inline void init_boomba(byte heap_spot) {
     enemy_aux_heap[heap_spot].aux2 = 0
 }
 
-
 inline void handle_boomba_anims(pointer.Enemy enemy_ptr) {
     handle_current_anim(pointer.Anim(enemy_ptr->anim.addr), enemy_ptr->pos.x, enemy_ptr->pos.y, enemy_ptr->mirroring)
 }
