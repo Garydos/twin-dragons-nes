@@ -66,6 +66,12 @@ inline void update_scroll_left() {
     if changed_column {
         draw_seam_column = xscroll >> 3
     }
+    // on a 16 pixel boundary, so
+    // load the appropriate tiles
+    if changed_meta_column{
+        decrement_draw_ptr(left_draw_tiles)
+        decrement_draw_ptr(right_draw_tiles)
+    }
     
     //check if we need to load a new attribute column
     //by factoring in the attribute load offset
@@ -110,6 +116,13 @@ inline void update_scroll_right() {
         //we've passed a column boundary, update our current column
         draw_seam_column = xscroll >> 3
     }
+    // on a 16 pixel boundary, so
+    // load the appropriate tiles
+    if changed_meta_column{
+        increment_draw_ptr(right_draw_tiles)
+        increment_draw_ptr(left_draw_tiles)
+    }
+    
     
     //check if we need to load a new attribute column
     //by factoring in the attribute load offset
@@ -181,12 +194,7 @@ inline void left_metatile_scroll() {
         }
     }
     else if changed_column || draw_counter > 0 {
-        // on a 16 pixel boundary, so
-        // load the appropriate tiles
-        set_next_column()
-        next_column >>= 1
-
-        draw_column_with_counter((xscroll>>4),draw_nametable,next_column)
+        draw_column_with_counter_by_ptr((xscroll>>4),draw_nametable, left_draw_tiles)
     }
 }
 
@@ -209,13 +217,7 @@ inline void right_metatile_scroll() {
         //of our loading seam
     }
     else if changed_meta_column || draw_counter > 0 {
-        // on a 16 pixel boundary, so
-        // load the appropriate tiles
-        set_next_column()
-        next_column += $20
-        next_column >>= 1
-        
-        draw_column_with_counter(xscroll>>4,draw_nametable,next_column)
+        draw_column_with_counter_by_ptr((xscroll>>4),draw_nametable, right_draw_tiles)
     }
 }
 

@@ -12,16 +12,6 @@ pointer current_level_attrs
 //from the current level to be loaded next.
 pointer right_draw_tiles
 pointer left_draw_tiles
-//these bytes keep track of how many columns
-//off the map the draw tile pointers have gone
-//(i.e. if you start on the first screen the left_draw_tiles
-//pointer will be off the screen by 2 columns since once you start
-//scrolling the left_draw_tiles pointer should always be two columns
-//to the left of the screen.  This makes it so that once you leave
-//the first screen, left_draw_tiles will be in its proper place, and
-//vice versa for right_draw_tiles when you reach the final screen.
-byte right_draw_tiles_offlevel_col
-byte left_draw_tiles_offlevel_col
 
 macro void increment_draw_ptr(pointer draw_tiles) {
     draw_tiles += $10
@@ -216,6 +206,26 @@ void draw_full_screen_meta(byte nametable, word metatile_column) {
     draw_column(14,nametable,metatile_column)
     metatile_column += 1
     draw_column(15,nametable,metatile_column)
+}
+
+void draw_column_with_counter_by_ptr(byte screen_column, byte nametable, pointer metatiles_ptr) {
+    screen_column <<= 1 // *= 2, convert to metatile column #
+    
+    //set ppu address increment to 32 so we can draw the left and right borders
+    //(allows us to draw to the nametable in vertical strips rather than horizontal)
+    ppu_ctrl = %00000100
+    read_ppu_status()
+    
+    if draw_counter == 0 || draw_counter == 1 {
+        //draw the first column on the first frame
+        draw_column_first_draw(nametable, screen_column, metatiles_ptr)
+        draw_counter = 2
+    }
+    else if draw_counter == 2 {
+        //draw the second column on the second frame
+        draw_column_second_draw(nametable, screen_column, metatiles_ptr)
+        draw_counter = 0
+    }
 }
 
 void draw_column_with_counter(byte screen_column, byte nametable, word metatiles_column) {

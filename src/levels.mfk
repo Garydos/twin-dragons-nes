@@ -58,9 +58,6 @@ void set_draw_pointers(byte screen_num) {
     right_draw_tiles = current_level_tiles
     left_draw_tiles = current_level_tiles
     
-    //get right_draw_tiles to the right end of the screen
-    //(16 columns forward)
-    increment_draw_ptr_by_screen(right_draw_tiles)
     //now set both of the pointers to the appropriate screen
     for i,0,until,screen_num {
         increment_draw_ptr_by_screen(right_draw_tiles)
@@ -70,18 +67,20 @@ void set_draw_pointers(byte screen_num) {
     if screen_num != 0 {
         //next column to draw would be to offscreen to the left, so point to that
         decrement_draw_ptr(left_draw_tiles)
-        left_draw_tiles_offlevel_col = 0
-    }
-    else {
-        left_draw_tiles_offlevel_col = 1
     }
     if screen_num != max_screen {
+        //get right_draw_tiles to the right end of the screen
+        //(16 columns forward)
+        increment_draw_ptr_by_screen(right_draw_tiles)
         //next column to draw would be to offscreen to the right, so point to that
-        increment_draw_ptr(right_draw_tiles)
-        right_draw_tiles_offlevel_col = 0
+        // increment_draw_ptr(right_draw_tiles)
     }
     else {
-        right_draw_tiles_offlevel_col = 1
+        //get right_draw_tiles to the right end of the screen
+        //(15 columns forward)
+        for i,0,until,$0F {
+            increment_draw_ptr(right_draw_tiles)
+        }
     }
 }
 
