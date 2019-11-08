@@ -17,6 +17,8 @@ import music
 import levels
 import platformer
 
+byte gamestate
+
 void init_game() {
     init_sprites()
     init_sprite_manager()
@@ -43,32 +45,47 @@ void init_game_and_load_level(byte level) {
 }
 
 void main() {
+    gamestate = 1 // 1 = game is playing a level
     init_game_and_load_level(0)
     new_frame = true
     while(true) {
-        while new_frame == true {
-            //wait for the new frame to be drawn
+        if gamestate == 1 {
+            game_main()
         }
-        if touched_goal != 0 {
-            scrolling_right = false
-            scrolling_left = false
-            new_frame = false
-            win_timer += 1
-            if win_timer >= $80 {
-                init_game_and_load_level(next_level)
-            }
-        }
-        else {
-            game_logic()
-            if reset_level {
-                init_game_and_load_level(current_level)
-            }
-        }
-        new_frame = true
     }
 }
 
+void game_main() {
+    while new_frame == true {
+        //wait for the new frame to be drawn
+    }
+    if touched_goal != 0 {
+        scrolling_right = false
+        scrolling_left = false
+        new_frame = false
+        win_timer += 1
+        if win_timer >= $80 {
+            init_game_and_load_level(next_level)
+        }
+    }
+    else {
+        game_logic()
+        if reset_level {
+            init_game_and_load_level(current_level)
+        }
+    }
+    new_frame = true
+}
+
 void nmi() {
+    // use a return dispatch here
+    // to use different logic for each screen/gamestate
+    return [gamestate] {
+        1    @ game_nmi
+    }
+}
+
+void game_nmi() {
     if new_frame {
         //Do scroll handling before anything since it needs 
         //to set the scroll before the screen starts drawing
