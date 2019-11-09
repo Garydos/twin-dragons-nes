@@ -1,6 +1,6 @@
 # Twin Dragons
 
-*An NES Platformer Written In Millfork*
+*An NES Platformer Written In [Millfork](https://github.com/KarolS/millfork)*
 
 ![Twin Dragons Gameplay](https://raw.githubusercontent.com/Garydos/twin-dragons-nes/master/res/twin_dragons.gif)
 
