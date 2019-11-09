@@ -62,9 +62,7 @@ void game_logic() {
             increment_draw_ptr(right_draw_tiles)
         }
         if scrolling_left {
-            decrement_draw_ptr(left_draw_tiles)
-            fill_collis_column_from_ptr((draw_seam_column >> 1) - 1,left_draw_tiles)
-            increment_draw_ptr(left_draw_tiles)
+            fill_collis_column_from_ptr((draw_seam_column >> 1),left_draw_tiles)
         }
     }
     reset_level = false
