@@ -54,6 +54,19 @@ void init_spawner_flags() {
 
 void game_logic() {
     //game logic goes here
+    if changed_meta_column {
+        //load up the next column into the collision page
+        if scrolling_right {
+            decrement_draw_ptr(right_draw_tiles)
+            fill_collis_column_from_ptr((draw_seam_column >> 1) - 1,right_draw_tiles)
+            increment_draw_ptr(right_draw_tiles)
+        }
+        if scrolling_left {
+            decrement_draw_ptr(left_draw_tiles)
+            fill_collis_column_from_ptr((draw_seam_column >> 1) - 1,left_draw_tiles)
+            increment_draw_ptr(left_draw_tiles)
+        }
+    }
     reset_level = false
     spawn_enemies()
     if player1.health == 0 {

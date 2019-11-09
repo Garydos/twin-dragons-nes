@@ -11,6 +11,8 @@ byte on_slope
 byte hit_spike
 //goal flag
 byte touched_goal
+//collision map (one screen[$100] + one columns[$10], in metatiles)
+array metatile_collis_map[256] align(256)
 
 const byte player_max_xvel = 10
 const byte player_max_xvel_neg = -10

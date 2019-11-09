@@ -14,12 +14,22 @@ volatile pointer current_level_attrs
 volatile pointer right_draw_tiles
 volatile pointer left_draw_tiles
 
+void fill_collis_column_from_ptr(byte col_num, pointer draw_tiles) {
+    byte i
+    
+    col_num <<= 4 // *= 16
+    
+    for i,0,until,$10 {
+        metatile_collis_map[col_num+i] = draw_tiles[i]
+    }
+}
+
 macro void increment_draw_ptr(pointer draw_tiles) {
-    if draw_tiles < current_level_tiles || draw_tiles > current_level_tiles_end {
-        draw_tiles += 1
+    if draw_tiles >= current_level_tiles && draw_tiles < current_level_tiles_end {
+        draw_tiles += $10
     }
     else {
-        draw_tiles += $10
+        draw_tiles += 1
     }
 }
 
@@ -31,7 +41,7 @@ macro void increment_draw_ptr_by_screen(pointer draw_tiles) {
 }
 
 macro void decrement_draw_ptr(pointer draw_tiles) {
-    if draw_tiles < current_level_tiles_end || draw_tiles > current_level_tiles {
+    if draw_tiles > current_level_tiles && draw_tiles <= current_level_tiles_end {
         draw_tiles -= $10
     }
     else {
@@ -309,6 +319,54 @@ inline void draw_column_second_draw(byte nametable, byte screen_column, pointer 
     //skip to $02 because the metatile data is structured to ignore the
     //first two metatiles, and end before $0F because that byte is a junk
     //byte as well
+    for i,$02,until,$0F {
+        draw_metatile_second_column(metatiles_ptr[i])
+    }
+}
+
+void draw_column_by_ptr(byte screen_column, byte nametable, pointer metatiles_ptr) {
+    screen_column <<= 1 // *= 2
+    //set ppu address increment to 32 so we can draw the left and right borders
+    //(allows us to draw to the nametable in vertical strips rather than horizontal)
+    ppu_ctrl = %00000100
+    read_ppu_status()
+    
+    if nametable == 0 {
+        ppu_set_addr(ppu_nametable0 + $80 + screen_column)
+    }
+    else if nametable == 1 {
+        ppu_set_addr(ppu_nametable1 + $80 + screen_column)
+    }
+    else if nametable == 2 {
+        ppu_set_addr(ppu_nametable2 + $80 + screen_column)
+    }
+    else if nametable == 3 {
+        ppu_set_addr(ppu_nametable3 + $80 + screen_column)
+    }
+
+    //skip to $02 because the metatile data is structured to ignore the
+    //first two metatiles, and end before $0F because that byte is a junk
+    //byte as well
+    for i,$02,until,$0F {
+        draw_metatile_first_column(metatiles_ptr[i])
+    }
+    
+    
+    if nametable == 0 {
+        ppu_set_addr(ppu_nametable0 + $80 + screen_column + 1)
+    }
+    else if nametable == 1 {
+        ppu_set_addr(ppu_nametable1 + $80 + screen_column + 1)
+    }
+    else if nametable == 2 {
+        ppu_set_addr(ppu_nametable2 + $80 + screen_column + 1)
+    }
+    else if nametable == 3 {
+        ppu_set_addr(ppu_nametable3 + $80 + screen_column + 1)
+    }
+    
+    //skip to $02 because the metatile data is structured to ignore the
+    //first two metatiles
     for i,$02,until,$0F {
         draw_metatile_second_column(metatiles_ptr[i])
     }

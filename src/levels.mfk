@@ -63,7 +63,15 @@ void set_draw_pointers(byte screen_num) {
         increment_draw_ptr_by_screen(right_draw_tiles)
         increment_draw_ptr_by_screen(left_draw_tiles)
     }
-    
+    //fill the collision map
+    for i,0,until,$10 {
+        fill_collis_column_from_ptr(i,right_draw_tiles)
+        increment_draw_ptr(right_draw_tiles)
+    }
+    //reset the right_draw_tiles pointer we used for filling
+    //the collision map
+    right_draw_tiles = left_draw_tiles
+    //now move the draw_tiles pointers to their correct positions
     if screen_num != 0 {
         //next column to draw would be to offscreen to the left, so point to that
         decrement_draw_ptr(left_draw_tiles)
