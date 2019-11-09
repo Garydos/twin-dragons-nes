@@ -451,38 +451,42 @@ inline void draw_metatile_second_column(byte metatile) {
     ppu_write_data(metatile_ptr[3])
 }
 
-inline byte get_tile(byte column, byte row) {
+byte get_screen_tile(byte column, byte row) {
     //return the tile number of the tile
     //located at column by row
     //here, column refers to the 8 pixel wide
     //screen columns, not the 16 pixel wide
     //metatile columns
-    word metatile_column_num
-    byte metatile_row_num
-    byte tile
-    pointer metatiles_column
     pointer metatile_ptr
-    
-    //get the metatile row and column numbers
-    metatile_column_num = screen_column_to_level_column(column)
-    metatile_column_num >>= 1
-    metatile_row_num = row >> 1
-    
-    //get the metatile column data pointer
-    metatiles_column = get_metatile_column(metatile_column_num)
-    //store the metatile tile in the tile variable in preparation
-    //for finding the proper screen tile number
-    tile = metatiles_column[metatile_row_num]
-    
-    //now we can use the original column and row numbers to
-    //get the proper tile
-    metatile_ptr = metatiles
-    metatile_ptr += tile << 2
+    byte index
+    byte temp
+    byte tile //used to store both metatile and screen tile
+
+    index = 0
+    //add in the xscroll column
+    // index = xscroll & %11110000
+    temp = column
+    if temp >= $20 {
+        temp -= $20
+    }
+    temp >>= 1
+    temp <<= 4
+    index += temp
+    temp = row
+    temp >>= 1
+    index += temp
+
+    tile = metatile_collis_map[index]
     
     //convert column and row to metatile definition offsets
     column &= %00000001 //column now either 0 or 1 depending on odd or even
     column <<= 1        //column now either 0 or 2
     row &= %00000001    //row now either 0 or 1
+    
+    //now we can use the original column and row numbers to
+    //get the proper tile
+    metatile_ptr = metatiles
+    metatile_ptr += tile << 2
     
     //get the proper tile from the new indices
     tile = metatile_ptr[column + row]

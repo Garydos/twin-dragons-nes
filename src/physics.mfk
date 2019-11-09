@@ -113,7 +113,7 @@ void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte 
         i = 0
         
         while i <= limit{
-            current_tile = get_tile(new_column1+i, new_row1)
+            current_tile = get_screen_tile(new_column1+i, new_row1)
             if is_collidable(current_tile) {
                 slope_check(current_tile)
                 if on_slope == 0 || (on_slope == 1 && i == 0) || (on_slope == 2 && i == limit) {
@@ -137,7 +137,7 @@ void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte 
         i = 0
         
         while i <= limit{
-            current_tile = get_tile(new_column1+i, new_row1)
+            current_tile = get_screen_tile(new_column1+i, new_row1)
             if is_collidable(current_tile) {
                 collis_flag = true
                 up_collis_flag = true
@@ -159,7 +159,7 @@ void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte 
         i = 0
 
         while i <= limit{
-            current_tile = get_tile(new_column1, new_row1+i)
+            current_tile = get_screen_tile(new_column1, new_row1+i)
             if is_collidable(current_tile) {
                 slope_check(current_tile)
                 if on_slope != 0 && i != limit {
@@ -185,7 +185,7 @@ void check_background_collis(byte screenx, byte screeny, byte spritewidth, byte 
         i = 0
 
         while i <= limit{
-            current_tile = get_tile(new_column1, new_row1+i)
+            current_tile = get_screen_tile(new_column1, new_row1+i)
             if is_collidable(current_tile) {
                 slope_check(current_tile)
                 if on_slope != 0 && i != limit {
@@ -216,7 +216,7 @@ inline void check_slope_pos(pointer.Phys_Obj obj_ptr) {
         column = get_column_from_screenx(obj_ptr->pos.x + obj_ptr->pos.width + 1)
         row = get_row_from_screeny(obj_ptr->pos.y + obj_ptr->pos.height)
     }
-    current_tile = get_tile(column, row)
+    current_tile = get_screen_tile(column, row)
     
     if not((current_tile == $CA) || (current_tile == $C9)) {
         obj_ptr->on_slope = 0
@@ -240,7 +240,7 @@ inline void check_slope_neg(pointer.Phys_Obj obj_ptr) {
         column = get_column_from_screenx(obj_ptr->pos.x - 1)
         row = get_row_from_screeny(obj_ptr->pos.y + obj_ptr->pos.height)
     }
-    current_tile = get_tile(column, row)
+    current_tile = get_screen_tile(column, row)
     
     if not((current_tile == $CC) || (current_tile == $CF)) {
         obj_ptr->on_slope = 0
