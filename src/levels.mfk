@@ -47,11 +47,11 @@ void load_level(byte level_num) {
 
 void load_screen(byte screen_num) {
     current_screen = screen_num
-    draw_full_screen(screen_num)
-    set_draw_pointers(screen_num)
+    draw_full_screen_attrs(screen_num)
+    draw_screen_by_pointers(screen_num)
 }
 
-void set_draw_pointers(byte screen_num) {
+void draw_screen_by_pointers(byte screen_num) {
     byte i
     byte j
     
@@ -73,20 +73,40 @@ void set_draw_pointers(byte screen_num) {
     right_draw_tiles = left_draw_tiles
     //now move the draw_tiles pointers to their correct positions
     if screen_num != 0 {
-        //next column to draw would be to offscreen to the left, so point to that
-        decrement_draw_ptr(left_draw_tiles)
+        draw_counter = 0
+        draw_column_with_counter_by_ptr(15,1,left_draw_tiles)
+        draw_column_with_counter_by_ptr(15,1,left_draw_tiles)
+        draw_counter = 0
     }
     if screen_num != max_screen {
         //get right_draw_tiles to the right end of the screen
         //(16 columns forward)
-        increment_draw_ptr_by_screen(right_draw_tiles)
+        for i,0,until,$10 {
+            draw_counter = 0
+            draw_column_with_counter_by_ptr(i,0,right_draw_tiles)
+            draw_column_with_counter_by_ptr(i,0,right_draw_tiles)
+            draw_counter = 0
+            increment_draw_ptr(right_draw_tiles)
+        }
+        draw_counter = 0
+        draw_column_with_counter_by_ptr(0,1,right_draw_tiles)
+        draw_column_with_counter_by_ptr(0,1,right_draw_tiles)
+        draw_counter = 0
     }
     else {
         //get right_draw_tiles to the right end of the screen
         //(15 columns forward)
         for i,0,until,$0F {
+            draw_counter = 0
+            draw_column_with_counter_by_ptr(i,0,right_draw_tiles)
+            draw_column_with_counter_by_ptr(i,0,right_draw_tiles)
+            draw_counter = 0
             increment_draw_ptr(right_draw_tiles)
         }
+        draw_counter = 0
+        draw_column_with_counter_by_ptr(i,0,right_draw_tiles)
+        draw_column_with_counter_by_ptr(i,0,right_draw_tiles)
+        draw_counter = 0
     }
 }
 

@@ -151,7 +151,7 @@ inline pointer get_attrs_column(word metatiles_column) {
     return attrs_ptr
 }
 
-inline void draw_full_screen(byte screen_num) {
+void draw_full_screen_attrs(byte screen_num) {
     //draw the full screen at nametable 0, plus
     //two extra metatile/attribute columns so that
     //you can scroll both ways if needed
@@ -163,97 +163,53 @@ inline void draw_full_screen(byte screen_num) {
     
     if screen_num != 0 {
         //draw one column to the left of the visible screen
-        metatile_column -= 1
-        draw_column(15,1,metatile_column)
-        metatile_column += 1
-        
         attr_column = metatile_column
         attr_column >>= 1
         attr_column -= 1
-        load_attr_column(7,1,attr_column)
+        
+        draw_counter = 3
+        load_attr_column_with_counter(7,1,attr_column)
+        draw_counter = 4
+        load_attr_column_with_counter(7,1,attr_column)
+        draw_counter = 0
     }
-    draw_full_screen_meta(0, metatile_column)
+    draw_full_screen_attrs_aux(0, metatile_column)
     if screen_num != max_screen {
         //draw one column to the right of the visible screen
-        metatile_column += 16
-        draw_column(0,1,metatile_column)
-        metatile_column -= 16
-        
         attr_column = metatile_column
         attr_column >>= 1
         attr_column += 8
-        load_attr_column(0,1,attr_column)
-    }
-}
-
-void draw_full_screen_meta(byte nametable, word metatile_column) {
-    //draw a full screen starting from the specified metatile column
-    load_attr_column(0,nametable,metatile_column>>1)
-    draw_column(0,nametable,metatile_column)
-    metatile_column += 1
-    draw_column(1,nametable,metatile_column)
-    metatile_column += 1
-    load_attr_column(1,nametable,metatile_column>>1)
-    draw_column(2,nametable,metatile_column)
-    metatile_column += 1
-    draw_column(3,nametable,metatile_column)
-    metatile_column += 1
-    load_attr_column(2,nametable,metatile_column>>1)
-    draw_column(4,nametable,metatile_column)
-    metatile_column += 1
-    draw_column(5,nametable,metatile_column)
-    metatile_column += 1
-    load_attr_column(3,nametable,metatile_column>>1)
-    draw_column(6,nametable,metatile_column)
-    metatile_column += 1
-    draw_column(7,nametable,metatile_column)
-    metatile_column += 1
-    load_attr_column(4,nametable,metatile_column>>1)
-    draw_column(8,nametable,metatile_column)
-    metatile_column += 1
-    draw_column(9,nametable,metatile_column)
-    metatile_column += 1
-    load_attr_column(5,nametable,metatile_column>>1)
-    draw_column(10,nametable,metatile_column)
-    metatile_column += 1
-    draw_column(11,nametable,metatile_column)
-    metatile_column += 1
-    load_attr_column(6,nametable,metatile_column>>1)
-    draw_column(12,nametable,metatile_column)
-    metatile_column += 1
-    draw_column(13,nametable,metatile_column)
-    metatile_column += 1
-    load_attr_column(7,nametable,metatile_column>>1)
-    draw_column(14,nametable,metatile_column)
-    metatile_column += 1
-    draw_column(15,nametable,metatile_column)
-}
-
-void draw_column_with_counter_by_ptr(byte screen_column, byte nametable, pointer metatiles_ptr) {
-    screen_column <<= 1 // *= 2, convert to metatile column #
-    
-    //set ppu address increment to 32 so we can draw the left and right borders
-    //(allows us to draw to the nametable in vertical strips rather than horizontal)
-    ppu_ctrl = %00000100
-    read_ppu_status()
-    
-    if draw_counter == 0 || draw_counter == 1 {
-        //draw the first column on the first frame
-        draw_column_first_draw(nametable, screen_column, metatiles_ptr)
-        draw_counter = 2
-    }
-    else if draw_counter == 2 {
-        //draw the second column on the second frame
-        draw_column_second_draw(nametable, screen_column, metatiles_ptr)
+        
+        draw_counter = 3
+        load_attr_column_with_counter(0,1,attr_column)
+        draw_counter = 4
+        load_attr_column_with_counter(0,1,attr_column)
         draw_counter = 0
     }
 }
 
-void draw_column_with_counter(byte screen_column, byte nametable, word metatiles_column) {
-    pointer metatiles_ptr
-    
+void draw_full_screen_attrs_aux(byte nametable, word metatile_column) {
+    //draw a full screen of attrs starting from the specified metatile column
+    load_attr_column(0,nametable,metatile_column>>1)
+    metatile_column += 2
+    load_attr_column(1,nametable,metatile_column>>1)
+    metatile_column += 2
+    load_attr_column(2,nametable,metatile_column>>1)
+    metatile_column += 2
+    load_attr_column(3,nametable,metatile_column>>1)
+    metatile_column += 2
+    load_attr_column(4,nametable,metatile_column>>1)
+    metatile_column += 2
+    load_attr_column(5,nametable,metatile_column>>1)
+    metatile_column += 2
+    load_attr_column(6,nametable,metatile_column>>1)
+    metatile_column += 2
+    load_attr_column(7,nametable,metatile_column>>1)
+    metatile_column += 2
+}
+
+void draw_column_with_counter_by_ptr(byte screen_column, byte nametable, pointer metatiles_ptr) {
     screen_column <<= 1 // *= 2, convert to metatile column #
-    metatiles_ptr = get_metatile_column(metatiles_column)
     
     //set ppu address increment to 32 so we can draw the left and right borders
     //(allows us to draw to the nametable in vertical strips rather than horizontal)
@@ -322,115 +278,6 @@ inline void draw_column_second_draw(byte nametable, byte screen_column, pointer 
     for i,$02,until,$0F {
         draw_metatile_second_column(metatiles_ptr[i])
     }
-}
-
-void draw_column_by_ptr(byte screen_column, byte nametable, pointer metatiles_ptr) {
-    screen_column <<= 1 // *= 2
-    //set ppu address increment to 32 so we can draw the left and right borders
-    //(allows us to draw to the nametable in vertical strips rather than horizontal)
-    ppu_ctrl = %00000100
-    read_ppu_status()
-    
-    if nametable == 0 {
-        ppu_set_addr(ppu_nametable0 + $80 + screen_column)
-    }
-    else if nametable == 1 {
-        ppu_set_addr(ppu_nametable1 + $80 + screen_column)
-    }
-    else if nametable == 2 {
-        ppu_set_addr(ppu_nametable2 + $80 + screen_column)
-    }
-    else if nametable == 3 {
-        ppu_set_addr(ppu_nametable3 + $80 + screen_column)
-    }
-
-    //skip to $02 because the metatile data is structured to ignore the
-    //first two metatiles, and end before $0F because that byte is a junk
-    //byte as well
-    for i,$02,until,$0F {
-        draw_metatile_first_column(metatiles_ptr[i])
-    }
-    
-    
-    if nametable == 0 {
-        ppu_set_addr(ppu_nametable0 + $80 + screen_column + 1)
-    }
-    else if nametable == 1 {
-        ppu_set_addr(ppu_nametable1 + $80 + screen_column + 1)
-    }
-    else if nametable == 2 {
-        ppu_set_addr(ppu_nametable2 + $80 + screen_column + 1)
-    }
-    else if nametable == 3 {
-        ppu_set_addr(ppu_nametable3 + $80 + screen_column + 1)
-    }
-    
-    //skip to $02 because the metatile data is structured to ignore the
-    //first two metatiles
-    for i,$02,until,$0F {
-        draw_metatile_second_column(metatiles_ptr[i])
-    }
-}
-
-void draw_column(byte screen_column, byte nametable, word metatiles_column) {
-    byte i
-    pointer metatiles_ptr
-    
-    screen_column <<= 1 // *= 2
-    metatiles_ptr = get_metatile_column(metatiles_column)
-    
-    //set ppu address increment to 32 so we can draw the left and right borders
-    //(allows us to draw to the nametable in vertical strips rather than horizontal)
-    ppu_ctrl = %00000100
-    read_ppu_status()
-    
-    if nametable == 0 {
-        ppu_set_addr(ppu_nametable0 + $80 + screen_column)
-    }
-    else if nametable == 1 {
-        ppu_set_addr(ppu_nametable1 + $80 + screen_column)
-    }
-    else if nametable == 2 {
-        ppu_set_addr(ppu_nametable2 + $80 + screen_column)
-    }
-    else if nametable == 3 {
-        ppu_set_addr(ppu_nametable3 + $80 + screen_column)
-    }
-
-    //skip to $02 because the metatile data is structured to ignore the
-    //first two metatiles, and end before $0F because that byte is a junk
-    //byte as well
-    for i,$02,until,$0F {
-        draw_metatile_first_column(metatiles_ptr[i])
-    }
-    
-    
-    if nametable == 0 {
-        ppu_set_addr(ppu_nametable0 + $80 + screen_column + 1)
-    }
-    else if nametable == 1 {
-        ppu_set_addr(ppu_nametable1 + $80 + screen_column + 1)
-    }
-    else if nametable == 2 {
-        ppu_set_addr(ppu_nametable2 + $80 + screen_column + 1)
-    }
-    else if nametable == 3 {
-        ppu_set_addr(ppu_nametable3 + $80 + screen_column + 1)
-    }
-    
-    //skip to $02 because the metatile data is structured to ignore the
-    //first two metatiles
-    for i,$02,until,$0F {
-        draw_metatile_second_column(metatiles_ptr[i])
-    }
-}
-
-pointer get_metatile_column(word metatiles_column) {
-    pointer metatiles_ptr
-    metatiles_ptr = current_level_tiles
-    metatiles_column <<= 4 // *= $10
-    metatiles_ptr += metatiles_column
-    return metatiles_ptr
 }
 
 inline void draw_metatile_first_column(byte metatile) {
