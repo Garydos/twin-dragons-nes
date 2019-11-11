@@ -88,6 +88,7 @@ inline void update_scroll_left() {
     if changed_attr_column{
         decrement_attr_ptr(right_draw_attrs)
         decrement_attr_ptr(left_draw_attrs)
+        uncompress_attr_column(left_draw_attrs)
     }
     
     
@@ -136,6 +137,9 @@ inline void update_scroll_right() {
     if changed_meta_column{
         //fill the new column in the collision page
         if prev_meta_col_change != 0 {
+            //if the last meta column changed loaded left_draw_tiles
+            //into the uncompressed column array, then we need to load
+            //right_draw_tiles's uncompressed column
             uncompress_metatile_column(right_draw_tiles)
         }
         fill_collis_column_from_ptr((xscroll >> 4) - 1,right_draw_tiles)
@@ -148,6 +152,7 @@ inline void update_scroll_right() {
     if changed_attr_column {
         increment_attr_ptr(left_draw_attrs)
         increment_attr_ptr(right_draw_attrs)
+        uncompress_attr_column(right_draw_attrs)
     }
     
     //check if we need to load a new attribute column

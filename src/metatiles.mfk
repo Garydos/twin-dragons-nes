@@ -20,8 +20,43 @@ volatile pointer right_draw_attrs
 volatile pointer left_draw_attrs
 //place to store an uncompressed metatile column
 array uncompressed_meta_column[16]
+//place to store an uncompressed attr column
+array uncompressed_attr_column[8]
+
+void uncompress_attr_column(pointer attrs_ptr) {
+    if attrs_ptr < current_level_attrs || attrs_ptr >= current_level_attrs_end {
+        return
+    }
+    //Attribute columns are stored as RLE compressed bytes,
+    //this function uncompresses a column and stores
+    //it in uncompressed_attr_column
+    //
+    //Works basically the same as uncompress_metatile_column, see
+    //the comments in that function for more details
+    byte i
+    byte j
+    byte k
+    byte l
+    
+    j = 0
+    i = 0
+    l = 0
+    while j < $07{
+        k = attrs_ptr[i]
+        while k > 0 {
+            uncompressed_attr_column[l] = attrs_ptr[i+1]
+            l += 1
+            k -= 1
+        }
+        j += attrs_ptr[i]
+        i += 2
+    }
+}
 
 void uncompress_metatile_column(pointer metatiles_ptr) {
+    if metatiles_ptr < current_level_tiles || metatiles_ptr >= current_level_tiles_end {
+        return
+    }
     //Metatile columns are stored as RLE compressed bytes,
     //this function uncompresses a column and stores
     //it in uncompressed_meta_column
@@ -110,8 +145,14 @@ macro void decrement_draw_ptr_by_screen(pointer draw_tiles) {
 }
 
 macro void increment_attr_ptr(pointer draw_attrs) {
+    byte i
+
     if draw_attrs >= current_level_attrs && draw_attrs < current_level_attrs_end {
-        draw_attrs += $08
+        i = 0
+        while i < $08 {
+            i += draw_attrs[0]
+            draw_attrs += 2
+        }
     }
     else {
         draw_attrs += 1
@@ -126,8 +167,14 @@ macro void increment_attr_ptr_by_screen(pointer draw_attrs) {
 }
 
 macro void decrement_attr_ptr(pointer draw_attrs) {
+    byte i
+    
     if draw_attrs > current_level_attrs && draw_attrs <= current_level_attrs_end {
-        draw_attrs -= $08
+        i = 0
+        while i < $08 {
+            draw_attrs -= 2
+            i += draw_attrs[0]
+        }
     }
     else {
         draw_attrs -= 1
@@ -143,10 +190,6 @@ macro void decrement_attr_ptr_by_screen(pointer draw_attrs) {
 
 void load_attr_column_by_ptr(byte screen_column, byte nametable, pointer attrs_ptr) {
     byte i
-
-    if attrs_ptr < current_level_attrs || attrs_ptr >= current_level_attrs_end {
-        return
-    }
 
     //set ppu address increment to 1 so we can draw the left and right borders
     //(allows us to draw to the nametable in vertical strips rather than horizontal)
@@ -167,16 +210,12 @@ void load_attr_column_by_ptr(byte screen_column, byte nametable, pointer attrs_p
             ppu_set_addr(ppu_attrtable3 + (i<<3) + screen_column)
         }
 
-        ppu_write_data(attrs_ptr[i])
+        ppu_write_data(uncompressed_attr_column[i])
     }
 }
 
 void draw_column_with_counter_by_ptr(byte screen_column, byte nametable, pointer metatiles_ptr) {
-    screen_column <<= 1 // *= 2, convert to metatile column #
-    
-    if metatiles_ptr < current_level_tiles || metatiles_ptr >= current_level_tiles_end {
-        return
-    }
+    screen_column <<= 1 // *= 2, convert to metatile column number
     
     //set ppu address increment to 32 so we can draw the left and right borders
     //(allows us to draw to the nametable in vertical strips rather than horizontal)

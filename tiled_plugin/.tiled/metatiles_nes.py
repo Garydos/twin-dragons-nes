@@ -29,6 +29,30 @@ tile_attrs = {
     255:1
 }
 
+def rle_compress(arr: list, column_width: int):
+    if len(arr) == 0:
+        return []
+
+    compressed_arr = []
+    #split the array into multiple arrays of length column_width
+    column_split_arr = [arr[i:i+column_width] for i in range(0, len(arr), column_width)]
+    
+    for column in column_split_arr:
+        counter = 1
+        prev_item = column[0]
+        for item in column[1:]:
+            if item == prev_item:
+                counter += 1
+            else:
+                compressed_arr.append(counter)
+                compressed_arr.append(prev_item)
+                counter = 1
+                prev_item = item
+        compressed_arr.append(counter)
+        compressed_arr.append(prev_item)
+        
+    return compressed_arr
+
 def set_attr(tile_num : int, meta_row : int, meta_col : int, attrs_arr : list):
     attr_row = (meta_row//2)
     attr_col = (meta_col//2)
@@ -59,25 +83,29 @@ class Example(Plugin):
     @classmethod
     def write(cls, tileMap, fileName):
         attrs = [0 for i in range(8 * (tileMap.width() // 2))]
-        size = 0 #amount of bytes in Metatiles file
+        metatiles = []
         #Metatiles
+        for i in range(tileMap.layerCount()):
+            if isTileLayerAt(tileMap, i) and tileLayerAt(tileMap, i).name() == "Tiles":
+                tileLayer = tileLayerAt(tileMap, i)
+                for x in range(tileLayer.width()):
+                    for y in range(tileLayer.height()):
+                        set_attr(tileLayer.cellAt(x, y).tile().id(), y, x, attrs)
+                        metatiles.append(tileLayer.cellAt(x, y).tile().id())
+                    metatiles.append(255)
+        metatiles = rle_compress(metatiles,16)
         with open(fileName, 'wb') as fileHandle:
-            for i in range(tileMap.layerCount()):
-                if isTileLayerAt(tileMap, i) and tileLayerAt(tileMap, i).name() == "Tiles":
-                    tileLayer = tileLayerAt(tileMap, i)
-                    for x in range(tileLayer.width()):
-                        for y in range(tileLayer.height()):
-                            set_attr(tileLayer.cellAt(x, y).tile().id(), y, x, attrs)
-                            fileHandle.write(bytes([tileLayer.cellAt(x, y).tile().id()]))
-                            size += 1
-                        fileHandle.write(bytes([255]))
-                        size += 1
-        #Size
-        with open(fileName.rsplit(".",maxsplit=1)[0] + ".width", 'wb') as fileHandle:
-            fileHandle.write(size.to_bytes(2, byteorder='little'))
+            fileHandle.write(bytes(metatiles))
+        #Metatiles Size
+        with open(fileName.rsplit(".",maxsplit=1)[0] + ".meta_size", 'wb') as fileHandle:
+            fileHandle.write(len(metatiles).to_bytes(2, byteorder='little'))
         #Attributes
+        attrs = rle_compress(attrs,8)
         with open(fileName.rsplit(".",maxsplit=1)[0] + ".attrs", 'wb') as fileHandle:
             fileHandle.write(bytes(attrs))
+        #Attributes Size
+        with open(fileName.rsplit(".",maxsplit=1)[0] + ".attrs_size", 'wb') as fileHandle:
+            fileHandle.write(len(attrs).to_bytes(2, byteorder='little'))
         #Enemy Spawns
         enemies = []
         enemy_spawn_columns = []
