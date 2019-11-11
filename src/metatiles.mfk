@@ -58,7 +58,6 @@ void uncompress_metatile_column(pointer metatiles_ptr) {
 void fill_collis_column_from_ptr(byte col_num, pointer draw_tiles) {
     byte i
     
-    uncompress_metatile_column(draw_tiles)
     col_num <<= 4 // *= 16
 
     for i,0,until,$10 {

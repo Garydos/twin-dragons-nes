@@ -68,6 +68,7 @@ void draw_screen_by_pointers(byte screen_num) {
     }
     //fill the collision map
     for i,0,until,$10 {
+        uncompress_metatile_column(right_draw_tiles)
         fill_collis_column_from_ptr(i,right_draw_tiles)
         increment_draw_ptr(right_draw_tiles)
     }

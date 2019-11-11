@@ -102,12 +102,13 @@ void game_nmi() {
     ppu_mask = %00011110
     
     //Transfer the sprites to the screen through DMA
-    
-    //NOTE: handle_scrolling sometimes takes so long that sprite DMA
-    //bleeds into the drawing of the first scanline (particularly when crossing screens).  
-    //For now, avoid having sprites appear at the very top of the screen and all should
-    //still be well.
-    ppu_oam_dma_write(oam_buffer.addr.hi)
+    if new_frame {
+        //NOTE: handle_scrolling sometimes takes so long that sprite DMA
+        //bleeds into the drawing of the first scanline (particularly when crossing screens).  
+        //For now, avoid having sprites appear at the very top of the screen and all should
+        //still be well.
+        ppu_oam_dma_write(oam_buffer.addr.hi)
+    }
 
     //first wait for the previous frame's sprite0 hit
     //to clear

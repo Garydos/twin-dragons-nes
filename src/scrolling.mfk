@@ -11,6 +11,7 @@ volatile byte prev_xscroll_attr     //previous xcroll value + attr offset
 bool scrolling_right
 bool scrolling_left
 volatile byte previous_scroll //0 = scrolling right, 1 = scrolling left
+volatile byte prev_meta_col_change //0 = passed right meta column, 1 = passed left meta column
 const byte scroll_right_boundary = $88
 const byte scroll_left_boundary = $68
 
@@ -38,6 +39,7 @@ void init_scroll_vars() {
     draw_seam_column = 0
     draw_counter = 0
     previous_scroll = 0
+    prev_meta_col_change = 0
 }
 
 macro void set_next_column() {
@@ -77,6 +79,11 @@ inline void update_scroll_left() {
     if changed_meta_column{
         decrement_draw_ptr(left_draw_tiles)
         decrement_draw_ptr(right_draw_tiles)
+        //uncompress metatiles for the next draw
+        uncompress_metatile_column(left_draw_tiles)
+        //fill the new column in the collision page
+        fill_collis_column_from_ptr((draw_seam_column >> 1),left_draw_tiles)
+        prev_meta_col_change = 1
     }
     if changed_attr_column{
         decrement_attr_ptr(right_draw_attrs)
@@ -95,9 +102,6 @@ inline void update_scroll_left() {
         changed_screen = false
         draw_nametable = nametable
     }
-    
-    //uncompress metatiles for the next draw
-    uncompress_metatile_column(left_draw_tiles)
 }
 
 inline void update_scroll_right() {
@@ -130,8 +134,16 @@ inline void update_scroll_right() {
     // on a 16 pixel boundary, so
     // load the appropriate tiles
     if changed_meta_column{
+        //fill the new column in the collision page
+        if prev_meta_col_change != 0 {
+            uncompress_metatile_column(right_draw_tiles)
+        }
+        fill_collis_column_from_ptr((xscroll >> 4) - 1,right_draw_tiles)
         increment_draw_ptr(right_draw_tiles)
         increment_draw_ptr(left_draw_tiles)
+        //uncompress metatiles for the next draw
+        uncompress_metatile_column(right_draw_tiles)
+        prev_meta_col_change = 0
     }
     if changed_attr_column {
         increment_attr_ptr(left_draw_attrs)
@@ -150,8 +162,6 @@ inline void update_scroll_right() {
         draw_nametable = nametable ^ %00000001
     }
     
-    //uncompress metatiles for the next draw
-    uncompress_metatile_column(right_draw_tiles)
 }
 
 macro void passed_column_boundary(byte xscroll_new, byte xscroll_old) {
