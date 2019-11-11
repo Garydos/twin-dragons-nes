@@ -126,7 +126,7 @@ void game_nmi() {
     }
     
     //now wait for the end of the scanline
-    wait_cycles($10)
+    wait_cycles($02)
     
     //The status bar is done drawing, so draw the rest of
     //the screen with the correct scroll values

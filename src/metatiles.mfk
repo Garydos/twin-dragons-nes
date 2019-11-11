@@ -96,6 +96,10 @@ macro void decrement_attr_ptr_by_screen(pointer draw_attrs) {
 void load_attr_column_by_ptr(byte screen_column, byte nametable, pointer attrs_ptr) {
     byte i
 
+    if attrs_ptr < current_level_attrs || attrs_ptr >= current_level_attrs_end {
+        return
+    }
+
     //set ppu address increment to 1 so we can draw the left and right borders
     //(allows us to draw to the nametable in vertical strips rather than horizontal)
     ppu_ctrl = %00000000
@@ -121,6 +125,10 @@ void load_attr_column_by_ptr(byte screen_column, byte nametable, pointer attrs_p
 
 void draw_column_with_counter_by_ptr(byte screen_column, byte nametable, pointer metatiles_ptr) {
     screen_column <<= 1 // *= 2, convert to metatile column #
+    
+    if metatiles_ptr < current_level_tiles || metatiles_ptr >= current_level_tiles_end {
+        return
+    }
     
     //set ppu address increment to 32 so we can draw the left and right borders
     //(allows us to draw to the nametable in vertical strips rather than horizontal)
