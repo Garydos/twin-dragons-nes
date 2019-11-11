@@ -83,11 +83,7 @@ void draw_screen_by_pointers(byte screen_num) {
         draw_counter = 0
 
         //attrs
-        draw_counter = 3
-        load_attr_column_with_counter_by_ptr(7,1,left_draw_attrs)
-        draw_counter = 4
-        load_attr_column_with_counter_by_ptr(7,1,left_draw_attrs)
-        draw_counter = 0
+        load_attr_column_by_ptr(7,1,left_draw_attrs)
     }
     
     decrement_attr_ptr(left_draw_attrs) //put the left attr pointer just off the left of the screen
@@ -105,11 +101,7 @@ void draw_screen_by_pointers(byte screen_num) {
             
             //attrs
             if i & %00000001 == 0 {
-                draw_counter = 3
-                load_attr_column_with_counter_by_ptr(i>>1,0,right_draw_attrs)
-                draw_counter = 4
-                load_attr_column_with_counter_by_ptr(i>>1,0,right_draw_attrs)
-                draw_counter = 0
+                load_attr_column_by_ptr(i>>1,0,right_draw_attrs)
                 increment_attr_ptr(right_draw_attrs)
             }
         }
@@ -120,11 +112,7 @@ void draw_screen_by_pointers(byte screen_num) {
         draw_counter = 0
         
         //attrs
-        draw_counter = 3
-        load_attr_column_with_counter_by_ptr(0,1,right_draw_attrs)
-        draw_counter = 4
-        load_attr_column_with_counter_by_ptr(0,1,right_draw_attrs)
-        draw_counter = 0
+        load_attr_column_by_ptr(0,1,right_draw_attrs)
     }
     else {
         //get right_draw_tiles to the right end of the screen
@@ -139,11 +127,7 @@ void draw_screen_by_pointers(byte screen_num) {
             
             //attrs
             if i & %00000001 == 1 {
-                draw_counter = 3
-                load_attr_column_with_counter_by_ptr(i>>1,0,right_draw_attrs)
-                draw_counter = 4
-                load_attr_column_with_counter_by_ptr(i>>1,0,right_draw_attrs)
-                draw_counter = 0
+                load_attr_column_by_ptr(i>>1,0,right_draw_attrs)
                 increment_attr_ptr(right_draw_attrs)
             }
         }
@@ -155,11 +139,7 @@ void draw_screen_by_pointers(byte screen_num) {
         increment_draw_ptr(right_draw_tiles)
         
         //attrs
-        draw_counter = 3
-        load_attr_column_with_counter_by_ptr(7,0,right_draw_attrs)
-        draw_counter = 4
-        load_attr_column_with_counter_by_ptr(7,0,right_draw_attrs)
-        draw_counter = 0
+        load_attr_column_by_ptr(7,0,right_draw_attrs)
     }
 }
 
