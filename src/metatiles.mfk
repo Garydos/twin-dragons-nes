@@ -119,14 +119,6 @@ void load_attr_column_by_ptr(byte screen_column, byte nametable, pointer attrs_p
     }
 }
 
-inline pointer get_attrs_column(word metatiles_column) {
-    pointer attrs_ptr
-    attrs_ptr = current_level_attrs
-    metatiles_column <<= 3 // *= $08
-    attrs_ptr += metatiles_column
-    return attrs_ptr
-}
-
 void draw_column_with_counter_by_ptr(byte screen_column, byte nametable, pointer metatiles_ptr) {
     screen_column <<= 1 // *= 2, convert to metatile column #
     
