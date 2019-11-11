@@ -186,11 +186,11 @@ inline void left_metatile_scroll() {
         //to make sure the result is always between 0 and 7 inclusive
         
         if k > 5{
-            //k == 6 and k == 7 are the screen change columns (since we offset
+            //k == 6 and k == 7 are the nametable change columns (since we offset
             //drawing the next attr column by 1), so in these instances we need
             //need to draw on the opposite nametable.  You could possibly simplify this
             //by creating a seperate draw_nametable variable exclusively for
-            //the attribute scrolling
+            //the attribute scrolling and keep track of it with 1 attr column offset there.
             draw_nametable = draw_nametable ^ %00000001
             load_attr_column_by_ptr(k,draw_nametable,left_draw_attrs)
         }
