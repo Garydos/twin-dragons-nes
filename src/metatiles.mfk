@@ -208,9 +208,6 @@ void draw_column_with_counter_by_ptr_left(byte screen_column, byte nametable, po
 inline void draw_column_first_draw(byte nametable, byte screen_column, pointer metatiles_ptr) {
     //first frame of the column draw
     //draws the leftmost column of the metatile column
-    byte i
-    byte j
-    byte k
     
     if nametable == 0 {
         ppu_set_addr(ppu_nametable0 + $80 + screen_column)
@@ -225,6 +222,17 @@ inline void draw_column_first_draw(byte nametable, byte screen_column, pointer m
         ppu_set_addr(ppu_nametable3 + $80 + screen_column)
     }
 
+    draw_compressed_first_column(metatiles_ptr)
+}
+
+macro void draw_compressed_first_column(pointer metatiles_ptr) {
+    //Metatile columns are stored as RLE compressed bytes,
+    //this function uncompresses them and draws the first column
+    //of the metatiles
+    byte i
+    byte j
+    byte k
+    
     j = 0
     i = 0
     //j keeps track of the amount of tiles we have written in total.
@@ -258,9 +266,6 @@ inline void draw_column_first_draw(byte nametable, byte screen_column, pointer m
 inline void draw_column_second_draw(byte nametable, byte screen_column, pointer metatiles_ptr) {
     //second frame of the column draw
     //draws the rightmost column of the metatile column
-    byte i
-    byte j
-    byte k
     
     if nametable == 0 {
         ppu_set_addr(ppu_nametable0 + $80 + screen_column + 1)
@@ -274,6 +279,17 @@ inline void draw_column_second_draw(byte nametable, byte screen_column, pointer 
     else if nametable == 3 {
         ppu_set_addr(ppu_nametable3 + $80 + screen_column + 1)
     }
+    
+    draw_compressed_second_column(metatiles_ptr)
+}
+
+macro void draw_compressed_second_column(pointer metatiles_ptr) {
+    //Metatile columns are stored as RLE compressed bytes,
+    //this function uncompresses them and draws the second column
+    //of the metatiles
+    byte i
+    byte j
+    byte k
     
     j = 0
     i = 0
