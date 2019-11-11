@@ -186,7 +186,7 @@ inline void left_metatile_scroll() {
         //to make sure the result is always between 0 and 7 inclusive
         
         if k > 5{
-            //k == 6 and k == 7 are the screen change column (since we offset
+            //k == 6 and k == 7 are the screen change columns (since we offset
             //drawing the next attr column by 1), so in these instances we need
             //need to draw on the opposite nametable.  You could possibly simplify this
             //by creating a seperate draw_nametable variable exclusively for
