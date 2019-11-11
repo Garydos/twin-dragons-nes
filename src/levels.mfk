@@ -88,8 +88,8 @@ void draw_screen_by_pointers(byte screen_num) {
         draw_counter = 4
         load_attr_column_with_counter_by_ptr(7,1,left_draw_attrs)
         draw_counter = 0
-        decrement_attr_ptr(left_draw_attrs)
     }
+    decrement_attr_ptr(left_draw_attrs)
     if screen_num != max_screen {
         //get right_draw_tiles to the right end of the screen
         //(16 columns forward)

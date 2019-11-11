@@ -174,8 +174,8 @@ inline void left_metatile_scroll() {
     byte k
     
     if draw_counter == 0 && changed_attr_column{
-        decrement_attr_ptr(left_draw_attrs)
         decrement_attr_ptr(right_draw_attrs)
+        decrement_attr_ptr(left_draw_attrs)
         
         k = ((xscroll_attr>>5)-1) & %00000111
         //We want to offset the attribute column by 1 when scrolling left
@@ -192,8 +192,11 @@ inline void left_metatile_scroll() {
             //by creating a seperate draw_nametable variable exclusively for
             //the attribute scrolling
             draw_nametable = draw_nametable ^ %00000001
+            load_attr_column_by_ptr(k,draw_nametable,left_draw_attrs)
         }
-        load_attr_column_by_ptr(k,draw_nametable,left_draw_attrs)
+        else {
+            load_attr_column_by_ptr(k,draw_nametable,left_draw_attrs)
+        }
     }
     else if changed_column || draw_counter > 0 {
         draw_column_with_counter_by_ptr((xscroll>>4),draw_nametable, left_draw_tiles)
