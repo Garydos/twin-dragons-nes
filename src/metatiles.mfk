@@ -18,37 +18,51 @@ volatile pointer left_draw_tiles
 //from the current level to be loaded next.
 volatile pointer right_draw_attrs
 volatile pointer left_draw_attrs
+//place to store an uncompressed metatile column
+array uncompressed_meta_column[16]
 
-void fill_collis_column_from_ptr(byte col_num, pointer draw_tiles) {
+void uncompress_metatile_column(pointer metatiles_ptr) {
+    //Metatile columns are stored as RLE compressed bytes,
+    //this function uncompresses a column and stores
+    //it in uncompressed_meta_column
     byte i
     byte j
     byte k
     byte l
     
-    col_num <<= 4 // *= 16
-
+    j = 0
+    i = 0
+    l = 0
     //j keeps track of the amount of tiles we have written in total.
     //a column is 16 metatiles, so we want to stop once we've reached
     //that amount in total
-    l = 0
-    j = 0
-    i = 0
-    while j < $10{
+    while j < $0F{
         //first byte of RLE encoded column indicates how many of
         //this metatile are to be written
-        k = draw_tiles[i]
+        k = metatiles_ptr[i]
         while k > 0 {
             //now loop through and write the appropriate amount
             //of tiles
-            metatile_collis_map[col_num+l] = draw_tiles[i+1]
+            uncompressed_meta_column[l] = metatiles_ptr[i+1]
             l += 1
             k -= 1
         }
         //add to our running counter of the amount of tiles
         //we've written so far
-        j += draw_tiles[i]
+        j += metatiles_ptr[i]
         //advance to the next set of bytes
         i += 2
+    }
+}
+
+void fill_collis_column_from_ptr(byte col_num, pointer draw_tiles) {
+    byte i
+    
+    uncompress_metatile_column(draw_tiles)
+    col_num <<= 4 // *= 16
+
+    for i,0,until,$10 {
+        metatile_collis_map[col_num+i] = uncompressed_meta_column[i]
     }
 }
 
@@ -169,7 +183,7 @@ void draw_column_with_counter_by_ptr(byte screen_column, byte nametable, pointer
     //(allows us to draw to the nametable in vertical strips rather than horizontal)
     ppu_ctrl = %00000100
     read_ppu_status()
-    
+        
     if draw_counter == 0 || draw_counter == 1 {
         //draw the first column on the first frame
         draw_column_first_draw(nametable, screen_column, metatiles_ptr)
@@ -208,6 +222,7 @@ void draw_column_with_counter_by_ptr_left(byte screen_column, byte nametable, po
 inline void draw_column_first_draw(byte nametable, byte screen_column, pointer metatiles_ptr) {
     //first frame of the column draw
     //draws the leftmost column of the metatile column
+    byte i
     
     if nametable == 0 {
         ppu_set_addr(ppu_nametable0 + $80 + screen_column)
@@ -221,51 +236,19 @@ inline void draw_column_first_draw(byte nametable, byte screen_column, pointer m
     else if nametable == 3 {
         ppu_set_addr(ppu_nametable3 + $80 + screen_column)
     }
-
-    draw_compressed_first_column(metatiles_ptr)
-}
-
-macro void draw_compressed_first_column(pointer metatiles_ptr) {
-    //Metatile columns are stored as RLE compressed bytes,
-    //this function uncompresses them and draws the first column
-    //of the metatiles
-    byte i
-    byte j
-    byte k
     
-    j = 0
-    i = 0
-    //j keeps track of the amount of tiles we have written in total.
-    //a column is 16 metatiles, so we want to stop once we've reached
-    //that amount in total
-    while j < $0F{
-        //first byte of RLE encoded column indicates how many of
-        //this metatile are to be written
-        k = metatiles_ptr[i]
-        //skip the first two tiles due to the status bar
-        if j < 2 {
-            k -= 1
-            if k > 0 {
-                k -= 1
-            }
-        }
-        while k > 0 {
-            //now loop through and write the appropriate amount
-            //of tiles
-            draw_metatile_first_column(metatiles_ptr[i+1])
-            k -= 1
-        }
-        //add to our running counter of the amount of tiles
-        //we've written so far
-        j += metatiles_ptr[i]
-        //advance to the next set of bytes
-        i += 2
+    //skip to $02 because the metatile data is structured to ignore the
+    //first two metatiles, and end before $0F because that byte is a junk
+    //byte as well
+    for i,$02,until,$0F {
+        draw_metatile_first_column(uncompressed_meta_column[i])
     }
 }
 
 inline void draw_column_second_draw(byte nametable, byte screen_column, pointer metatiles_ptr) {
     //second frame of the column draw
     //draws the rightmost column of the metatile column
+    byte i
     
     if nametable == 0 {
         ppu_set_addr(ppu_nametable0 + $80 + screen_column + 1)
@@ -280,44 +263,11 @@ inline void draw_column_second_draw(byte nametable, byte screen_column, pointer 
         ppu_set_addr(ppu_nametable3 + $80 + screen_column + 1)
     }
     
-    draw_compressed_second_column(metatiles_ptr)
-}
-
-macro void draw_compressed_second_column(pointer metatiles_ptr) {
-    //Metatile columns are stored as RLE compressed bytes,
-    //this function uncompresses them and draws the second column
-    //of the metatiles
-    byte i
-    byte j
-    byte k
-    
-    j = 0
-    i = 0
-    //j keeps track of the amount of tiles we have written in total.
-    //a column is 16 metatiles, so we want to stop once we've reached
-    //that amount in total
-    while j < $0F{
-        //first byte of RLE encoded column indicates how many of
-        //this metatile are to be written
-        k = metatiles_ptr[i]
-        //skip the first two tiles due to the status bar
-        if j < 2 {
-            k -= 1
-            if k > 0 {
-                k -= 1
-            }
-        }
-        while k > 0 {
-            //now loop through and write the appropriate amount
-            //of tiles
-            draw_metatile_second_column(metatiles_ptr[i+1])
-            k -= 1
-        }
-        //add to our running counter of the amount of tiles
-        //we've written so far
-        j += metatiles_ptr[i]
-        //advance to the next set of bytes
-        i += 2
+    //skip to $02 because the metatile data is structured to ignore the
+    //first two metatiles, and end before $0F because that byte is a junk
+    //byte as well
+    for i,$02,until,$0F {
+        draw_metatile_second_column(uncompressed_meta_column[i])
     }
 }
 
