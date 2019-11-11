@@ -9,10 +9,15 @@ volatile bool changed_screen
 volatile pointer current_level_tiles
 volatile pointer current_level_tiles_end
 volatile pointer current_level_attrs
+volatile pointer current_level_attrs_end
 //pointers to the right and left screen metatiles
 //from the current level to be loaded next.
 volatile pointer right_draw_tiles
 volatile pointer left_draw_tiles
+//pointers to the right and left screen attributes
+//from the current level to be loaded next.
+volatile pointer right_draw_attrs
+volatile pointer left_draw_attrs
 
 void fill_collis_column_from_ptr(byte col_num, pointer draw_tiles) {
     byte i
@@ -56,10 +61,40 @@ macro void decrement_draw_ptr_by_screen(pointer draw_tiles) {
     }
 }
 
-void load_attr_column(byte screen_column, byte nametable, word attrs_column) {
+macro void increment_attr_ptr(pointer draw_attrs) {
+    if draw_attrs >= current_level_attrs && draw_attrs < current_level_attrs_end {
+        draw_attrs += $08
+    }
+    else {
+        draw_attrs += 1
+    }
+}
+
+macro void increment_attr_ptr_by_screen(pointer draw_attrs) {
+    byte k
+    for k,0,until,$08 {
+        increment_attr_ptr(draw_attrs)
+    }
+}
+
+macro void decrement_attr_ptr(pointer draw_attrs) {
+    if draw_attrs > current_level_attrs && draw_attrs <= current_level_attrs_end {
+        draw_attrs -= $08
+    }
+    else {
+        draw_attrs -= 1
+    }
+}
+
+macro void decrement_attr_ptr_by_screen(pointer draw_attrs) {
+    byte k
+    for k,0,until,$08 {
+        decrement_attr_ptr(draw_attrs)
+    }
+}
+
+void load_attr_column_by_ptr(byte screen_column, byte nametable, pointer attrs_ptr) {
     byte i
-    pointer attrs_ptr
-    attrs_ptr = get_attrs_column(attrs_column)
 
     //set ppu address increment to 1 so we can draw the left and right borders
     //(allows us to draw to the nametable in vertical strips rather than horizontal)
@@ -81,6 +116,20 @@ void load_attr_column(byte screen_column, byte nametable, word attrs_column) {
         }
 
         ppu_write_data(attrs_ptr[i])
+    }
+}
+
+void load_attr_column_with_counter_by_ptr(byte screen_column, byte nametable, pointer attrs_ptr) {
+    //set ppu address increment to 1 so we can draw the left and right borders
+    //(allows us to draw to the nametable in vertical strips rather than horizontal)
+    ppu_ctrl = %00000000
+    read_ppu_status()
+
+    if draw_counter == 0 || draw_counter == 3 {
+        load_attr_first_draw(nametable, screen_column, attrs_ptr)
+    }
+    else if draw_counter == 4 {
+        load_attr_second_draw(nametable, screen_column, attrs_ptr)
     }
 }
 

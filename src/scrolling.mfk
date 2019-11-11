@@ -6,6 +6,8 @@ volatile byte current_screen   //screen to load next
 byte max_screen       //final screen number
 volatile byte xscroll          //screen x scroll value
 volatile byte prev_xscroll     //previous xcroll value
+volatile byte xscroll_attr          //screen x scroll value + attr offset
+volatile byte prev_xscroll_attr     //previous xcroll value + attr offset
 bool scrolling_right
 bool scrolling_left
 volatile byte previous_scroll //0 = scrolling right, 1 = scrolling left
@@ -31,6 +33,7 @@ void reset_scroll_flags() {
 
 void init_scroll_vars() {
     xscroll = 0
+    xscroll_attr = 0 + attr_draw_offset
     nametable = 0
     draw_seam_column = 0
     draw_counter = 0
@@ -51,9 +54,12 @@ macro void set_next_column() {
 inline void update_scroll_left() {
     prev_xscroll = xscroll
     xscroll -= scroll_speed
+    prev_xscroll_attr = xscroll_attr
+    xscroll_attr -= scroll_speed
     
     passed_column_boundary(xscroll, prev_xscroll)
     passed_meta_column_boundary(xscroll, prev_xscroll)
+    passed_attr_column_boundary(xscroll_attr, prev_xscroll_attr)
     
     if xscroll > prev_xscroll {
         //we overflowed to a new screen
@@ -75,10 +81,8 @@ inline void update_scroll_left() {
     
     //check if we need to load a new attribute column
     //by factoring in the attribute load offset
-    xscroll -= attr_draw_offset
-    prev_xscroll -= attr_draw_offset
     
-    if xscroll > prev_xscroll {
+    if xscroll_attr > prev_xscroll_attr {
         changed_screen = true
         draw_nametable = nametable ^ %00000001
     }
@@ -86,20 +90,18 @@ inline void update_scroll_left() {
         changed_screen = false
         draw_nametable = nametable
     }
-
-    passed_attr_column_boundary(xscroll, prev_xscroll)
-    
-    xscroll += attr_draw_offset
-    prev_xscroll += attr_draw_offset
 }
 
 inline void update_scroll_right() {
     prev_xscroll = xscroll
     xscroll += scroll_speed
+    prev_xscroll_attr = xscroll_attr
+    xscroll_attr += scroll_speed
     
     passed_column_boundary(xscroll, prev_xscroll)
     passed_meta_column_boundary(xscroll, prev_xscroll)
-    
+    passed_attr_column_boundary(xscroll_attr, prev_xscroll_attr)
+
     if xscroll < prev_xscroll {
         //we overflowed to a new screen
         current_screen += 1
@@ -126,10 +128,8 @@ inline void update_scroll_right() {
     
     //check if we need to load a new attribute column
     //by factoring in the attribute load offset
-    xscroll += attr_draw_offset
-    prev_xscroll += attr_draw_offset
-    
-    if xscroll < prev_xscroll {
+
+    if xscroll_attr < prev_xscroll_attr {
         changed_screen = true
         draw_nametable = nametable
     }
@@ -137,11 +137,6 @@ inline void update_scroll_right() {
         changed_screen = false
         draw_nametable = nametable ^ %00000001
     }
-
-    passed_attr_column_boundary(xscroll, prev_xscroll)
-    
-    xscroll -= attr_draw_offset
-    prev_xscroll -= attr_draw_offset
 }
 
 macro void passed_column_boundary(byte xscroll_new, byte xscroll_old) {
@@ -176,22 +171,29 @@ macro void passed_attr_column_boundary(byte xscroll_new, byte xscroll_old) {
 
 
 inline void left_metatile_scroll() {
+    byte k
+    
     if draw_counter == 0 && changed_attr_column{
-        // about to enter a 32 pixel boundary, so
-        // draw the attributes
-        set_next_column()
-        next_column >>= 2
-        next_column -= 1
+        decrement_attr_ptr(left_draw_attrs)
+        decrement_attr_ptr(right_draw_attrs)
         
-        if changed_screen {
-            //we've overflowed onto a new screen, so draw on the right nametable
-            load_attr_column($07,draw_nametable,next_column)
+        k = ((xscroll_attr>>5)-1) & %00000111
+        //We want to offset the attribute column by 1 when scrolling left
+        //so that it draws behind the edge of the screen, to do this
+        //we convert xscroll_attr to the appropriate attribute column
+        //by dividing by 32 (>>5), then subtracting by 1 to get the column
+        //just off-screen. This can overflow however, so we use & %00000111
+        //to make sure the result is always between 0 and 7 inclusive
+        
+        if k > 5{
+            //k == 6 and k == 7 are the screen change column (since we offset
+            //drawing the next attr column by 1), so in these instances we need
+            //need to draw on the opposite nametable.  You could possibly simplify this
+            //by creating a seperate draw_nametable variable exclusively for
+            //the attribute scrolling
+            draw_nametable = draw_nametable ^ %00000001
         }
-        else {
-            load_attr_column((xscroll>>5) - 1,draw_nametable,next_column)
-            //we subtract 1 from the 1st and 3rd arguments because we're loading
-            //in attribute tables 1 step ahead in order to keep up with scrolling
-        }
+        load_attr_column_by_ptr(k,draw_nametable,left_draw_attrs)
     }
     else if changed_column || draw_counter > 0 {
         draw_column_with_counter_by_ptr((xscroll>>4),draw_nametable, left_draw_tiles)
@@ -204,17 +206,10 @@ inline void right_metatile_scroll() {
     // on the same frame, as that would take
     // too much time and bleed into screen rendering
     if draw_counter == 0 && changed_attr_column {
-        // about to enter a 32 pixel boundary, so
-        // draw the attributes
-        set_next_column()
-        next_column += $20
+        increment_attr_ptr(left_draw_attrs)
+        increment_attr_ptr(right_draw_attrs)
         
-        next_column >>= 2
-        next_column += 1
-        
-        load_attr_column((xscroll+attr_draw_offset)>>5,draw_nametable,next_column)
-        //add 1 to 3rd argument because we are loading the column that is one ahead
-        //of our loading seam
+        load_attr_column_by_ptr((xscroll_attr>>5),draw_nametable,right_draw_attrs)
     }
     else if changed_meta_column || draw_counter > 0 {
         draw_column_with_counter_by_ptr((xscroll>>4),draw_nametable, right_draw_tiles)

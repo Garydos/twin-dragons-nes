@@ -47,7 +47,6 @@ void load_level(byte level_num) {
 
 void load_screen(byte screen_num) {
     current_screen = screen_num
-    draw_full_screen_attrs(screen_num)
     draw_screen_by_pointers(screen_num)
 }
 
@@ -57,11 +56,15 @@ void draw_screen_by_pointers(byte screen_num) {
     
     right_draw_tiles = current_level_tiles
     left_draw_tiles = current_level_tiles
+    right_draw_attrs = current_level_attrs
+    left_draw_attrs = current_level_attrs
     
-    //now set both of the pointers to the appropriate screen
+    //now set the pointers to the appropriate screen
     for i,0,until,screen_num {
         increment_draw_ptr_by_screen(right_draw_tiles)
         increment_draw_ptr_by_screen(left_draw_tiles)
+        increment_attr_ptr_by_screen(right_draw_attrs)
+        increment_attr_ptr_by_screen(left_draw_attrs)
     }
     //fill the collision map
     for i,0,until,$10 {
@@ -71,41 +74,89 @@ void draw_screen_by_pointers(byte screen_num) {
     //reset the right_draw_tiles pointer we used for filling
     //the collision map
     right_draw_tiles = left_draw_tiles
-    //now move the draw_tiles pointers to their correct positions
+    //now move the pointers to their correct positions
     if screen_num != 0 {
+        //metatiles
         draw_counter = 0
         draw_column_with_counter_by_ptr(15,1,left_draw_tiles)
         draw_column_with_counter_by_ptr(15,1,left_draw_tiles)
         draw_counter = 0
+
+        //attrs
+        draw_counter = 3
+        load_attr_column_with_counter_by_ptr(7,1,left_draw_attrs)
+        draw_counter = 4
+        load_attr_column_with_counter_by_ptr(7,1,left_draw_attrs)
+        draw_counter = 0
+        decrement_attr_ptr(left_draw_attrs)
     }
     if screen_num != max_screen {
         //get right_draw_tiles to the right end of the screen
         //(16 columns forward)
         for i,0,until,$10 {
+            //metatiles
             draw_counter = 0
             draw_column_with_counter_by_ptr(i,0,right_draw_tiles)
             draw_column_with_counter_by_ptr(i,0,right_draw_tiles)
             draw_counter = 0
             increment_draw_ptr(right_draw_tiles)
+            
+            //attrs
+            if i & %00000001 == 0 {
+                draw_counter = 3
+                load_attr_column_with_counter_by_ptr(i>>1,0,right_draw_attrs)
+                draw_counter = 4
+                load_attr_column_with_counter_by_ptr(i>>1,0,right_draw_attrs)
+                draw_counter = 0
+                increment_attr_ptr(right_draw_attrs)
+            }
         }
+        //metatiles
         draw_counter = 0
         draw_column_with_counter_by_ptr(0,1,right_draw_tiles)
         draw_column_with_counter_by_ptr(0,1,right_draw_tiles)
+        draw_counter = 0
+        
+        //attrs
+        draw_counter = 3
+        load_attr_column_with_counter_by_ptr(0,1,right_draw_attrs)
+        draw_counter = 4
+        load_attr_column_with_counter_by_ptr(0,1,right_draw_attrs)
         draw_counter = 0
     }
     else {
         //get right_draw_tiles to the right end of the screen
         //(15 columns forward)
         for i,0,until,$0F {
+            //metatiles
             draw_counter = 0
             draw_column_with_counter_by_ptr(i,0,right_draw_tiles)
             draw_column_with_counter_by_ptr(i,0,right_draw_tiles)
             draw_counter = 0
             increment_draw_ptr(right_draw_tiles)
+            
+            //attrs
+            if i & %00000001 == 1 {
+                draw_counter = 3
+                load_attr_column_with_counter_by_ptr(i>>1,0,right_draw_attrs)
+                draw_counter = 4
+                load_attr_column_with_counter_by_ptr(i>>1,0,right_draw_attrs)
+                draw_counter = 0
+                increment_attr_ptr(right_draw_attrs)
+            }
         }
+        //metatiles
         draw_counter = 0
         draw_column_with_counter_by_ptr(i,0,right_draw_tiles)
         draw_column_with_counter_by_ptr(i,0,right_draw_tiles)
+        draw_counter = 0
+        increment_draw_ptr(right_draw_tiles)
+        
+        //attrs
+        draw_counter = 3
+        load_attr_column_with_counter_by_ptr(7,0,right_draw_attrs)
+        draw_counter = 4
+        load_attr_column_with_counter_by_ptr(7,0,right_draw_attrs)
         draw_counter = 0
     }
 }
