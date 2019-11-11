@@ -21,17 +21,46 @@ volatile pointer left_draw_attrs
 
 void fill_collis_column_from_ptr(byte col_num, pointer draw_tiles) {
     byte i
+    byte j
+    byte k
+    byte l
     
     col_num <<= 4 // *= 16
-    
-    for i,0,until,$10 {
-        metatile_collis_map[col_num+i] = draw_tiles[i]
+
+    //j keeps track of the amount of tiles we have written in total.
+    //a column is 16 metatiles, so we want to stop once we've reached
+    //that amount in total
+    l = 0
+    j = 0
+    i = 0
+    while j < $10{
+        //first byte of RLE encoded column indicates how many of
+        //this metatile are to be written
+        k = draw_tiles[i]
+        while k > 0 {
+            //now loop through and write the appropriate amount
+            //of tiles
+            metatile_collis_map[col_num+l] = draw_tiles[i+1]
+            l += 1
+            k -= 1
+        }
+        //add to our running counter of the amount of tiles
+        //we've written so far
+        j += draw_tiles[i]
+        //advance to the next set of bytes
+        i += 2
     }
 }
 
 macro void increment_draw_ptr(pointer draw_tiles) {
+    byte i
+
     if draw_tiles >= current_level_tiles && draw_tiles < current_level_tiles_end {
-        draw_tiles += $10
+        i = 0
+        while i < $10 {
+            i += draw_tiles[0]
+            draw_tiles += 2
+        }
     }
     else {
         draw_tiles += 1
@@ -46,8 +75,14 @@ macro void increment_draw_ptr_by_screen(pointer draw_tiles) {
 }
 
 macro void decrement_draw_ptr(pointer draw_tiles) {
+    byte i
+    
     if draw_tiles > current_level_tiles && draw_tiles <= current_level_tiles_end {
-        draw_tiles -= $10
+        i = 0
+        while i < $10 {
+            draw_tiles -= 2
+            i += draw_tiles[0]
+        }
     }
     else {
         draw_tiles -= 1
@@ -174,6 +209,8 @@ inline void draw_column_first_draw(byte nametable, byte screen_column, pointer m
     //first frame of the column draw
     //draws the leftmost column of the metatile column
     byte i
+    byte j
+    byte k
     
     if nametable == 0 {
         ppu_set_addr(ppu_nametable0 + $80 + screen_column)
@@ -188,11 +225,33 @@ inline void draw_column_first_draw(byte nametable, byte screen_column, pointer m
         ppu_set_addr(ppu_nametable3 + $80 + screen_column)
     }
 
-    //skip to $02 because the metatile data is structured to ignore the
-    //first two metatiles, and end before $0F because that byte is a junk
-    //byte as well
-    for i,$02,until,$0F {
-        draw_metatile_first_column(metatiles_ptr[i])
+    j = 0
+    i = 0
+    //j keeps track of the amount of tiles we have written in total.
+    //a column is 16 metatiles, so we want to stop once we've reached
+    //that amount in total
+    while j < $0F{
+        //first byte of RLE encoded column indicates how many of
+        //this metatile are to be written
+        k = metatiles_ptr[i]
+        //skip the first two tiles due to the status bar
+        if j < 2 {
+            k -= 1
+            if k > 0 {
+                k -= 1
+            }
+        }
+        while k > 0 {
+            //now loop through and write the appropriate amount
+            //of tiles
+            draw_metatile_first_column(metatiles_ptr[i+1])
+            k -= 1
+        }
+        //add to our running counter of the amount of tiles
+        //we've written so far
+        j += metatiles_ptr[i]
+        //advance to the next set of bytes
+        i += 2
     }
 }
 
@@ -200,6 +259,8 @@ inline void draw_column_second_draw(byte nametable, byte screen_column, pointer 
     //second frame of the column draw
     //draws the rightmost column of the metatile column
     byte i
+    byte j
+    byte k
     
     if nametable == 0 {
         ppu_set_addr(ppu_nametable0 + $80 + screen_column + 1)
@@ -214,11 +275,33 @@ inline void draw_column_second_draw(byte nametable, byte screen_column, pointer 
         ppu_set_addr(ppu_nametable3 + $80 + screen_column + 1)
     }
     
-    //skip to $02 because the metatile data is structured to ignore the
-    //first two metatiles, and end before $0F because that byte is a junk
-    //byte as well
-    for i,$02,until,$0F {
-        draw_metatile_second_column(metatiles_ptr[i])
+    j = 0
+    i = 0
+    //j keeps track of the amount of tiles we have written in total.
+    //a column is 16 metatiles, so we want to stop once we've reached
+    //that amount in total
+    while j < $0F{
+        //first byte of RLE encoded column indicates how many of
+        //this metatile are to be written
+        k = metatiles_ptr[i]
+        //skip the first two tiles due to the status bar
+        if j < 2 {
+            k -= 1
+            if k > 0 {
+                k -= 1
+            }
+        }
+        while k > 0 {
+            //now loop through and write the appropriate amount
+            //of tiles
+            draw_metatile_second_column(metatiles_ptr[i+1])
+            k -= 1
+        }
+        //add to our running counter of the amount of tiles
+        //we've written so far
+        j += metatiles_ptr[i]
+        //advance to the next set of bytes
+        i += 2
     }
 }
 

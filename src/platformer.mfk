@@ -87,6 +87,13 @@ void game_logic() {
     clear_stacks()
     handle_player_anim(pointer.Player(player1.addr))
     handle_enemy_anims()
+    //handle some scrolling stuff here so that NMI doesn't get clogged
+    if scrolling_right{
+        update_scroll_right()
+    }
+    if scrolling_left {
+        update_scroll_left()
+    }
 }
 
 inline void update_player_timers() {
@@ -129,24 +136,12 @@ inline void spawn_enemies() {
 inline void handle_scrolling() {
     //either scrolling right or have a column to finish drawing
     if scrolling_right || (previous_scroll == 0 && draw_counter > 0) {
-        
-        //update the scroll variable
-        if scrolling_right{
-            update_scroll_right()
-        }
-        
         right_metatile_scroll()
         
         previous_scroll = 0
     }
     //either scrolling left or have a column to finish drawing
     else if scrolling_left || (previous_scroll == 1 && draw_counter > 0) {
-        //left scroll logic
-        
-        if scrolling_left {
-            update_scroll_left()
-        }
-        
         left_metatile_scroll()
     
         previous_scroll = 1
