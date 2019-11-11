@@ -127,63 +127,6 @@ inline pointer get_attrs_column(word metatiles_column) {
     return attrs_ptr
 }
 
-void draw_full_screen_attrs(byte screen_num) {
-    //draw the full screen at nametable 0, plus
-    //two extra metatile/attribute columns so that
-    //you can scroll both ways if needed
-    word metatile_column
-    word attr_column
-    
-    metatile_column = screen_num
-    metatile_column <<= 4
-    
-    if screen_num != 0 {
-        //draw one column to the left of the visible screen
-        attr_column = metatile_column
-        attr_column >>= 1
-        attr_column -= 1
-        
-        draw_counter = 3
-        load_attr_column_with_counter(7,1,attr_column)
-        draw_counter = 4
-        load_attr_column_with_counter(7,1,attr_column)
-        draw_counter = 0
-    }
-    draw_full_screen_attrs_aux(0, metatile_column)
-    if screen_num != max_screen {
-        //draw one column to the right of the visible screen
-        attr_column = metatile_column
-        attr_column >>= 1
-        attr_column += 8
-        
-        draw_counter = 3
-        load_attr_column_with_counter(0,1,attr_column)
-        draw_counter = 4
-        load_attr_column_with_counter(0,1,attr_column)
-        draw_counter = 0
-    }
-}
-
-void draw_full_screen_attrs_aux(byte nametable, word metatile_column) {
-    //draw a full screen of attrs starting from the specified metatile column
-    load_attr_column(0,nametable,metatile_column>>1)
-    metatile_column += 2
-    load_attr_column(1,nametable,metatile_column>>1)
-    metatile_column += 2
-    load_attr_column(2,nametable,metatile_column>>1)
-    metatile_column += 2
-    load_attr_column(3,nametable,metatile_column>>1)
-    metatile_column += 2
-    load_attr_column(4,nametable,metatile_column>>1)
-    metatile_column += 2
-    load_attr_column(5,nametable,metatile_column>>1)
-    metatile_column += 2
-    load_attr_column(6,nametable,metatile_column>>1)
-    metatile_column += 2
-    load_attr_column(7,nametable,metatile_column>>1)
-    metatile_column += 2
-}
-
 void draw_column_with_counter_by_ptr(byte screen_column, byte nametable, pointer metatiles_ptr) {
     screen_column <<= 1 // *= 2, convert to metatile column #
     
