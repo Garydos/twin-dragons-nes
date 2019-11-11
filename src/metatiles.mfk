@@ -277,6 +277,29 @@ void draw_column_with_counter_by_ptr(byte screen_column, byte nametable, pointer
     }
 }
 
+void draw_column_with_counter_by_ptr_left(byte screen_column, byte nametable, pointer metatiles_ptr) {
+    //use this function when scrolling left, it's the same as the regular function
+    //but draws the rightmost column of the metatile first
+    
+    screen_column <<= 1 // *= 2, convert to metatile column #
+    
+    //set ppu address increment to 32 so we can draw the left and right borders
+    //(allows us to draw to the nametable in vertical strips rather than horizontal)
+    ppu_ctrl = %00000100
+    read_ppu_status()
+    
+    if draw_counter == 0 || draw_counter == 1 {
+        //draw the second column on the first frame
+        draw_column_second_draw(nametable, screen_column, metatiles_ptr)
+        draw_counter = 2
+    }
+    else if draw_counter == 2 {
+        //draw the first column on the second frame
+        draw_column_first_draw(nametable, screen_column, metatiles_ptr)
+        draw_counter = 0
+    }
+}
+
 inline void draw_column_first_draw(byte nametable, byte screen_column, pointer metatiles_ptr) {
     //first frame of the column draw
     //draws the leftmost column of the metatile column

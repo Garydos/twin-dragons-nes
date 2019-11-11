@@ -189,7 +189,7 @@ inline void left_metatile_scroll() {
             //k == 6 and k == 7 are the nametable change columns (since we offset
             //drawing the next attr column by 1), so in these instances we need
             //need to draw on the opposite nametable.  You could possibly simplify this
-            //by creating a seperate draw_nametable variable exclusively for
+            //by creating a separate draw_nametable variable exclusively for
             //the attribute scrolling and keep track of it with 1 attr column offset there.
             draw_nametable = draw_nametable ^ %00000001
             load_attr_column_by_ptr(k,draw_nametable,left_draw_attrs)
@@ -199,7 +199,7 @@ inline void left_metatile_scroll() {
         }
     }
     else if changed_column || draw_counter > 0 {
-        draw_column_with_counter_by_ptr((xscroll>>4),draw_nametable, left_draw_tiles)
+        draw_column_with_counter_by_ptr_left((xscroll>>4),draw_nametable, left_draw_tiles)
     }
 }
 
