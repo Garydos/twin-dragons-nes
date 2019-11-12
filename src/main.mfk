@@ -17,7 +17,8 @@ import music
 import levels
 import platformer
 
-byte gamestate
+volatile byte gamestate
+volatile byte transition_timer
 
 void init_game() {
     init_sprites()
@@ -34,25 +35,34 @@ void init_game() {
 }
 
 void init_game_and_load_level(byte level) {
-    ppu_ctrl = %00000000   // enable NMI, sprites from Pattern Table 0, background from Pattern Table 1
+    ppu_ctrl = %00000000   // disable NMI, sprites from Pattern Table 0, background from Pattern Table 1
     ppu_mask = %00000110   // enable sprites, enable background, no clipping on left side
+    
     init_game()
     load_level(level)
     ppu_set_scroll(0,0)
     ppu_wait_vblank()
+    
     ppu_ctrl = %10010000   // enable NMI, sprites from Pattern Table 0, background from Pattern Table 1
     ppu_mask = %00011110   // enable sprites, enable background, no clipping on left side
 }
 
 void main() {
-    gamestate = 1 // 1 = game is playing a level
-    init_game_and_load_level(0)
-    new_frame = true
+    transition_to_level(0)
     while(true) {
+        if gamestate == 0 {
+            title_screen_main()
+        }
         if gamestate == 1 {
             game_main()
         }
+        else if gamestate == 2 {
+            level_load_main()
+        }
     }
+}
+
+void title_screen_main() {
 }
 
 void game_main() {
@@ -63,9 +73,9 @@ void game_main() {
         scrolling_right = false
         scrolling_left = false
         new_frame = false
-        win_timer += 1
-        if win_timer >= $80 {
-            init_game_and_load_level(next_level)
+        transition_timer += 1
+        if transition_timer >= $80 {
+            transition_to_level(next_level)
         }
     }
     else {
@@ -77,12 +87,35 @@ void game_main() {
     new_frame = true
 }
 
+void level_load_main() {
+    new_frame = true
+    while new_frame == true {
+        //wait for next frame
+    }
+    transition_timer += 1
+    if transition_timer >= $A0 {
+        transition_timer = 0
+        gamestate = 1
+        init_game_and_load_level(current_level)
+    }
+}
+
 void nmi() {
     // use a return dispatch here
     // to use different logic for each screen/gamestate
     return [gamestate] {
+        0    @ blank_nmi_no_sprites
         1    @ game_nmi
+        2    @ blank_nmi_no_sprites
     }
+}
+
+void blank_nmi_no_sprites() {
+    //do nothing except clear the sprites and set the scroll
+    init_sprites()
+    ppu_oam_dma_write(oam_buffer.addr.hi)
+    ppu_set_scroll(0,0)
+    new_frame = false
 }
 
 void game_nmi() {
@@ -109,7 +142,7 @@ void game_nmi() {
         //still be well.
         ppu_oam_dma_write(oam_buffer.addr.hi)
         //update the music
-        FamiToneUpdate()
+        // FamiToneUpdate()
         //NOTE: currently, by only updating the music
         //when there's a new frame, the music slows down
         //when the game slows down. FamiToneUpdate() can't be

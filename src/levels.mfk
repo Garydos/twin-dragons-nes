@@ -14,6 +14,50 @@ byte num_spawn_locations
 const byte spawn_x_loc_right = $F0
 const byte spawn_x_loc_left = $10
 
+void transition_to_level(byte level_num) {
+    ppu_ctrl = %00000000   // disable NMI, sprites from Pattern Table 0, background from Pattern Table 1
+    ppu_mask = %00000110   // enable sprites, enable background, no clipping on left side
+    
+    current_level = level_num
+    gamestate = 2 //level load state
+    transition_timer = 0
+    nametable = 0
+    draw_level_load_screen()
+    init_sprites()
+    ppu_oam_dma_write(oam_buffer.addr.hi)
+    ppu_set_scroll(0,0)
+    ppu_wait_vblank()
+    
+    ppu_ctrl = %10010000   // enable NMI, sprites from Pattern Table 0, background from Pattern Table 1
+    ppu_mask = %00011110   // enable sprites, enable background, no clipping on left side
+}
+
+void draw_level_load_screen() {
+    load_palletes(2)
+    load_black_background()
+    ppu_set_addr(ppu_nametable0 + $1C0 + $0C)
+    ppu_write_data('L'ascii)
+    ppu_write_data('E'ascii)
+    ppu_write_data('V'ascii)
+    ppu_write_data('E'ascii)
+    ppu_write_data('L'ascii)
+    ppu_write_data(' 'ascii)
+    ppu_write_data(current_level + $30)
+}
+
+inline void load_black_background() {
+    word i
+    
+    read_ppu_status() // read PPU status to reset the high/low latch
+    ppu_set_addr(ppu_nametable0) // point the PPU to palette ram
+    for i,0,until,$03C0 {
+        ppu_write_data(' 'ascii)
+    }
+    for i,$03C0,until,$0400 {
+        ppu_write_data(0)
+    }
+}
+
 void load_level(byte level_num) {
     byte i
     word leftmost_column
@@ -26,7 +70,7 @@ void load_level(byte level_num) {
     }
     
     touched_goal = 0
-    win_timer = 0
+    transition_timer = 0
     current_level = level_num
     
     //load any enemies that spawn on the first screen
@@ -248,9 +292,21 @@ void load_palletes(byte pallete_num) {
             ppu_write_data(pallete0[i])
         }
     }
+    if pallete_num == 1 {
+    }
+    if pallete_num == 2 {
+        for i,0,until,$20 {
+            ppu_write_data(pallete2[i])
+        }
+    }
 }
 
 const array pallete0 = [
   $21,$15,$03,$27,$21,$1B,$0C,$29,$21,$15,$03,$27,$21,$29,$0F,$36, //nametable palettes
   $21,$09,$29,$36,$21,$06,$26,$30,$21,$01,$2C,$3C,$21,$02,$0F,$03  //sprite palettes, first byte is the background color
+]
+
+const array pallete2 = [
+  $21,$30,$03,$27,$21,$1B,$0C,$29,$21,$15,$03,$27,$21,$29,$0F,$36, //nametable palettes
+  $0F,$09,$29,$36,$21,$06,$26,$30,$21,$01,$2C,$3C,$21,$02,$0F,$03  //sprite palettes, first byte is the background color
 ]

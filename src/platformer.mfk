@@ -6,7 +6,6 @@ volatile byte scroll_speed
 volatile bool reset_level
 volatile byte current_level
 volatile byte next_level
-volatile byte win_timer
 
 //flag that indicates if the new frame is ready
 volatile bool new_frame
