@@ -31,4 +31,5 @@ TODO
 
 ## Licensing
 * Some artwork in this project was originally made by [surt](https://opengameart.org/content/twin-dragons) and is distributed here under a CC-BY 3.0 license.
-* All code (except famitone5.0) is released under a zlib license (see LICENSE). For famitone5.0, see license.txt in the famitone5 directory
+* All code (except famitone2) is released under a zlib license (see LICENSE). For famitone2, see readme.txt in the famitone2 directory
+* Music in the `famitone2` directory (as well as the music currently used in the game) is made by Shiru, all rights reserved to Shiru.

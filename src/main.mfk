@@ -108,6 +108,24 @@ void game_nmi() {
         //For now, avoid having sprites appear at the very top of the screen and all should
         //still be well.
         ppu_oam_dma_write(oam_buffer.addr.hi)
+        //update the music
+        FamiToneUpdate()
+        //NOTE: currently, by only updating the music
+        //when there's a new frame, the music slows down
+        //when the game slows down. FamiToneUpdate() can't be
+        //outside of this if statement however, as when the game slows down
+        //it makes function calls
+        //that could blow out the stack. (When the game slows down,
+        //NMI usually occurs during enemy processing, which 
+        //fills up the stack with lots of function calls. This means the stack
+        //is already almost full, and FamiToneUpdate's calls are sometimes enough to blow
+        //it out, completely breaking the game).
+        
+        //This could be solved by saving enough of the stack in temporary variables
+        //before calling FamiToneUpdate(), and then restoring the stack afterwords,
+        //thus avoiding any stack overflows.  It might be a good idea to count the deepest
+        //function call in FamiToneUpdate() so as to get a precise number of stack space
+        //to save.
     }
 
     //first wait for the previous frame's sprite0 hit
@@ -116,8 +134,8 @@ void game_nmi() {
     while (ppu_status & %01000000) != 0 {
     }
     
-    //update the music
-    // FamiToneUpdate()
+    //Move the music update to here,
+    //once the stack blowout is solved
     
     //start checking for a sprite0 hit
     //so that we know the status bar is done drawing
