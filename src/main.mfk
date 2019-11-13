@@ -48,7 +48,7 @@ void init_game_and_load_level(byte level) {
 }
 
 void main() {
-    transition_to_level(0)
+    init_title_screen()
     while(true) {
         if gamestate == 0 {
             title_screen_main()
@@ -63,6 +63,10 @@ void main() {
 }
 
 void title_screen_main() {
+    read_joy1()
+    if input_start != 0 {
+        transition_to_level(0)
+    }
 }
 
 void game_main() {
@@ -115,6 +119,9 @@ void blank_nmi_no_sprites() {
     init_sprites()
     ppu_oam_dma_write(oam_buffer.addr.hi)
     ppu_set_scroll(0,0)
+    ppu_ctrl = %10010000
+    ppu_mask = %00011110
+    // FamiToneUpdate()
     new_frame = false
 }
 
@@ -192,6 +199,106 @@ void game_nmi() {
 }
 
 void irq() {
+}
+
+
+void init_title_screen() {
+    ppu_ctrl = %00000000   // disable NMI, sprites from Pattern Table 0, background from Pattern Table 1
+    ppu_mask = %00000110   // enable sprites, enable background, no clipping on left side
+
+    gamestate = 0
+    ppu_wait_vblank() //wait for next vblank so NMI thread is using the current gamestate
+    load_palletes(2)
+    load_black_background()
+    ppu_set_addr(ppu_nametable0 + $80 + $0A)
+    
+    ppu_write_data('T'ascii)
+    ppu_write_data('W'ascii)
+    ppu_write_data('I'ascii)
+    ppu_write_data('N'ascii)
+    ppu_write_data(' 'ascii)
+    ppu_write_data('D'ascii)
+    ppu_write_data('R'ascii)
+    ppu_write_data('A'ascii)
+    ppu_write_data('G'ascii)
+    ppu_write_data('O'ascii)
+    ppu_write_data('N'ascii)
+    ppu_write_data('S'ascii)
+    
+    ppu_set_addr(ppu_nametable0 + $C0 + $0B)
+    ppu_write_data('A'ascii)
+    ppu_write_data('R'ascii)
+    ppu_write_data('T'ascii)
+    ppu_write_data(' 'ascii)
+    ppu_write_data('@'ascii)
+    ppu_write_data('S'ascii)
+    ppu_write_data('U'ascii)
+    ppu_write_data('R'ascii)
+    ppu_write_data('T'ascii)
+    
+    ppu_set_addr(ppu_nametable0 + $E0 + $04)
+    ppu_write_data('E'ascii)
+    ppu_write_data('V'ascii)
+    ppu_write_data('E'ascii)
+    ppu_write_data('R'ascii)
+    ppu_write_data('Y'ascii)
+    ppu_write_data('T'ascii)
+    ppu_write_data('H'ascii)
+    ppu_write_data('I'ascii)
+    ppu_write_data('N'ascii)
+    ppu_write_data('G'ascii)
+    ppu_write_data(' 'ascii)
+    ppu_write_data('E'ascii)
+    ppu_write_data('L'ascii)
+    ppu_write_data('S'ascii)
+    ppu_write_data('E'ascii)
+    ppu_write_data(' 'ascii)
+    ppu_write_data('@'ascii)
+    ppu_write_data('G'ascii)
+    ppu_write_data('A'ascii)
+    ppu_write_data('R'ascii)
+    ppu_write_data('Y'ascii)
+    ppu_write_data('D'ascii)
+    ppu_write_data('O'ascii)
+    ppu_write_data('S'ascii)
+    
+    ppu_set_addr(ppu_nametable0 + $240 + $09)
+    ppu_write_data('A'ascii)
+    ppu_write_data('L'ascii)
+    ppu_write_data('P'ascii)
+    ppu_write_data('H'ascii)
+    ppu_write_data('A'ascii)
+    ppu_write_data(' 'ascii)
+    ppu_write_data('V'ascii)
+    ppu_write_data('E'ascii)
+    ppu_write_data('R'ascii)
+    ppu_write_data('S'ascii)
+    ppu_write_data('I'ascii)
+    ppu_write_data('O'ascii)
+    ppu_write_data('N'ascii)
+
+
+    
+    ppu_set_addr(ppu_nametable0 + $280 + $09)
+    ppu_write_data('P'ascii)
+    ppu_write_data('R'ascii)
+    ppu_write_data('E'ascii)
+    ppu_write_data('S'ascii)
+    ppu_write_data('S'ascii)
+    ppu_write_data(' 'ascii)
+    ppu_write_data('S'ascii)
+    ppu_write_data('T'ascii)
+    ppu_write_data('A'ascii)
+    ppu_write_data('R'ascii)
+    ppu_write_data('T'ascii)
+    
+    init_sprites()
+    ppu_oam_dma_write(oam_buffer.addr.hi)
+    ppu_set_scroll(0,0)
+    ppu_wait_vblank()
+    
+    ppu_ctrl = %10010000   // enable NMI, sprites from Pattern Table 0, background from Pattern Table 1
+    ppu_mask = %00011110   // enable sprites, enable background, no clipping on left side
 }
 
 segment(chrrom) const array graphics @ $0000 = file("graphics/twin_dragons.chr")

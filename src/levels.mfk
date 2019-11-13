@@ -16,10 +16,11 @@ const byte spawn_x_loc_left = $10
 
 void transition_to_level(byte level_num) {
     ppu_ctrl = %00000000   // disable NMI, sprites from Pattern Table 0, background from Pattern Table 1
-    ppu_mask = %00000110   // enable sprites, enable background, no clipping on left side
+    ppu_mask = %00000000   // enable sprites, enable background, no clipping on left side
     
     current_level = level_num
     gamestate = 2 //level load state
+    ppu_wait_vblank() //wait for next vblank so NMI thread is using the current gamestate
     transition_timer = 0
     nametable = 0
     draw_level_load_screen()
