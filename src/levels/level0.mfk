@@ -1,7 +1,7 @@
 inline void load_level0() {
     //set up the music
-    FamiToneInit($01, nesthing_ost.addr)
-    FamiToneMusicPlay($00)
+    FamiToneInit($01, twin_dragons_ost.addr)
+    FamiToneMusicPlay($01)
     
     memcpy(spawn_column_locations, level0_spawn_column_locations, level0_num_spawn_locations[0] * 2)
     memcpy(spawn_info, level0_spawn_info, level0_num_spawn_locations[0] * 2)

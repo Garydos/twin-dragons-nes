@@ -5,7 +5,7 @@ set /p dpcm_addr="Enter the base address of your DPCM samples (listed as FT_DPCM
 IF "%dpcm_addr%"=="" (
     SET dpcm_addr=0xfc00
 )
-set /p base_addr="Enter starting address for your music data (where it will be placed in ROM)[default=0xcac0]: "
+set /p base_addr="Enter starting address for your music data (where it will be placed in ROM)[default=0xc5c0]: "
 IF "%base_addr%"=="" (
     SET base_addr=0xc5c0
 )

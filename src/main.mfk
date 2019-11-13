@@ -115,13 +115,13 @@ void nmi() {
 }
 
 void blank_nmi_no_sprites() {
-    //do nothing except clear the sprites and set the scroll
+    //do nothing except basic updates (also clear the sprites)
     init_sprites()
     ppu_oam_dma_write(oam_buffer.addr.hi)
     ppu_set_scroll(0,0)
+    FamiToneUpdate()
     ppu_ctrl = %10010000
     ppu_mask = %00011110
-    // FamiToneUpdate()
     new_frame = false
 }
 
@@ -227,6 +227,8 @@ void init_title_screen() {
 
     gamestate = 0
     ppu_wait_vblank() //wait for next vblank so NMI thread is using the current gamestate
+    FamiToneInit($01, twin_dragons_ost.addr)
+    FamiToneMusicPlay($00)
     load_palletes(2)
     load_black_background()
     ppu_set_addr(ppu_nametable0 + $80 + $0A)

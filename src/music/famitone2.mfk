@@ -22,7 +22,7 @@ asm void FamiToneSfxPlay(byte a, byte x) @$C487 extern
 // init sound effects player, set pointer to data
 // in: X,Y is address of sound effects data
 //------------------------------------------------------------------------------
-asm void FamiToneSfxInit(byte xy) @$C44D extern
+asm void FamiToneSfxInit(word xy) @$C44D extern
 //------------------------------------------------------------------------------
 // update FamiTone state, should be called every NMI
 // in: none
