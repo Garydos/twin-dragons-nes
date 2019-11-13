@@ -7,7 +7,7 @@ IF "%dpcm_addr%"=="" (
 )
 set /p base_addr="Enter starting address for your music data (where it will be placed in ROM)[default=0xcac0]: "
 IF "%base_addr%"=="" (
-    SET base_addr=0xcac0
+    SET base_addr=0xc5c0
 )
 set /A dpcm_addr=%dpcm_addr%
 set /A "ft_dpcm_ptr=(%dpcm_addr%&0x3fff)>>6"
