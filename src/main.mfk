@@ -86,6 +86,7 @@ void game_main() {
         game_logic()
         if reset_level {
             init_game_and_load_level(current_level)
+            reset_level = false
         }
     }
     new_frame = true
@@ -126,13 +127,16 @@ void blank_nmi_no_sprites() {
 }
 
 void game_nmi() {
+    static byte a_sav
+    static byte x_sav
+    static byte y_sav
+    
     if new_frame {
         //Do scroll handling before anything since it needs 
         //to set the scroll before the screen starts drawing
         handle_scrolling()
+        draw_health_p1()
     }
-    
-    draw_health_p1()
     
     //set scroll to 0 for now so that the status bar
     //stays still
@@ -179,9 +183,6 @@ void game_nmi() {
     
     //compiler bug: registers are not restored during the original NMI vector,
     //but they are backed up onto the stack, so we need to restore them here
-    byte a_sav
-    byte x_sav
-    byte y_sav
     //first we set the stack to point at where on_nmi originally
     //stored A,X, and Y
     asm {

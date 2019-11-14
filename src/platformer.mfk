@@ -53,7 +53,6 @@ void init_spawner_flags() {
 
 void game_logic() {
     //game logic goes here
-    reset_level = false
     spawn_enemies()
     if player1.health == 0 {
         player1.invincible = false_macro()
@@ -100,11 +99,11 @@ inline void spawn_enemies() {
     
     set_next_column()
     if scrolling_right {
-        next_column += 32 //align it to the right of the screen
+        next_column += 30 //align it to the right of the screen
         xloc = spawn_x_loc_right
     }
     else if scrolling_left {
-        next_column += 4 //align it to just off the left side of the screen
+        next_column += 3 //align it to just off the left side of the screen
         //we have to add by 4 because of the clipping on the left side of the screen,
         //we don't want to spawn enemies to the left of it
         xloc = spawn_x_loc_left
