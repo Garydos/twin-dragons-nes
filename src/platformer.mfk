@@ -226,6 +226,7 @@ inline void handle_player_y_input() {
             player1.yaccel = 8
             player1.jumping = true
             player1.can_jump = false
+            FamiToneSfxPlay(10,FT_SFX_CH0)
         }
         if player1.yaccel < 24 && player1.jumping {
             player1.yaccel += 2
