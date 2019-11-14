@@ -20,6 +20,7 @@ void transition_to_level(byte level_num) {
     
     current_level = level_num
     gamestate = 2 //level load state
+    FamiToneInit($01, twin_dragons_ost.addr)
     ppu_wait_vblank() //wait for next vblank so NMI thread is using the current gamestate
     transition_timer = 0
     nametable = 0

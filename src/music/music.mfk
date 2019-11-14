@@ -4,3 +4,4 @@ import famitone5
 //usually @$8AC0 if you changed famitone5.bin to start at $8000
 const array twin_dragons_ost @$CAC0 = file("twin_dragons_ost.bin")
 const array twin_dragons_ost_samples @$FA00 = file("twin_dragons_ost.dmc")
+const array twin_dragons_sfx @$EC80 = file("twin_dragons_sfx.bin")
