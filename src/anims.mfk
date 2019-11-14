@@ -38,6 +38,12 @@ void handle_current_anim(pointer.Anim current_anim, byte x, byte y, bool mirrori
     else if current_anim->anim_num == 6 {
         anim_ptr = boomba_death_anim.addr
     }
+    else if current_anim->anim_num == 7 {
+        anim_ptr = flowah_idle_anim.addr
+    }
+    else if current_anim->anim_num == 8 {
+        anim_ptr = flowah_attack_anim.addr
+    }
     
     handle_anim(anim_ptr, current_anim, x, y, mirroring)
 }
@@ -106,6 +112,12 @@ inline void draw_current_frame(byte frame_num, byte x, byte y, bool mirroring) {
     else if frame_num == 9 {
         sprite_draw_frame(boomba_death_frame.addr, x,y,mirroring)
     }
+    else if frame_num == 10 {
+        sprite_draw_frame(flowah_idle_frame.addr, x,y,mirroring)
+    }
+    else if frame_num == 11 {
+        sprite_draw_frame(flowah_attack_frame.addr, x,y,mirroring)
+    }
 }
 
 void sprite_draw_frame(pointer frame_info, byte x, byte y, bool mirroring) {
@@ -166,6 +178,8 @@ const array player_hurt_anim = [0,0, 6,0]
 const array boomba_idle_anim = [0,0, 7,0]
 const array boomba_ready_anim = [0,0, 8,0]
 const array boomba_death_anim = [0,0, 9,0]
+const array flowah_idle_anim = [0,0, 10,0]
+const array flowah_attack_anim = [0,0, 11,0]
 
 //Frame Info
 const array player_idle_frame = [1,8,5, 0,0,0,-4,  0,1,0,4,  8,2,0,0,  8,3,0,8,  -3,$10,0,4]
@@ -178,3 +192,7 @@ const array player_hurt_frame = [1,8,5, 0,$2E,0,-3,  0,$2F,0,5,  8,$0E,0,0,  8,$
 const array boomba_idle_frame = [1,8,4, 0,$24,0,0,  0,$25,0,8,  8,$26,0,0,  8,$27,0,8]
 const array boomba_ready_frame = [1,8,4, 0,$20,0,0,  0,$21,0,8,  8,$22,0,0,  8,$23,0,8]
 const array boomba_death_frame = [1,8,2, 6,$2C,0,0,  6,$2D,0,8]
+const array flowah_idle_frame = [1,8,8, 0,$40,0,0, 0,$41,0,8, 8,$42,0,0, 8,$43,0,8,
+                                        16,$60,0,0, 16,$61,0,8, 24,$62,0,0, 24,$62,0,8] 
+const array flowah_attack_frame = [1,8,8, 0,$44,0,0, 0,$45,0,8, 8,$46,0,0, 8,$47,0,8,
+                                        16,$60,0,0, 16,$61,0,8, 24,$62,0,0, 24,$62,0,8] 

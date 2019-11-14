@@ -11,7 +11,7 @@ frame_info:
             all characters drawn facing right
             in chrrom are considered to be non-mirrored,
             and characters facing left are mirrored) 
-	2nd byte - center of frame in pixels
+	2nd byte - center of frame in pixels (usually 8 for frames 16 pixels in width)
 	3rd byte - number of sprites
 
 The 2nd byte tells how many pixels to shift the origin point in order

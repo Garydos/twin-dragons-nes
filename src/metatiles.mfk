@@ -386,7 +386,7 @@ byte get_screen_tile(byte column, byte row) {
 }
 
 //define each metatile
-//corresponds to metatiles in metatiles.png
+//should correspond to metatiles in metatiles.png
 const array metatiles = [
 			//Tile positions:
 			//top-left	bot-left	top-right	bot-right
