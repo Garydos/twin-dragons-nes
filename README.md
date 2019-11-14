@@ -287,7 +287,7 @@ to
 
 *Enemy Physics*:
 
-In the function `handle_enemy_logic`, change
+In the function `handle_enemy_phys`, change
 ```
     if enemy_ptr->enemy_type == 0 || enemy_ptr->enemy_type == 128{
         handle_boomba_phys(enemy_ptr)
