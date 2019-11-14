@@ -59,6 +59,7 @@ void game_logic() {
     read_joy1()
     if input_start != 0 && pause_timer >= $20{
         FamiToneMusicPause(1)
+        FamiToneSfxPlay(3,FT_SFX_CH0)
         pause_timer = 0
         paused = true
         return

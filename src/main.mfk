@@ -93,6 +93,7 @@ void game_main() {
             if input_start != 0{
                 pause_timer = 0
                 FamiToneMusicPause(0)
+                FamiToneSfxPlay(3,FT_SFX_CH0)
                 paused = false
             }
         }
