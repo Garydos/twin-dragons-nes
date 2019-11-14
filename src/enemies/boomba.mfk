@@ -78,6 +78,7 @@ inline void handle_boomba_logic(pointer.Enemy enemy_ptr) {
         enemy_ptr->on_ground = false_macro()
         enemy_ptr->yvel = -1
         switch_anim(pointer.Anim(enemy_ptr->anim.addr), 4, true)
+        FamiToneSfxPlay(15,FT_SFX_CH0)
     }
     
     if jump_timer < $40 {
@@ -96,4 +97,5 @@ inline void hit_boomba(pointer.Enemy enemy_ptr) {
     //set the death flag bit in enemy_type
     enemy_ptr->enemy_type |= %10000000
     enemy_aux_heap[enemy_ptr->id].aux0 = 0
+    FamiToneSfxPlay(20,FT_SFX_CH0)
 }

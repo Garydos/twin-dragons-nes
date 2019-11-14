@@ -1,6 +1,12 @@
 array FT_TEMP   [3]     @$FD
 array FT_VARS   [256]   @$300
 
+const byte FT_SFX_STRUCT_SIZE	= 15
+const byte FT_SFX_CH0			= FT_SFX_STRUCT_SIZE*0
+const byte FT_SFX_CH1			= FT_SFX_STRUCT_SIZE*1
+const byte FT_SFX_CH2			= FT_SFX_STRUCT_SIZE*2
+const byte FT_SFX_CH3			= FT_SFX_STRUCT_SIZE*3
+
 //------------------------------------------------------------------------------
 // reset APU, initialize FamiTone
 // in: A   0 for PAL, not 0 for NTSC
@@ -22,7 +28,7 @@ asm void FamiToneSfxPlay(byte a, byte x) @$C905 extern
 // init sound effects player, set pointer to data
 // in: X,Y is address of sound effects data
 //------------------------------------------------------------------------------
-asm void FamiToneSfxInit(byte xy) @$C8CB extern
+asm void FamiToneSfxInit(word xy) @$C8CB extern
 //------------------------------------------------------------------------------
 // update FamiTone state, should be called every NMI
 // in: none

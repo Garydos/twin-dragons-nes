@@ -1,6 +1,7 @@
 inline void load_level0() {
     //set up the music
     FamiToneInit($01, twin_dragons_ost.addr)
+    FamiToneSfxInit(twin_dragons_sfx.addr)
     FamiToneMusicPlay($01)
     
     memcpy(spawn_column_locations, level0_spawn_column_locations, level0_num_spawn_locations[0] * 2)

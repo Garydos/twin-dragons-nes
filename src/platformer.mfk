@@ -158,6 +158,9 @@ inline void handle_player_dash_and_attack() {
     if input_b != 0 {
         // player1.xspeed = 7
         if player1.attack_timer < $18 {
+            if player1.attack_timer == 0 {
+                FamiToneSfxPlay(6,FT_SFX_CH0)
+            }
             player_attack()
             switch_anim(pointer.Anim(player1.anim.addr), 2, true)
         }
