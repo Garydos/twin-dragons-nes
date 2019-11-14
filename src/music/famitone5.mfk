@@ -28,6 +28,21 @@ asm void FamiToneSfxInit(byte xy) @$C8CB extern
 // in: none
 //------------------------------------------------------------------------------
 asm void FamiToneUpdate() @$C147 extern
+//------------------------------------------------------------------------------
+// stop music that is currently playing, if any
+// in: none
+//------------------------------------------------------------------------------
+asm void FamiToneMusicStop() @$C055 extern
+//------------------------------------------------------------------------------
+// pause and unpause current music
+// in: A 0 or not 0 to play or pause
+//------------------------------------------------------------------------------
+asm void FamiToneMusicPause(byte a) @$C123 extern
+//------------------------------------------------------------------------------
+// play DPCM sample with higher priority, for sound effects
+// in: A is number of a sample, 1..63
+//------------------------------------------------------------------------------
+asm void FamiToneSamplePlay(byte a) @$C891 extern
 
 //Binary blob of famitone5, change it's starting address depending
 //on where it expects to be (normally $C000)

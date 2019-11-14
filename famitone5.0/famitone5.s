@@ -8,7 +8,7 @@
 ;Pal support has been removed, don't use it
 
 
-.export FamiToneInit, FamiToneMusicPlay, FamiToneSfxPlay, FamiToneSfxInit, FamiToneUpdate
+.export FamiToneInit, FamiToneMusicPlay, FamiToneSfxPlay, FamiToneSfxInit, FamiToneUpdate, FamiToneMusicStop, FamiToneMusicPause, FamiToneSamplePlay
 
 
 
