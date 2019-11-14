@@ -9,6 +9,9 @@ volatile byte next_level
 
 //flag that indicates if the new frame is ready
 volatile bool new_frame
+//flag that indicates if game is paused
+volatile bool paused
+volatile byte pause_timer
 
 volatile word previous_column
 
@@ -53,6 +56,13 @@ void init_spawner_flags() {
 
 void game_logic() {
     //game logic goes here
+    read_joy1()
+    if input_start != 0 && pause_timer >= $20{
+        FamiToneMusicPause(1)
+        pause_timer = 0
+        paused = true
+        return
+    }
     spawn_enemies()
     if player1.health == 0 {
         player1.invincible = false_macro()
@@ -94,6 +104,9 @@ inline void update_player_timers() {
             player1.invincibility_timer = 0
             player1.invincible = false
         }
+    }
+    if pause_timer < $20 {
+        pause_timer += 1
     }
 }
 

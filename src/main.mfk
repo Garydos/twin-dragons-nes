@@ -86,6 +86,17 @@ void game_main() {
             transition_to_level(next_level)
         }
     }
+    else if paused {
+        pause_timer += 1
+        if pause_timer >= $20 {
+            read_joy1()
+            if input_start != 0{
+                pause_timer = 0
+                FamiToneMusicPause(0)
+                paused = false
+            }
+        }
+    }
     else {
         game_logic()
         if reset_level {
@@ -230,6 +241,7 @@ void init_title_screen() {
     ppu_ctrl = %00000000   // disable NMI, sprites from Pattern Table 0, background from Pattern Table 1
     ppu_mask = %00000110   // enable sprites, enable background, no clipping on left side
 
+    paused = false
     gamestate = 0
     ppu_wait_vblank() //wait for next vblank so NMI thread is using the current gamestate
     FamiToneInit($01, twin_dragons_ost.addr)
