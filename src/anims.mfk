@@ -14,32 +14,32 @@ void handle_player_anim(pointer.Player player) {
 }
 
 //Update the current animation
-void handle_current_anim(pointer.Anim player_anim, byte x, byte y, bool mirroring) {
+void handle_current_anim(pointer.Anim current_anim, byte x, byte y, bool mirroring) {
     pointer anim_ptr
     
-    if player_anim->anim_num == 0 {
+    if current_anim->anim_num == 0 {
         anim_ptr = player_idle_anim.addr
     }
-    else if player_anim->anim_num == 1 {
+    else if current_anim->anim_num == 1 {
         anim_ptr = player_walk_anim.addr
     }
-    else if player_anim->anim_num == 2 {
+    else if current_anim->anim_num == 2 {
         anim_ptr = player_breath_anim.addr
     }
-    else if player_anim->anim_num == 3 {
+    else if current_anim->anim_num == 3 {
         anim_ptr = player_hurt_anim.addr
     }
-    else if player_anim->anim_num == 4 {
+    else if current_anim->anim_num == 4 {
         anim_ptr = boomba_idle_anim.addr
     }
-    else if player_anim->anim_num == 5 {
+    else if current_anim->anim_num == 5 {
         anim_ptr = boomba_ready_anim.addr
     }
-    else if player_anim->anim_num == 6 {
+    else if current_anim->anim_num == 6 {
         anim_ptr = boomba_death_anim.addr
     }
     
-    handle_anim(anim_ptr, player_anim, x, y, mirroring)
+    handle_anim(anim_ptr, current_anim, x, y, mirroring)
 }
 
 inline void handle_anim(pointer anim_ptr, pointer.Anim anim, byte x, byte y, bool mirroring) {
@@ -65,7 +65,7 @@ inline void handle_anim(pointer anim_ptr, pointer.Anim anim, byte x, byte y, boo
         anim->frame_timer = 0
     }
 
-    draw_player_frame(anim_ptr[anim->anim_frame << 1], x,y, mirroring)
+    draw_current_frame(anim_ptr[anim->anim_frame << 1], x,y, mirroring)
     
     anim->frame_timer += 1
     if anim->frame_timer == anim_ptr[(anim->anim_frame << 1)+1]{
@@ -75,7 +75,7 @@ inline void handle_anim(pointer anim_ptr, pointer.Anim anim, byte x, byte y, boo
 }
 
 //Draw the current frame of the current animation
-inline void draw_player_frame(byte frame_num, byte x, byte y, bool mirroring) {
+inline void draw_current_frame(byte frame_num, byte x, byte y, bool mirroring) {
     if frame_num == 0 {
         sprite_draw_frame(player_idle_frame.addr, x,y, mirroring)
     }
