@@ -47,10 +47,6 @@ Finally, go into `levels.mfk` and in the `load_level` function, add your level l
 
 After this, you should be able to go to any existing level, change `next_level` to your new level's number, and it'll load your new level after completing that one.
 
-### Adding Enemies
-
-TODO
-
 ### Adding Graphics
 
 Graphics data (from now on referred to as the `CHRROM` code) is stored in the `./src/graphics/twin_dragons.chr` file.
@@ -95,6 +91,88 @@ Slopes are also detected through the tiles placed between `$C9,$CA,$CC` and `$CF
 
 Make sure to edit these functions/ranges if you plan to change which tiles are collidable with the player/enemies.
 
+### Adding/Defining Metatiles
+
+Metatiles are 16x16 pixel tiles made up of 4 8x8 graphics tiles.
+
+To add/define new metatiles, first make a new metatile in `src/graphics/metatiles.png`.  This is so that the metatile
+shows up in maps that are edited using Tiled.  Make sure that the tiles that make up the metatile already exist within
+CHRROM.
+
+Next, define the new metatile's component tiles in the array located in `metatiles.mfk`.
+At the bottom of the file, you'll find an array called `Metatiles`:
+
+```
+const array metatiles = [
+			//Tile positions:
+			//top-left	bot-left	top-right	bot-right
+            $24,		$24,		$24,		$24,
+            [ ... ]
+            $68,        $6A,        $69,        $6B
+            
+]
+```
+
+The [...] represents already defined metatiles.  
+
+Say we want to define a metatile that uses tile `$00` as its top-left tile,
+`$01` as its bottom-left tile, `$02` as its top-right tile, and
+`$03` as its bottom-right tile.
+
+
+To define this metatile, simply add its four component tiles
+to the end of the array like so:
+
+```
+const array metatiles = [
+			//Tile positions:
+			//top-left	bot-left	top-right	bot-right
+            $24,		$24,		$24,		$24,
+            [ ... ]
+            $68,        $6A,        $69,        $6B,
+            $00,        $01,        $02,        $03
+            
+]
+```
+
+Notice how this is an array, so every entry must have a comma after it except for the last entry.
+Also note that this only applies if you're appending a new metatile to the end of your metatile list.
+If you instead inserted a metatile in the middle of `metatiles.png`, then you need to find the correct
+location within the array to insert its tiles.
+
+Next, you need to edit the tiled python script supplied in the `tiled_plugin` directory.
+
+Open up `metatile_nes.py` and you'll see at the top of the file is a dictionary named `tile_attrs`.
+You must add the number of your new metatile and the palette that it uses to this dictionary.  If you are
+appending a new metatile, then its metatile number is simply +1 of the second-to-last number in the dictionary.
+
+For example, if we currently only have a single metatile defined, then `tile_attrs` looks like this:
+
+```
+#Which palette does each metatile use? Edit this to the appropriate palette
+#number when making new metatiles (metatile_number : palette_number)
+tile_attrs = {
+    0:0,
+    255:1
+}
+```
+
+If we appended a metatile which uses the second palette (index 1), then we change the dictionary by adding one line:
+
+```
+#Which palette does each metatile use? Edit this to the appropriate palette
+#number when making new metatiles (metatile_number : palette_number)
+tile_attrs = {
+    0:0,
+    1:1,
+    255:1
+}
+```
+
+After this is done, re-install your newly modified python script to your `~/.tiled` directory to see the changes in Tiled.
+If the new metatile you've added is a slope, don't forget to change the `slope_check` function in `physics.mfk` to have
+it work properly in-game.
+
 ### Adding Frames/Animations
 
 See `animation_structure.txt` for info on how animation data is structured.  By convention, all frame/animation data is placed at the bottom of `animation.mfk`.
@@ -124,6 +202,10 @@ For adding animations in `handle_current_anim`, you do something similar:
 Where X is an animation number that doesn't conflict with other animation numbers.
 
 When adding animations, it is best to add them to `handle_current_anim` and write the code to display the animation first before trying to completely fill out the animation data.  That way you'll be able to see how the animation looks like right away and adjust any errors visually.
+
+### Adding Enemies
+
+TODO
 
 ## Licensing
 * Some artwork in this project was originally made by [surt](https://opengameart.org/content/twin-dragons) and is distributed here under a CC-BY 3.0 license.
