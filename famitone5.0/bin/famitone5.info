@@ -1,0 +1,45 @@
+Modules list:
+-------------
+famitone5.o:
+    CODE              Offs=000000  Size=000AB6  Align=00001  Fill=0000
+    RODATA            Offs=000000  Size=000000  Align=00001  Fill=0000
+    BSS               Offs=000000  Size=000020  Align=00001  Fill=0000
+    DATA              Offs=000000  Size=000000  Align=00001  Fill=0000
+    ZEROPAGE          Offs=000000  Size=000003  Align=00001  Fill=0000
+    NULL              Offs=000000  Size=000000  Align=00001  Fill=0000
+
+
+Segment list:
+-------------
+Name                   Start     End    Size  Align
+----------------------------------------------------
+DATA                  000000  000000  000000  00001
+NULL                  000000  000000  000000  00001
+RODATA                000000  000000  000000  00001
+ZEROPAGE              0000FD  0000FF  000003  00001
+BSS                   0003E0  0003FF  000020  00001
+CODE                  00C000  00CAB5  000AB6  00001
+
+
+Exports list by name:
+---------------------
+FamiToneInit              00C000  LA    FamiToneMusicPlay         00C093  LA    
+FamiToneSfxInit           00C8CB  LA    FamiToneSfxPlay           00C905  LA    
+FamiToneUpdate            00C147  LA    
+
+
+Exports list by value:
+----------------------
+FamiToneInit              00C000  LA    FamiToneMusicPlay         00C093  LA    
+FamiToneUpdate            00C147  LA    FamiToneSfxInit           00C8CB  LA    
+FamiToneSfxPlay           00C905  LA    
+
+
+Imports list:
+-------------
+FamiToneInit (famitone5.o):
+FamiToneMusicPlay (famitone5.o):
+FamiToneSfxInit (famitone5.o):
+FamiToneSfxPlay (famitone5.o):
+FamiToneUpdate (famitone5.o):
+

@@ -1,6 +1,6 @@
-import famitone2
+import famitone5
 
 //change @$CAC0 to whatever address you compiled your songs to,
 //usually @$8AC0 if you changed famitone5.bin to start at $8000
-const array twin_dragons_ost @$C5C0 = file("twin_dragons_ost.bin")
+const array twin_dragons_ost @$CAC0 = file("twin_dragons_ost.bin")
 const array twin_dragons_ost_samples @$FA00 = file("twin_dragons_ost.dmc")
