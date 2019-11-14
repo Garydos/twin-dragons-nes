@@ -311,20 +311,34 @@ inline void draw_column_second_draw(byte nametable, byte screen_column, pointer 
 
 inline void draw_metatile_first_column(byte metatile) {
     pointer metatile_ptr
-    metatile_ptr = metatiles
-    metatile_ptr += metatile << 2
     
-    ppu_write_data(metatile_ptr[0])
-    ppu_write_data(metatile_ptr[1])
+    if metatile == $FF {
+        ppu_write_data($FF)
+        ppu_write_data($FF)
+    }
+    else {
+        metatile_ptr = metatiles
+        metatile_ptr += metatile << 2
+        
+        ppu_write_data(metatile_ptr[0])
+        ppu_write_data(metatile_ptr[1])
+    }
 }
 
 inline void draw_metatile_second_column(byte metatile) {
     pointer metatile_ptr
-    metatile_ptr = metatiles
-    metatile_ptr += metatile << 2
     
-    ppu_write_data(metatile_ptr[2])
-    ppu_write_data(metatile_ptr[3])
+    if metatile == $FF {
+        ppu_write_data($FF)
+        ppu_write_data($FF)
+    }
+    else {
+        metatile_ptr = metatiles
+        metatile_ptr += metatile << 2
+        
+        ppu_write_data(metatile_ptr[2])
+        ppu_write_data(metatile_ptr[3])
+    }
 }
 
 byte get_screen_tile(byte column, byte row) {
@@ -354,18 +368,19 @@ byte get_screen_tile(byte column, byte row) {
 
     tile = metatile_collis_map[index]
     
-    //convert column and row to metatile definition offsets
-    column &= %00000001 //column now either 0 or 1 depending on odd or even
-    column <<= 1        //column now either 0 or 2
-    row &= %00000001    //row now either 0 or 1
-    
-    //now we can use the original column and row numbers to
-    //get the proper tile
-    metatile_ptr = metatiles
-    metatile_ptr += tile << 2
-    
-    //get the proper tile from the new indices
-    tile = metatile_ptr[column + row]
+    if tile != $FF {
+        //convert column and row to metatile definition offsets
+        column &= %00000001 //column now either 0 or 1 depending on odd or even
+        column <<= 1        //column now either 0 or 2
+        row &= %00000001    //row now either 0 or 1
+        //now we can use the original column and row numbers to
+        //get the proper tile
+        metatile_ptr = metatiles
+        metatile_ptr += tile << 2
+        
+        //get the proper tile from the new indices
+        tile = metatile_ptr[column + row]
+    }
     
     return tile
 }

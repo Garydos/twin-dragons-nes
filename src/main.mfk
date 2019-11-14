@@ -156,9 +156,6 @@ void game_nmi() {
     while (ppu_status & %01000000) != 0 {
     }
     
-    //update the music/sfx while waiting for the
-    //status bar
-    FamiToneUpdate()
     
     //then wait for this frame's sprite0 hit
     while (ppu_status & %01000000) == 0 {
@@ -176,6 +173,9 @@ void game_nmi() {
     if new_frame {
         new_frame = false
     }
+    
+    //update the music/sfx
+    FamiToneUpdate()
     
     //compiler bug: registers are not restored during the original NMI vector,
     //but they are backed up onto the stack, so we need to restore them here
@@ -257,22 +257,33 @@ void init_title_screen() {
     ppu_write_data('R'ascii)
     ppu_write_data('T'ascii)
     
-    ppu_set_addr(ppu_nametable0 + $E0 + $04)
-    ppu_write_data('E'ascii)
-    ppu_write_data('V'ascii)
-    ppu_write_data('E'ascii)
-    ppu_write_data('R'ascii)
-    ppu_write_data('Y'ascii)
-    ppu_write_data('T'ascii)
+    ppu_set_addr(ppu_nametable0 + $E0 + $0B)
+    ppu_write_data('S'ascii)
+    ppu_write_data('F'ascii)
+    ppu_write_data('X'ascii)
+    ppu_write_data(' 'ascii)
+    ppu_write_data('@'ascii)
+    ppu_write_data('S'ascii)
     ppu_write_data('H'ascii)
     ppu_write_data('I'ascii)
-    ppu_write_data('N'ascii)
-    ppu_write_data('G'ascii)
-    ppu_write_data(' 'ascii)
-    ppu_write_data('E'ascii)
-    ppu_write_data('L'ascii)
+    ppu_write_data('R'ascii)
+    ppu_write_data('U'ascii)
+    
+    ppu_set_addr(ppu_nametable0 + $100 )
+    ppu_write_data('M'ascii)
+    ppu_write_data('U'ascii)
     ppu_write_data('S'ascii)
+    ppu_write_data('I'ascii)
+    ppu_write_data('C'ascii)
+    ppu_write_data(' 'ascii)
+    ppu_write_data('&'ascii)
+    ppu_write_data(' 'ascii)
+    ppu_write_data('D'ascii)
     ppu_write_data('E'ascii)
+    ppu_write_data('S'ascii)
+    ppu_write_data('I'ascii)
+    ppu_write_data('G'ascii)
+    ppu_write_data('N'ascii)
     ppu_write_data(' 'ascii)
     ppu_write_data('@'ascii)
     ppu_write_data('G'ascii)
@@ -282,6 +293,42 @@ void init_title_screen() {
     ppu_write_data('D'ascii)
     ppu_write_data('O'ascii)
     ppu_write_data('S'ascii)
+    
+    
+    ppu_set_addr(ppu_nametable0 + $140)
+    ppu_write_data('C'ascii)
+    ppu_write_data('O'ascii)
+    ppu_write_data('D'ascii)
+    ppu_write_data('E'ascii)
+    ppu_write_data(' 'ascii)
+    ppu_write_data('R'ascii)
+    ppu_write_data('E'ascii)
+    ppu_write_data('L'ascii)
+    ppu_write_data('E'ascii)
+    ppu_write_data('A'ascii)
+    ppu_write_data('S'ascii)
+    ppu_write_data('E'ascii)
+    ppu_write_data('D'ascii)
+    ppu_write_data(' 'ascii)
+    ppu_write_data('U'ascii)
+    ppu_write_data('N'ascii)
+    ppu_write_data('D'ascii)
+    ppu_write_data('E'ascii)
+    ppu_write_data('R'ascii)
+    ppu_write_data(' 'ascii)
+    ppu_write_data('Z'ascii)
+    ppu_write_data('L'ascii)
+    ppu_write_data('I'ascii)
+    ppu_write_data('B'ascii)
+    ppu_write_data(' 'ascii)
+    ppu_write_data('L'ascii)
+    ppu_write_data('I'ascii)
+    ppu_write_data('C'ascii)
+    ppu_write_data('E'ascii)
+    ppu_write_data('N'ascii)
+    ppu_write_data('S'ascii)
+    ppu_write_data('E'ascii)
+
     
     ppu_set_addr(ppu_nametable0 + $240 + $09)
     ppu_write_data('A'ascii)
@@ -297,7 +344,6 @@ void init_title_screen() {
     ppu_write_data('I'ascii)
     ppu_write_data('O'ascii)
     ppu_write_data('N'ascii)
-
 
     
     ppu_set_addr(ppu_nametable0 + $280 + $09)
