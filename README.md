@@ -213,6 +213,151 @@ When adding animations, it is best to add them to `handle_current_anim` and writ
 
 ### Adding Enemies
 
+To add a new enemy, first create a new file in `src/enemies` named `*.mfk` where `*` is the name of your enemy.
+This file will contain all of the logic that controls this enemy type.  To learn how to program enemies properly, see the
+*Programming Enemies/Enemy Structure* section.
+
+There are 6 functions that must be implemented by each enemy.  They can be named whatever you want, but each of them
+needs to be an `inline void` function and also must handle one of the following:
+
+* initialization (1 argument: byte)
+* animations (1 argument: pointer.Enemy)
+* physics (1 argument: pointer.Enemy)
+* on-screen logic (1 argument: pointer.Enemy)
+* death logic (1 argument: pointer.Enemy)
+* hit by player logic (1 argument: pointer.Enemy)
+
+For example, in `boomba.mfk`, these functions are implemented as follows:
+
+* `inline void init_boomba(byte heap_spot)` : initializes the boomba
+* `inline void handle_boomba_anims(pointer.Enemy enemy_ptr)` : draws boomba sprites into ram based on current animation.
+* `inline void handle_boomba_phys(pointer.Enemy enemy_ptr)` : moves the boomba based on current physics state.
+* `inline void handle_boomba_logic(pointer.Enemy enemy_ptr)` : determines whether boomba should jump or not and updates animation info.
+* `inline void handle_boomba_death_logic(pointer.Enemy enemy_ptr)` : starts up death animation, stops all jumping.
+* `inline void hit_boomba(pointer.Enemy enemy_ptr)` : if the boomba's been hit, set it to the death state.
+
+Once these functions are implemented, you need to hook each of these functions up to the enemy system, located in `enemies.mfk`.
+
+To add your init function (i.e. `init_enemyX`), edit this section in the `spawn_enemies` function:
+
+```
+    if type == 0 {
+        init_boomba(heap_spot)
+    }
+```
+
+to this:
+
+```
+    if type == 0 {
+        init_boomba(heap_spot)
+    }
+    if type == X {
+        init_enemyX(heap_spot)
+    }
+```
+
+Where X is the type number of your new enemy.  Make sure you keep that type number consistent in the following functions
+you'll be adding to.  
+
+**IMPORTANT NOTE FOR ENEMY TYPE NUMBERS**: Enemy type numbers range from 0-127.  This is because **the last bit of the byte
+is reserved as a flag for telling when an enemy is dead**.  This means that when you check an enemies type, you must check
+both its base number (i.e. 0 for boomba) and its base number + 128 (i.e. 128 for boomba).  So the second enemy with type number
+1 also has type number 129, the 3rd enemy with type number 2 also has type number 130, and so on.
+
+With that in mind, here's how to hook up the other functions:
+
+*Enemy Hit*:
+
+In the function `hit_enemy`, change
+```
+    if enemy_ptr->enemy_type == 0 {
+        hit_boomba(enemy_ptr)
+    }
+```
+to
+```
+    if enemy_ptr->enemy_type == 0 {
+        hit_boomba(enemy_ptr)
+    }
+    if enemy_ptr->enemy_type == X {
+        hit_enemyX(enemy_ptr)
+    }
+```
+
+*Enemy Physics*:
+
+In the function `hit_enemy`, change
+```
+    if enemy_ptr->enemy_type == 0 || enemy_ptr->enemy_type == 128{
+        handle_boomba_phys(enemy_ptr)
+    }
+```
+to
+```
+    if enemy_ptr->enemy_type == 0 || enemy_ptr->enemy_type == 128{
+        handle_boomba_phys(enemy_ptr)
+    }
+    if enemy_ptr->enemy_type == 1 || enemy_ptr->enemy_type == 129{
+        handle_enemyX_phys(enemy_ptr)
+    }
+```
+
+*Enemy Animations*:
+
+In the function `handle_enemy_anims`, change
+```
+    if enemy_ptr->enemy_type == 0 || enemy_ptr->enemy_type == 128{
+        handle_boomba_anims(enemy_ptr)
+    }
+```
+to
+```
+    if enemy_ptr->enemy_type == 0 || enemy_ptr->enemy_type == 128{
+        handle_boomba_anims(enemy_ptr)
+    }
+    if enemy_ptr->enemy_type == 1 || enemy_ptr->enemy_type == 129{
+        handle_enemyX_anims(enemy_ptr)
+    }
+```
+
+*Enemy Logic and Death Logic*:
+
+In the function `handle_enemy_logic`, change
+```
+    if enemy_ptr->enemy_type & %10000000 != 0 {
+        //Death flag is on, so handle the death animation
+        if enemy_ptr->enemy_type == (128 + 0) {
+            handle_boomba_death_logic(enemy_ptr)
+        }
+    }
+    if enemy_ptr->enemy_type == 0 {
+        handle_boomba_logic(enemy_ptr)
+    }
+```
+to
+```
+    if enemy_ptr->enemy_type & %10000000 != 0 {
+        //Death flag is on, so handle the death animation
+        if enemy_ptr->enemy_type == (128 + 0) {
+            handle_boomba_death_logic(enemy_ptr)
+        }
+        if enemy_ptr->enemy_type == (128 + 1) {
+            handle_enemyX_death_logic(enemy_ptr)
+        }
+    }
+    if enemy_ptr->enemy_type == 0 {
+        handle_boomba_logic(enemy_ptr)
+    }
+    if enemy_ptr->enemy_type == 1 {
+        handle_enemyX_logic(enemy_ptr)
+    }
+```
+
+With these changes, your new enemy should be ready to be handled by the enemy system.
+
+### Programming Enemies/Enemy Structure
+
 TODO
 
 ## Licensing
