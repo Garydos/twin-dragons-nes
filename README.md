@@ -16,8 +16,10 @@ The resulting binaries are placed in the
 ### Editing Levels
 
 Levels are edited using Tiled.  The `.tmx` files for each level are stored in the `./src/levels/data` directory.
+You must install the python script located in the `tiled_plugin` directory in order to be able to export these maps.
 
-In order to export the maps, install the script located in the `tiled_plugin` directory and then export the level as a `.meta` file.
+To export a map, make sure the python plugin is installed, and then in Tiled you'll be able to click `File->Export` and see `*.meta` as one of the
+"Save as type" options.  In order for the map to export properly, make sure it follows all of these rules:
 * Levels must be a multiple of `16` tiles in width, and exactly `15` tiles in height. 
 * All levels must use `metatiles.png` as their tilesheet.
 * Tiles must be drawn on a tile layer named `Tiles`.  Enemy spawn objects must be placed on an object layer labeled `Enemies`.
@@ -26,6 +28,9 @@ In order to export the maps, install the script located in the `tiled_plugin` di
 i.e. a value of `0` in `enemy_type` will spawn a boomba in that location.
 * There must only be one enemy spawn object per 16 pixel column.
 * Currently the maximum amount of enemy spawns per level is `32`.  This can be changed by changing the size of the arrays found in `levels.mfk`
+
+See `test.tmx` as an example map.
+
 
 All levels must also have their own `.mfk` file which is then imported into the `levels.mfk` file.
 Use `level0.mfk` as a template by copy-pasting its contents into your own `levelX.mfk` file and then replace all the data with your own level data.
@@ -95,7 +100,7 @@ Make sure to edit these functions/ranges if you plan to change which tiles are c
 See `animation_structure.txt` for info on how animation data is structured.  By convention, all frame/animation data is placed at the bottom of `animation.mfk`.
 Once you've got your frame/animation data ready, you need to add them to the functions `handle_current_anim` and `draw_current_frame` in `animation.mfk` in order to use them in-game.
 
-For example, in `draw_current_frame`, if you have a new animation called `health_pickup_static_frame`, you can add it in like so:
+For example, in `draw_current_frame`, if you have a new frame called `health_pickup_static_frame`, you can add it in like so:
 ```
     if frame_num == 0 {
         sprite_draw_frame(player_idle_frame.addr, x,y, mirroring)
