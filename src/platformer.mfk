@@ -58,6 +58,10 @@ void game_logic() {
         player1.invincible = false_macro()
         player1.controllable = false_macro()
         player1.invincibility_timer += 1
+        if player1.invincibility_timer == 1 {
+            FamiToneMusicStop()
+            FamiToneSfxPlay(12,FT_SFX_CH0)
+        }
         if player1.invincibility_timer >= $A0 {
             reset_level = true
             return
@@ -403,6 +407,7 @@ void player_hit(byte amount, byte xcoord) {
                 player1.xaccel = -8
             }
             player1.yvel = -20
+            FamiToneSfxPlay(24,FT_SFX_CH0)
         }
         player1.health -= amount
         if player1.health < 0 {

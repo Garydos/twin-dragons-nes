@@ -78,6 +78,10 @@ void game_main() {
         scrolling_left = false
         new_frame = false
         transition_timer += 1
+        if transition_timer == 1 {
+            FamiToneMusicStop()
+            FamiToneSfxPlay(0,FT_SFX_CH0)
+        }
         if transition_timer >= $80 {
             transition_to_level(next_level)
         }

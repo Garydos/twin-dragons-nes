@@ -97,5 +97,5 @@ inline void hit_boomba(pointer.Enemy enemy_ptr) {
     //set the death flag bit in enemy_type
     enemy_ptr->enemy_type |= %10000000
     enemy_aux_heap[enemy_ptr->id].aux0 = 0
-    FamiToneSfxPlay(20,FT_SFX_CH0)
+    FamiToneSfxPlay(26,FT_SFX_CH0)
 }
