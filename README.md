@@ -45,6 +45,14 @@ Finally, go into `levels.mfk` and in the `load_level` function, add your level l
     }
 ```
 
+Also remember to import your level at the top of the file:
+
+```
+import level0
+import levelX
+[ ... ] (rest of the file)
+```
+
 After this, you should be able to go to any existing level, change `next_level` to your new level's number, and it'll load your new level after completing that one.
 
 ### Adding Graphics
