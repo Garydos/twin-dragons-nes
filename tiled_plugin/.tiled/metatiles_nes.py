@@ -120,7 +120,7 @@ class Example(Plugin):
             enemy_spawn_columns.append(int(enemy.x()) // 8)
             enemy_type = int(enemy.propertyAsString('enemy_type'))
             y_spawn_location = int(enemy.y())
-            enemy_info.append((enemy_type << 4) + y_spawn_location)
+            enemy_info.append((enemy_type << 8) + y_spawn_location)
         #Enemy spawn column numbers
         with open(fileName.rsplit(".",maxsplit=1)[0] + ".enemies", 'wb') as fileHandle:    
             for col in enemy_spawn_columns:

@@ -1,4 +1,5 @@
 import boomba
+import flowa
 
 const byte max_enemies = 8
 
@@ -23,6 +24,19 @@ void init_enemy_heap() {
     enemy_heap_spots_top = max_enemies
     current_enemy_count = 0
     enemy_remove_count = 0
+}
+
+void add_to_enemy_spawn_queue(byte id, byte spawner_flag) {
+    //Pass a spawner_flag value of $FF to not respawn this enemy
+    enemy_spawn_queue[enemy_spawn_count] = id
+    enemy_spawn_count += 1
+}
+
+void clear_enemy_spawn_queue() {
+    while enemy_remove_count > 0 {
+        return_enemy_heap_spot(enemy_remove_queue[enemy_remove_count-1])
+        enemy_remove_count -= 1
+    }
 }
 
 void add_to_enemy_remove_queue(byte id, byte spawner_flag) {
@@ -86,6 +100,9 @@ void spawn_enemy(byte type, byte x, byte y, byte spawner_index) {
     if type == 0 {
         init_boomba(heap_spot)
     }
+    else if type == 1 {
+        init_flowa(heap_spot)
+    }
 }
 
 void cap_phys_obj_vel(pointer.Phys_Obj obj_ptr) {
@@ -123,12 +140,18 @@ void handle_enemy_anims() {
         if enemy_ptr->enemy_type == 0 || enemy_ptr->enemy_type == 128{
             handle_boomba_anims(enemy_ptr)
         }
+        else if enemy_ptr->enemy_type == 1 || enemy_ptr->enemy_type == 129{
+            handle_flowa_anims(enemy_ptr)
+        }
     }
 }
 
 void handle_enemy_phys(pointer.Enemy enemy_ptr) {
     if enemy_ptr->enemy_type == 0 || enemy_ptr->enemy_type == 128{
         handle_boomba_phys(enemy_ptr)
+    }
+    else if enemy_ptr->enemy_type == 1 || enemy_ptr->enemy_type == 129{
+        handle_flowa_phys(enemy_ptr)
     }
 }
 
@@ -138,9 +161,15 @@ void handle_enemy_logic(pointer.Enemy enemy_ptr) {
         if enemy_ptr->enemy_type == (128 + 0) {
             handle_boomba_death_logic(enemy_ptr)
         }
+        else if enemy_ptr->enemy_type == (128 + 1) {
+            handle_flowa_death_logic(enemy_ptr)
+        }
     }
     if enemy_ptr->enemy_type == 0 {
         handle_boomba_logic(enemy_ptr)
+    }
+    else if enemy_ptr->enemy_type == 1 {
+        handle_flowa_logic(enemy_ptr)
     }
 }
 
@@ -201,5 +230,8 @@ void snap_enemy_limits() {
 void hit_enemy(pointer.Enemy enemy_ptr) {
     if enemy_ptr->enemy_type == 0 {
         hit_boomba(enemy_ptr)
+    }
+    if enemy_ptr->enemy_type == 1 {
+        hit_flowa(enemy_ptr)
     }
 }
