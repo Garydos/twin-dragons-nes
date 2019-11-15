@@ -1,0 +1,54 @@
+inline void init_flowah(byte heap_spot) {
+    enemy_heap[heap_spot].pos.width = 16
+    enemy_heap[heap_spot].pos.height = 32
+    enemy_heap[heap_spot].anim.anim_num = 7
+    enemy_heap[heap_spot].anim.anim_frame = 0
+    enemy_heap[heap_spot].anim.frame_timer = 0
+    enemy_heap[heap_spot].mirroring = false
+    //use aux0 as a timer for the jump
+    // enemy_aux_heap[heap_spot].aux0 = 0
+    //use aux1 as a jump flag
+    // enemy_aux_heap[heap_spot].aux1 = 0
+    //use aux2 as yaccel
+    // enemy_aux_heap[heap_spot].aux2 = 0
+}
+
+inline void handle_flowah_anims(pointer.Enemy enemy_ptr) {
+    handle_current_anim(pointer.Anim(enemy_ptr->anim.addr), enemy_ptr->pos.x, enemy_ptr->pos.y, enemy_ptr->mirroring)
+}
+
+inline void handle_flowah_phys(pointer.Enemy enemy_ptr) {
+    //Flowahs never move, don't do anything
+}
+
+inline void handle_flowah_death_logic(pointer.Enemy enemy_ptr) {
+    switch_anim(pointer.Anim(enemy_ptr->anim.addr), 9, true)
+    //aux2 = death timer
+    enemy_aux_heap[enemy_ptr->id].aux0 += 1
+    if enemy_aux_heap[enemy_ptr->id].aux0 >= $20 {
+        add_to_enemy_remove_queue(enemy_ptr->id, enemy_aux_heap[enemy_ptr->id].spawner)
+    }
+    phys_obj_apply_gravity(pointer.Phys_Obj(enemy_ptr))
+}
+
+inline void handle_flowah_logic(pointer.Enemy enemy_ptr) {
+    byte yaccel
+    byte jumping
+    byte jump_timer
+    
+    jump_timer = enemy_aux_heap[enemy_ptr->id].aux0
+    jumping = enemy_aux_heap[enemy_ptr->id].aux1
+    yaccel = enemy_aux_heap[enemy_ptr->id].aux2
+    
+    
+    
+    enemy_aux_heap[enemy_ptr->id].aux0 = jump_timer
+    enemy_aux_heap[enemy_ptr->id].aux1 = jumping
+    enemy_aux_heap[enemy_ptr->id].aux2 = yaccel
+}
+
+inline void hit_flowah(pointer.Enemy enemy_ptr) {
+    //set the death flag bit in enemy_type
+    enemy_ptr->enemy_type |= %10000000
+    FamiToneSfxPlay(26,FT_SFX_CH0)
+}
