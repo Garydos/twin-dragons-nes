@@ -1,0 +1,35 @@
+inline void init_fireball(byte heap_spot) {
+    enemy_heap[heap_spot].pos.width = 8
+    enemy_heap[heap_spot].pos.height = 8
+    enemy_heap[heap_spot].anim.anim_num = 10
+    enemy_heap[heap_spot].anim.anim_frame = 0
+    enemy_heap[heap_spot].anim.frame_timer = 0
+    enemy_heap[heap_spot].mirroring = false
+    //use aux0 as direction to move in
+    enemy_aux_heap[heap_spot].aux0 = 0
+}
+
+inline void handle_fireball_anims(pointer.Enemy enemy_ptr) {
+    handle_current_anim(pointer.Anim(enemy_ptr->anim.addr), enemy_ptr->pos.x, enemy_ptr->pos.y, enemy_ptr->mirroring)
+}
+
+inline void handle_fireball_phys(pointer.Enemy enemy_ptr) {
+    if enemy_aux_heap[enemy_ptr->id].aux0 == 0 {
+        enemy_ptr->pos.x -= enemy_ptr->xvel
+    }
+    else {
+        enemy_ptr->pos.x += enemy_ptr->xvel
+    }
+}
+
+inline void handle_fireball_death_logic(pointer.Enemy enemy_ptr) {
+}
+
+inline void handle_fireball_logic(pointer.Enemy enemy_ptr) {
+}
+
+inline void hit_fireball(pointer.Enemy enemy_ptr) {
+    //the player managed to hit us before we hit them,
+    //so just die, and don't respawn
+    add_to_enemy_remove_queue(enemy_ptr->id, $FF)
+}

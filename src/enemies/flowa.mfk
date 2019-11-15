@@ -28,12 +28,19 @@ inline void handle_flowa_death_logic(pointer.Enemy enemy_ptr) {
 
 inline void handle_flowa_logic(pointer.Enemy enemy_ptr) {
     byte attack_timer
+    byte fireball_id
     
     attack_timer = enemy_aux_heap[enemy_ptr->id].aux0
     
     attack_timer += 1
     if attack_timer == $28 {
         switch_anim(pointer.Anim(enemy_ptr->anim.addr), 8, true)
+        //spawn a fireball
+        fireball_id = spawn_enemy(2, enemy_ptr->pos.x, enemy_ptr->pos.y, $FF)
+        if current_enemy_count < 8 {
+            enemy_heap[fireball_id].xvel = 2 //set the fireball's velocity
+            enemy_aux_heap[fireball_id].aux0 = 0 //set the direction the fireball moves in
+        }
     }
     if attack_timer >= $48 {
         //reset attack timer

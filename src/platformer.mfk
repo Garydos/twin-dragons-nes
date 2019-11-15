@@ -344,6 +344,7 @@ void player_attack() {
             hit_enemy(enemy_ptr)
         }
     }
+    clear_enemy_remove_queue() //clear any enemies that immediately died
 }
 
 inline void prepare_scrolling() {

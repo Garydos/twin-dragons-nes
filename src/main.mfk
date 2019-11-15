@@ -65,7 +65,7 @@ void main() {
 void title_screen_main() {
     read_joy1()
     if input_start != 0 {
-        transition_to_level(0)
+        transition_to_level(1)
     }
 }
 
