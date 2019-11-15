@@ -41,7 +41,7 @@ void uncompress_attr_column(pointer attrs_ptr) {
     j = 0
     i = 0
     l = 0
-    while j < $07{
+    while j < $08{
         k = attrs_ptr[i]
         while k > 0 {
             uncompressed_attr_column[l] = attrs_ptr[i+1]
@@ -71,7 +71,7 @@ void uncompress_metatile_column(pointer metatiles_ptr) {
     //j keeps track of the amount of tiles we have written in total.
     //a column is 16 metatiles, so we want to stop once we've reached
     //that amount in total
-    while j < $0F{
+    while j < $10{
         //first byte of RLE encoded column indicates how many of
         //this metatile are to be written
         k = metatiles_ptr[i]

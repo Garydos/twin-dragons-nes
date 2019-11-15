@@ -68,6 +68,12 @@ void load_level(byte level_num) {
     word colnum
     word xloc
     
+    //clear out the previous level's spawn info
+    for i,0,until,32 {
+        spawn_column_locations[i] = $0000
+        spawn_info[i] = $0000
+    }
+    
     if level_num == 0 {
         load_level0()
     }
