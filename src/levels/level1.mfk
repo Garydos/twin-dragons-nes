@@ -1,0 +1,45 @@
+inline void load_level1() {
+    //Set up the music
+    FamiToneInit($01, twin_dragons_ost.addr)
+    FamiToneSfxInit(twin_dragons_sfx.addr)
+    FamiToneMusicPlay($01)
+    //Copy over the enemy spawn information to a buffer in ram
+    memcpy(spawn_column_locations, level1_spawn_column_locations, level1_num_spawn_locations[0] * 2)
+    memcpy(spawn_info, level1_spawn_info, level1_num_spawn_locations[0] * 2)
+    //Set the total number of spawn locations
+    num_spawn_locations = level1_num_spawn_locations[0]
+    //Have the level tile pointer point to this level's metatiles
+    current_level_tiles = level1_metatiles
+    //Set the end point of this level's metatiles
+    current_level_tiles_end.hi = level1_width[1]
+    current_level_tiles_end.lo = level1_width[0]
+    current_level_tiles_end += current_level_tiles
+    //Have the level attributes pointer point to this level's attributes
+    current_level_attrs = level1_attrs
+    //Set the end point of this level's attributes
+    current_level_attrs_end.hi = level1_attr_width[1]
+    current_level_attrs_end.lo = level1_attr_width[0]
+    current_level_attrs_end += current_level_attrs
+    //Set the maximum screen number the player can scroll to
+    max_screen = level1_max_screen[0]
+    //Load up this level's palettes
+    load_palletes(0)
+    //Load the intial screen
+    load_screen(0)
+    //Set the next level to go to after completing this level
+    next_level = 0
+    
+    //Spawn the player at this location
+    init_player1($40, $30)
+}
+
+//These are the files that are created by Tiled when you export a level
+//Remember to update this if you create new level data
+const array level1_max_screen = file("data/level1.max_screen")
+const array level1_spawn_column_locations = file("data/level1.enemies")
+const array level1_spawn_info = file("data/level1.enemies_info")
+const array level1_num_spawn_locations = file("data/level1.enemy_spawn_num")
+const array level1_metatiles = file("data/level1.meta")
+const array level1_attrs = file("data/level1.attrs")
+const array level1_width = file("data/level1.meta_size")
+const array level1_attr_width = file("data/level1.attrs_size")
