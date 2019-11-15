@@ -45,7 +45,7 @@ void draw_level_load_screen() {
     ppu_write_data('E'ascii)
     ppu_write_data('L'ascii)
     ppu_write_data(' 'ascii)
-    ppu_write_data(current_level + $30)
+    ppu_write_data(current_level + $31)
 }
 
 inline void load_black_background() {
