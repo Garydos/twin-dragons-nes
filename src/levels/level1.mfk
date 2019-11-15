@@ -24,6 +24,8 @@ inline void load_level1() {
     max_screen = level1_max_screen[0]
     //Load up this level's palettes
     load_palletes(0)
+    //Set the background color
+    set_background_color($1C)
     //Load the intial screen
     load_screen(0)
     //Set the next level to go to after completing this level
