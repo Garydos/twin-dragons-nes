@@ -35,6 +35,7 @@ inline void handle_flowa_logic(pointer.Enemy enemy_ptr) {
     attack_timer += 1
     if attack_timer == $28 {
         switch_anim(pointer.Anim(enemy_ptr->anim.addr), 8, true)
+        FamiToneSfxPlay(24,FT_SFX_CH0)
         //spawn a fireball
         fireball_id = spawn_enemy(2, enemy_ptr->pos.x, enemy_ptr->pos.y, $FF)
         if current_enemy_count < 8 {
@@ -54,5 +55,6 @@ inline void handle_flowa_logic(pointer.Enemy enemy_ptr) {
 inline void hit_flowa(pointer.Enemy enemy_ptr) {
     //set the death flag bit in enemy_type
     enemy_ptr->enemy_type |= %10000000
+    enemy_aux_heap[enemy_ptr->id].aux0 = 0
     FamiToneSfxPlay(26,FT_SFX_CH0)
 }
