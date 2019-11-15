@@ -356,9 +356,54 @@ to
 
 With these changes, your new enemy should be ready to be handled by the enemy system.
 
-### Programming Enemies/Enemy Structure
+### Programming Enemy Logic
 
-TODO
+Enemies are spawned using the `spawn_enemy` function, which is automatically called for any spawners that were placed in the Tiled map.
+
+Enemies are despawned using the `add_to_enemy_remove_queue` function.  If you don't want your enemy to respawn, pass in the value `$FF` as
+the second argument to the function.
+
+When programming enemy logic, each enemy gets its own location in memory with its own `Enemy` struct.
+The `Enemy` structure definition is located in `game_lib.mfk` and is exactly 16 bytes in size for alignment reasons:
+```
+struct Enemy {
+    Box pos,
+    byte xfrac, //fractional part of player's x coordinate, can range from 0-3 (first 2 bits)
+    byte yfrac, //fractional part of player's y coordinate, can range from 0-3 (first 2 bits)
+    sbyte xvel,
+    sbyte yvel,
+    byte on_slope,
+    bool on_ground,
+    byte id,
+    byte enemy_type,
+    Anim anim,
+    bool mirroring
+}
+```
+(Anim structs are 3 bytes long, Box structs are 4 bytes long, bools and sbytes are single bytes)
+
+Each on-screen enemy is given these bytes to access through its position in the `enemy_heap` array.
+The only property that you **_should not_** change during the enemy's lifetime is its `id` and `enemy_type` properties,
+as these are used by various functions in `enemies.mfk` to update the enemies each frame.
+Every other property, however, can be used to store whatever you wish, even in spite of their names.
+While most enemies will end up using these variables for intended purposes, you could use them for other purposes,
+i.e. if you have a completely stationary enemy, then you could use the `xvel` and `yvel` variables for other
+purposes, since they'll never be used in that enemy's `physics_update` function.
+
+Each enemy also has an additional 4 bytes of storage in the form of reserved bytes in the `enemy_aux_heap` heap,
+which is an array of `Enemy_Aux` structs:
+
+```
+struct Enemy_Aux {
+    byte spawner, //reference number for spawner, used to respawn
+    byte aux0,
+    byte aux1,
+    byte aux2
+}
+```
+
+In general, the `spawner` property should not be changed, but if your enemy will never respawn, then you can
+use it for other purposes.  The rest of the bytes are auxillary bytes that can be used however you need.
 
 ## Licensing
 * Some artwork in this project was originally made by [surt](https://opengameart.org/content/twin-dragons) and is distributed here under a CC-BY 3.0 license.
