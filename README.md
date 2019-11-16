@@ -2,6 +2,12 @@
 
 *An NES Platformer Written In [Millfork](https://github.com/KarolS/millfork)*
 
+*Controls:*
+* _A - Jump_
+* _B - Attack_
+* _D-Pad - Move_
+* _Start - Pause_
+
 ![Twin Dragons Gameplay](https://raw.githubusercontent.com/Garydos/twin-dragons-nes/master/res/twin_dragons.gif)
 
 ---
