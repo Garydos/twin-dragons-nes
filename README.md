@@ -6,6 +6,11 @@
 
 ---
 
+**Plese note that currently the cartridge space is completely filled up!  This means that if you want to add anything,
+it would be necessary to remove something to make more room (I recommend removing either Famitone or one of the levels
+to make more space).  I plan to eventually port this game over to using UxROM instead of NROM to get more PRGROM space,
+so check back to get that version if you plan to use this project as a starting point for a new project.**
+
 ## Building
 
 Run `make.bat` to compile.  Make sure to edit `make.bat` to point to your Millfork installation before running it.
