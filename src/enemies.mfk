@@ -227,7 +227,8 @@ void snap_enemy_limits() {
             enemy_ptr->on_ground = true
         }
         else if enemy_ptr->pos.y < up_screen_limit {
-            add_to_enemy_remove_queue(enemy_ptr->id, enemy_aux_heap[enemy_ptr->id].spawner)
+            enemy_ptr->pos.y = up_screen_limit
+            enemy_ptr->yvel = 0
         }
     }
 }

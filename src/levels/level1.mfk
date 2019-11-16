@@ -29,7 +29,7 @@ inline void load_level1() {
     //Load the intial screen
     load_screen(0)
     //Set the next level to go to after completing this level
-    next_level = 0
+    next_level = 2
     
     //Spawn the player at this location
     init_player1($40, $30)

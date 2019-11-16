@@ -1,6 +1,6 @@
 const byte right_screen_limit = $EF
 const byte left_screen_limit = $08
-const byte up_screen_limit = $20
+const byte up_screen_limit = $18
 const byte down_screen_limit = $D0
 volatile byte scroll_speed
 volatile bool reset_level
@@ -368,6 +368,7 @@ inline void prepare_scrolling() {
     else if player1.pos.x < scroll_left_boundary && not(current_screen == 0 && xscroll == 0) {
         //update the position of the screen sprites
         scroll_speed = scroll_left_boundary - player1.pos.x
+        //fix scroll_speed so that we never overshoot the left scroll limit
         if current_screen == 0 && (xscroll - scroll_speed) > xscroll {
             scroll_speed = xscroll
         }

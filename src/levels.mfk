@@ -1,5 +1,6 @@
 import level0
 import level1
+import level2
 
 //level column that the spawn triggers on, MUST BE SORTED LOW TO HIGH
 array(word) spawn_column_locations [32] align(64)
@@ -79,6 +80,14 @@ void load_level(byte level_num) {
     }
     else if level_num == 1 {
         load_level1()
+    }
+    else if level_num == 2 {
+        load_level2()
+    }
+    else if level_num == $FF {
+        init_title_screen()
+        gamestate = 0
+        return
     }
     
     touched_goal = 0
