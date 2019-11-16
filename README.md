@@ -418,6 +418,6 @@ use it for other purposes.  The rest of the bytes are auxillary bytes that can b
 
 ## Licensing
 * Some artwork in this project was originally made by [surt](https://opengameart.org/content/twin-dragons) and is distributed here under a CC-BY 3.0 license.
-* All code (except famitone2) is released under a zlib license (see LICENSE). For famitone2, see readme.txt in the famitone2 directory
-* Music in the `famitone2` directory and the SFX `twin_dragons_sfx.ftm` file in the `music` directory is made by [Shiru](https://shiru.untergrund.net/), all rights reserved to Shiru.
+* All code (except famitone5) is released under a zlib license (see LICENSE). For famitone5, see readme.txt in the famitone5 directory. Famitone2 originally made by [Shiru](https://shiru.untergrund.net/), Famitone5 made by [nesdoug](https://nesdoug.com/)
+* Music in the `famitone5` directory and the SFX `twin_dragons_sfx.ftm` file in the `music` directory is made by [Shiru](https://shiru.untergrund.net/), all rights reserved.
 * All other music is made by [Garydos](https://github.com/Garydos) and is released under a Creative Commons 4.0 BY license.
